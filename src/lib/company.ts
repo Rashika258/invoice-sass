@@ -8,5 +8,5 @@ export const defaultCompany = {
   gstin: "29AEZPC6364C1Z5",
   state: "Karnataka",
   code: "29",
-  logoUrl: "/logo.png", // optional: place a logo at public/logo.png
+  logoUrl: "/logo.png",
 };
