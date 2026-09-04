@@ -131,24 +131,24 @@ export function AppSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r bg-card lg:flex">
-      <div className="border-b px-6 py-5">
+    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+      <div className="border-b border-sidebar-border px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold">InvoiceFlow</p>
-            <p className="truncate text-xs text-muted-foreground">{companyName}</p>
+            <p className="text-sm font-bold tracking-tight">InvoiceFlow</p>
+            <p className="truncate text-xs text-sidebar-foreground/55">{companyName}</p>
           </div>
         </Link>
       </div>
 
       <NavLinks pathname={pathname} />
 
-      <div className="mt-auto border-t p-4">
-        <div className="mb-3 rounded-lg bg-muted/60 px-3 py-2">
-          <p className="text-xs text-muted-foreground">Signed in as</p>
+      <div className="mt-auto border-t border-sidebar-border p-4">
+        <div className="mb-3 rounded-xl bg-sidebar-accent px-3 py-2.5">
+          <p className="text-xs text-sidebar-foreground/55">Signed in as</p>
           <p className="truncate text-sm font-medium">{userName}</p>
         </div>
         <form action={logoutUser}>
