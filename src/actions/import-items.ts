@@ -71,9 +71,11 @@ export async function importItemsInBulk(items: BulkImportItem[]) {
   return { success: true, count: created.length };
 }
 
-export async function importFromVyaparLibrary() {
+export async function importFromBilloraLibrary() {
   return await importItemsInBulk(PREDEFINED_RETAIL_LIBRARY);
 }
+
+export const importFromVyaparLibrary = importFromBilloraLibrary;
 
 export async function quickAddBarcodeItem(barcode: string, name: string, price: number, purchasePrice: number = 0) {
   const organization = await requireOrganization();

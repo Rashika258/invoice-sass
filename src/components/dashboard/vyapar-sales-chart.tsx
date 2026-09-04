@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, useState } from "react";
-import { format, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { formatCurrency } from "@/lib/invoice-utils";
 
 type TransactionRecord = {
@@ -12,7 +12,7 @@ type TransactionRecord = {
 
 type TimeRange = "3m" | "30d" | "7d";
 
-// Convert points to Catmull-Rom cubic bezier spline for natural waves
+// Convert points to Catmull-Rom cubic bezier spline for natural smooth curves
 function getCatmullRomSplinePath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
@@ -25,7 +25,6 @@ function getCatmullRomSplinePath(points: { x: number; y: number }[]): string {
     const p2 = points[i + 1];
     const p3 = points[Math.min(points.length - 1, i + 2)];
 
-    // Catmull-Rom to Cubic Bezier conversion
     const cp1x = p1.x + (p2.x - p0.x) / 6;
     const cp1y = p1.y + (p2.y - p0.y) / 6;
     const cp2x = p2.x - (p3.x - p1.x) / 6;
@@ -47,7 +46,7 @@ export function VyaparSalesChart({
   currency?: string;
 }) {
   const [timeRange, setTimeRange] = useState<TimeRange>("3m");
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(1); // Default active index matching reference screenshot
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(1);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const chartId = useId().replace(/:/g, "_");
 
@@ -56,7 +55,6 @@ export function VyaparSalesChart({
     const today = new Date();
 
     if (timeRange === "7d") {
-      // Last 7 days
       return Array.from({ length: 7 }, (_, i) => {
         const targetDate = subDays(today, 6 - i);
         const dayStr = format(targetDate, "yyyy-MM-dd");
@@ -80,13 +78,11 @@ export function VyaparSalesChart({
     }
 
     if (timeRange === "30d") {
-      // 10 key sampling intervals across 30 days
       return Array.from({ length: 10 }, (_, i) => {
         const daysAgo = Math.round(30 - (i * 30) / 9);
         const targetDate = subDays(today, daysAgo);
         const displayLabel = format(targetDate, "MMM d");
 
-        // Window of 3 days around target
         const startWindow = subDays(targetDate, 1);
         const endWindow = subDays(targetDate, -1);
 
@@ -113,13 +109,12 @@ export function VyaparSalesChart({
       });
     }
 
-    // Default "3m" (Last 3 months: 7 evenly spaced tick dates like Jun 24 .. Jun 30 in screenshot)
+    // Default "3m" (Last 3 months: 7 evenly spaced tick dates)
     return Array.from({ length: 7 }, (_, i) => {
       const daysAgo = Math.round(90 - (i * 90) / 6);
       const targetDate = subDays(today, daysAgo);
       const displayLabel = format(targetDate, "MMM d");
 
-      // 12-day rolling window
       const startWindow = subDays(targetDate, 6);
       const endWindow = subDays(targetDate, -6);
 
@@ -146,14 +141,12 @@ export function VyaparSalesChart({
     });
   }, [sales, purchases, timeRange]);
 
-  // If no transactions have been made yet, supply aesthetic baseline wave values matching the screenshot
   const enrichedData = useMemo(() => {
     const hasSales = chartData.some((d) => d.sales > 0);
     const hasPurchases = chartData.some((d) => d.purchases > 0);
 
-    // Realistic harmonious wave mock profile matching media_1788511192814.png
-    const mockSalesWave = [80, 180, 220, 310, 240, 120, 260, 200, 290, 340];
-    const mockPurchasesWave = [140, 132, 90, 150, 180, 110, 80, 95, 120, 160];
+    const mockSalesWave = [120, 240, 190, 310, 260, 340, 290];
+    const mockPurchasesWave = [80, 140, 110, 160, 130, 200, 150];
 
     return chartData.map((item, idx) => {
       const fallbackSales = mockSalesWave[idx % mockSalesWave.length];
@@ -169,16 +162,14 @@ export function VyaparSalesChart({
     });
   }, [chartData]);
 
-  // Max value calculation for vertical scaling
   const maxVal = useMemo(() => {
     const highest = Math.max(
       ...enrichedData.map((d) => Math.max(d.displaySales, d.displayPurchases)),
       50,
     );
-    return highest * 1.25; // 25% head room for smooth curves
+    return highest * 1.25;
   }, [enrichedData]);
 
-  // SVG dimensions
   const width = 800;
   const height = 240;
   const paddingX = 30;
@@ -186,21 +177,18 @@ export function VyaparSalesChart({
   const chartHeight = height - 2 * paddingY;
   const chartWidth = width - 2 * paddingX;
 
-  // Compute points for Series 1 (Sales / Primary Violet)
   const salesPoints = enrichedData.map((item, index) => {
     const x = paddingX + (index / (enrichedData.length - 1 || 1)) * chartWidth;
     const y = height - paddingY - (item.displaySales / maxVal) * chartHeight;
     return { x, y, ...item };
   });
 
-  // Compute points for Series 2 (Purchases / Secondary Zinc)
   const purchasePoints = enrichedData.map((item, index) => {
     const x = paddingX + (index / (enrichedData.length - 1 || 1)) * chartWidth;
     const y = height - paddingY - (item.displayPurchases / maxVal) * chartHeight;
     return { x, y, ...item };
   });
 
-  // Construct smooth SVG Spline paths
   const salesSplinePath = getCatmullRomSplinePath(salesPoints);
   const salesAreaPath = salesPoints.length
     ? `${salesSplinePath} L ${salesPoints[salesPoints.length - 1].x.toFixed(1)} ${height - paddingY} L ${salesPoints[0].x.toFixed(1)} ${height - paddingY} Z`
@@ -211,14 +199,12 @@ export function VyaparSalesChart({
     ? `${purchaseSplinePath} L ${purchasePoints[purchasePoints.length - 1].x.toFixed(1)} ${height - paddingY} L ${purchasePoints[0].x.toFixed(1)} ${height - paddingY} Z`
     : "";
 
-  // Pointer move handler to inspect values
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
     const normalizedX = (clientX / rect.width) * width;
 
-    // Find closest data point
     let closestIdx = 0;
     let minDistance = Infinity;
     salesPoints.forEach((pt, i) => {
@@ -235,34 +221,45 @@ export function VyaparSalesChart({
   const activeSalePoint = hoveredIndex !== null ? salesPoints[hoveredIndex] : null;
   const activePurchasePoint = hoveredIndex !== null ? purchasePoints[hoveredIndex] : null;
 
-  // Subtitle text matching reference image
   const periodSubtitle =
     timeRange === "3m"
-      ? "Total for the last 3 months"
+      ? "Billing trends over the last 3 months"
       : timeRange === "30d"
-        ? "Total for the last 30 days"
-        : "Total for the last 7 days";
+        ? "Daily turnover for the last 30 days"
+        : "Turnover for the last 7 days";
 
   return (
-    <div className="w-full rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs transition-all dark:border-zinc-800/80 dark:bg-[#121214]">
-      {/* Top Header matching reference screenshot */}
+    <div className="w-full rounded-xl border border-border bg-card p-5 shadow-xs transition-all">
+      {/* Top Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-white">
-            Total Revenue &amp; Volume
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">{periodSubtitle}</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Revenue &amp; Purchase Overview
+            </h2>
+            <div className="hidden sm:flex items-center gap-3 ml-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-emerald-500" />
+                Sales
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-slate-400" />
+                Purchases
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">{periodSubtitle}</p>
         </div>
 
-        {/* Segmented Period Tabs matching screenshot: [Last 3 months] [Last 30 days] [Last 7 days] */}
-        <div className="inline-flex items-center rounded-lg border border-zinc-800 bg-zinc-950 p-1 text-xs font-medium">
+        {/* Time Filter Tabs */}
+        <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-1 text-xs">
           <button
             type="button"
             onClick={() => setTimeRange("3m")}
-            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer ${
+            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer font-medium ${
               timeRange === "3m"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Last 3 months
@@ -270,10 +267,10 @@ export function VyaparSalesChart({
           <button
             type="button"
             onClick={() => setTimeRange("30d")}
-            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer ${
+            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer font-medium ${
               timeRange === "30d"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Last 30 days
@@ -281,10 +278,10 @@ export function VyaparSalesChart({
           <button
             type="button"
             onClick={() => setTimeRange("7d")}
-            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer ${
+            className={`rounded-md px-3 py-1 text-xs transition-all cursor-pointer font-medium ${
               timeRange === "7d"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Last 7 days
@@ -292,7 +289,7 @@ export function VyaparSalesChart({
         </div>
       </div>
 
-      {/* SVG Multi-Wave Spline Area Chart */}
+      {/* SVG Chart Area */}
       <div className="relative mt-5 h-[230px] w-full select-none">
         <svg
           ref={svgRef}
@@ -300,86 +297,76 @@ export function VyaparSalesChart({
           className="h-full w-full overflow-visible cursor-crosshair touch-none"
           preserveAspectRatio="none"
           onPointerMove={handlePointerMove}
-          onPointerLeave={() => {
-            // Keep the active point visible like in the screenshot
-          }}
         >
           <defs>
-            {/* Primary Violet / Purple Wave Glow */}
+            {/* Emerald Gradient for Sales */}
             <linearGradient id={`${chartId}_salesGlow`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.45" />
-              <stop offset="60%" stopColor="#8b5cf6" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+              <stop offset="70%" stopColor="#10b981" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
             </linearGradient>
 
-            {/* Secondary Zinc / Silver Wave Glow */}
+            {/* Slate Gradient for Purchases */}
             <linearGradient id={`${chartId}_purchaseGlow`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#e4e4e7" stopOpacity="0.22" />
-              <stop offset="60%" stopColor="#e4e4e7" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#e4e4e7" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#64748b" stopOpacity="0.2" />
+              <stop offset="70%" stopColor="#64748b" stopOpacity="0.03" />
+              <stop offset="100%" stopColor="#64748b" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
-          {/* Background Area Fills */}
+          {/* Horizontal Grid lines */}
+          <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="currentColor" className="text-border/40" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={paddingY + chartHeight / 2} x2={width - paddingX} y2={paddingY + chartHeight / 2} stroke="currentColor" className="text-border/40" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="currentColor" className="text-border/60" />
+
+          {/* Area fills */}
           <path d={purchaseAreaPath} fill={`url(#${chartId}_purchaseGlow)`} />
           <path d={salesAreaPath} fill={`url(#${chartId}_salesGlow)`} />
 
-          {/* Secondary Purchases Wave Line (White / Silver) */}
+          {/* Lines */}
           <path
             d={purchaseSplinePath}
             fill="none"
-            stroke="#e4e4e7"
+            stroke="#94a3b8"
             strokeWidth="1.75"
             strokeLinecap="round"
-            className="opacity-80"
           />
-
-          {/* Primary Sales Wave Line (Violet / Purple Glow) */}
           <path
             d={salesSplinePath}
             fill="none"
-            stroke="#a78bfa"
+            stroke="#10b981"
             strokeWidth="2.2"
             strokeLinecap="round"
           />
 
-          {/* Vertical Crosshair Line and Circular Markers on Hover */}
+          {/* Crosshair & Tooltip */}
           {activeSalePoint && activePurchasePoint && (
             <g className="transition-all duration-150">
-              {/* Dashed vertical crosshair */}
               <line
                 x1={activeSalePoint.x}
                 y1={paddingY}
                 x2={activeSalePoint.x}
                 y2={height - paddingY}
-                stroke="#52525b"
+                stroke="currentColor"
+                className="text-border"
                 strokeWidth="1"
-                strokeDasharray="3 3"
-                opacity="0.7"
+                strokeDasharray="2 2"
               />
 
-              {/* Purchase point marker */}
               <circle
                 cx={activePurchasePoint.x}
                 cy={activePurchasePoint.y}
-                r="4.5"
-                className="fill-white stroke-zinc-900 stroke-[2]"
+                r="4"
+                className="fill-background stroke-slate-500 stroke-2"
               />
 
-              {/* Sale point marker */}
               <circle
                 cx={activeSalePoint.x}
                 cy={activeSalePoint.y}
-                r="5"
-                className="fill-[#a78bfa] stroke-zinc-950 stroke-[2.5]"
+                r="4.5"
+                className="fill-background stroke-emerald-500 stroke-2"
               />
 
-              {/* Floating Tooltip matching reference screenshot:
-                  Black pill/card box showing:
-                  Jun 24
-                  ■ Mobile   180
-                  ■ Desktop  132
-              */}
               <foreignObject
                 x={Math.min(
                   Math.max(activeSalePoint.x - 65, 10),
@@ -387,33 +374,33 @@ export function VyaparSalesChart({
                 )}
                 y={Math.max(
                   Math.min(activeSalePoint.y, activePurchasePoint.y) - 85,
-                  8,
+                  6,
                 )}
-                width="140"
+                width="145"
                 height="80"
                 className="overflow-visible pointer-events-none"
               >
-                <div className="rounded-lg border border-zinc-800 bg-zinc-950/95 p-2.5 text-[11px] text-zinc-100 shadow-xl backdrop-blur-md">
-                  <div className="font-semibold text-zinc-300">
+                <div className="rounded-lg border border-border bg-popover/95 p-2.5 text-[11px] text-popover-foreground shadow-lg backdrop-blur-xs">
+                  <div className="font-medium text-muted-foreground">
                     {activeSalePoint.label}
                   </div>
                   <div className="mt-1.5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
-                      <span className="size-2 rounded-xs bg-[#a78bfa]" />
+                    <div className="flex items-center gap-1.5">
+                      <span className="size-2 rounded-full bg-emerald-500" />
                       <span>Sales</span>
                     </div>
-                    <span className="font-mono font-medium text-white">
+                    <span className="font-semibold text-foreground">
                       {activeSalePoint.isRealSales
                         ? formatCurrency(activeSalePoint.sales, currency)
                         : `₹${activeSalePoint.displaySales}`}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
-                      <span className="size-2 rounded-xs bg-zinc-400" />
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <span className="size-2 rounded-full bg-slate-400" />
                       <span>Purchases</span>
                     </div>
-                    <span className="font-mono font-medium text-zinc-300">
+                    <span className="font-medium text-muted-foreground">
                       {activePurchasePoint.isRealPurchases
                         ? formatCurrency(activePurchasePoint.purchases, currency)
                         : `₹${activePurchasePoint.displayPurchases}`}
@@ -426,8 +413,8 @@ export function VyaparSalesChart({
         </svg>
       </div>
 
-      {/* X Axis Labels matching reference screenshot: Jun 24, Jun 25, Jun 26, Jun 27, Jun 28, Jun 29, Jun 30 */}
-      <div className="flex justify-between px-3 pt-2 text-[11px] font-medium text-zinc-400">
+      {/* X Axis Labels */}
+      <div className="flex justify-between px-3 pt-2 text-[11px] font-medium text-muted-foreground">
         {enrichedData.map((item, idx) => (
           <span key={`lbl-${item.label}-${idx}`} className="text-center">
             {item.label}

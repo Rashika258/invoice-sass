@@ -2,9 +2,11 @@ import Link from "next/link";
 import { ArrowLeft, Barcode, Printer } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireOrganization } from "@/lib/organization";
-import { Button } from "@/components/ui/button";
+import { BarcodePrintButton } from "@/components/utilities/barcode-print-button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -51,9 +53,12 @@ export default async function BarcodeGeneratorPage() {
           <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
             Add items first or import from the retail library to generate printable barcodes.
           </p>
-          <Button render={<Link href="/utilities/import-items" />} className="mt-4 text-xs font-semibold">
+          <Link
+            href="/utilities/import-items"
+            className={cn(buttonVariants({ size: "sm" }), "mt-4 text-xs font-semibold")}
+          >
             Import Items Now
-          </Button>
+          </Link>
         </Card>
       ) : (
         <div className="space-y-4">
@@ -61,14 +66,7 @@ export default async function BarcodeGeneratorPage() {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Ready to print ({items.length} stickers)
             </span>
-            <button
-              type="button"
-              onClick={() => {}}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground print:hidden cursor-pointer"
-            >
-              <Printer className="size-3.5" />
-              <span>Print Sticker Sheet</span>
-            </button>
+            <BarcodePrintButton />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

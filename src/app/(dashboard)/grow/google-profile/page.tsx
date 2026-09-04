@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Copy, ExternalLink, Globe, Star, ThumbsUp } from "lucide-react";
 import { getCompanyProfile } from "@/actions/settings";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +84,12 @@ export default async function GoogleProfilePage() {
             </div>
           </div>
 
-          <Button render={<Link href="/settings" />} className="w-full text-xs font-semibold rounded-xl mt-4">
+          <Link
+            href="/settings"
+            className={cn(buttonVariants(), "w-full text-xs font-semibold rounded-xl mt-4")}
+          >
             Configure Profile Settings
-          </Button>
+          </Link>
         </Card>
       </div>
     </div>

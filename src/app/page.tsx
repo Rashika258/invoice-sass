@@ -55,18 +55,18 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg shadow-sm">
-              V
+            <span className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background font-black text-lg shadow-xs">
+              B
             </span>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-black tracking-tight text-foreground">Vyapar</span>
+                <span className="text-base font-bold tracking-tight text-foreground">Billora</span>
                 <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-bold text-emerald-600">
-                  GST READY
+                  OPERATIONS SUITE
                 </span>
               </div>
               <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">
-                Billing & Inventory Software
+                Billing, Inventory &amp; Attendance Platform
               </p>
             </div>
           </Link>

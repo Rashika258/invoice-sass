@@ -20,6 +20,7 @@ export const itemSchema = z.object({
   description: z.string().optional(),
   hsn: z.string().optional(),
   unitPrice: z.coerce.number().min(0, "Price must be positive"),
+  estimatePrice: z.coerce.number().min(0).optional().default(0),
   purchasePrice: z.coerce.number().min(0).optional().default(0),
   unit: z.string().optional(),
   gstRate: z.coerce.number().min(0).max(100).optional().default(18),
@@ -63,6 +64,8 @@ export const invoiceSchema = z.object({
     .enum([
       "SALE",
       "ESTIMATE",
+      "PROFORMA",
+      "SALE_ORDER",
       "CREDIT_NOTE",
       "DELIVERY_CHALLAN",
       "PURCHASE",

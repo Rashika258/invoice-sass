@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowUpRight, Eye, FileText, ShoppingBag } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Eye } from "lucide-react";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -56,62 +55,62 @@ export function RecentTransactionsTabs({
   ].sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
 
   return (
-    <div className="space-y-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
-        <div className="inline-flex h-8 items-center rounded-lg bg-zinc-950 p-1 text-xs text-zinc-400 border border-zinc-800">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+        <div className="inline-flex h-8 items-center rounded-lg bg-muted/50 p-1 text-xs text-muted-foreground border border-border">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer font-medium ${
               activeTab === "ALL"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200 font-medium"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span>All Transactions</span>
-            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
+            <span>All</span>
+            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px]">
               {allTransactions.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("SALE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer font-medium ${
               activeTab === "SALE"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200 font-medium"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Sales</span>
-            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
+            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px]">
               {sales.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("PURCHASE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer font-medium ${
               activeTab === "PURCHASE"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200 font-medium"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Purchases</span>
-            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
+            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px]">
               {purchases.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("EXPENSE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer font-medium ${
               activeTab === "EXPENSE"
-                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
-                : "text-zinc-400 hover:text-zinc-200 font-medium"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Expenses</span>
-            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
+            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px]">
               {expenses.length}
             </span>
           </button>
@@ -125,41 +124,41 @@ export function RecentTransactionsTabs({
                 ? "/expenses"
                 : "/invoices"
           }
-          className="text-xs text-purple-400 hover:text-purple-300 font-medium hover:underline flex items-center gap-1"
+          className="text-xs text-foreground font-medium hover:underline flex items-center gap-1"
         >
-          View All &rarr;
+          View all &rarr;
         </Link>
       </div>
 
       {activeTab === "EXPENSE" ? (
         expenses.length === 0 ? (
-          <div className="py-12 text-center text-xs text-zinc-400">
-            No expenses logged yet.
+          <div className="py-12 text-center text-xs text-muted-foreground">
+            No expenses recorded yet.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-zinc-800 hover:bg-transparent">
-                  <TableHead className="text-zinc-400 text-xs">Ref No.</TableHead>
-                  <TableHead className="text-zinc-400 text-xs">Category</TableHead>
-                  <TableHead className="text-zinc-400 text-xs">Date</TableHead>
-                  <TableHead className="text-right text-zinc-400 text-xs">Total Amount</TableHead>
+                <TableRow className="border-b border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground text-xs">Ref No.</TableHead>
+                  <TableHead className="text-muted-foreground text-xs">Category</TableHead>
+                  <TableHead className="text-muted-foreground text-xs">Date</TableHead>
+                  <TableHead className="text-right text-muted-foreground text-xs">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {expenses.slice(0, 8).map((exp) => (
-                  <TableRow key={exp.id} className="border-b border-zinc-800/60 hover:bg-zinc-800/30">
-                    <TableCell className="font-mono text-xs font-semibold text-zinc-200">{exp.number}</TableCell>
+                  <TableRow key={exp.id} className="border-b border-border/60 hover:bg-muted/40">
+                    <TableCell className="font-mono text-xs font-semibold text-foreground">{exp.number}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[11px]">
+                      <Badge variant="outline" className="text-[11px]">
                         {exp.category}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-zinc-400">
+                    <TableCell className="text-xs text-muted-foreground">
                       {format(new Date(exp.date), "dd MMM yyyy")}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-rose-400 font-mono text-xs">
+                    <TableCell className="text-right font-medium font-mono text-xs text-rose-500">
                       -{formatCurrency(exp.amount + exp.taxAmount, currency)}
                     </TableCell>
                   </TableRow>
@@ -179,8 +178,8 @@ export function RecentTransactionsTabs({
 
           if (list.length === 0) {
             return (
-              <div className="py-12 text-center text-xs text-zinc-400">
-                No transactions found. Click &quot;Quick Create&quot; above to add one.
+              <div className="py-12 text-center text-xs text-muted-foreground">
+                No transactions recorded yet. Use &quot;Quick Create&quot; to issue an invoice.
               </div>
             );
           }
@@ -189,15 +188,15 @@ export function RecentTransactionsTabs({
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-zinc-800 hover:bg-transparent">
-                    <TableHead className="text-zinc-400 text-xs">Type</TableHead>
-                    <TableHead className="text-zinc-400 text-xs">Bill No.</TableHead>
-                    <TableHead className="text-zinc-400 text-xs">Party Name</TableHead>
-                    <TableHead className="text-zinc-400 text-xs">Date</TableHead>
-                    <TableHead className="text-zinc-400 text-xs">Status</TableHead>
-                    <TableHead className="text-right text-zinc-400 text-xs">Balance Due</TableHead>
-                    <TableHead className="text-right text-zinc-400 text-xs">Total Amount</TableHead>
-                    <TableHead className="text-right w-12 text-zinc-400 text-xs">Action</TableHead>
+                  <TableRow className="border-b border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground text-xs">Type</TableHead>
+                    <TableHead className="text-muted-foreground text-xs">Bill No.</TableHead>
+                    <TableHead className="text-muted-foreground text-xs">Party</TableHead>
+                    <TableHead className="text-muted-foreground text-xs">Date</TableHead>
+                    <TableHead className="text-muted-foreground text-xs">Status</TableHead>
+                    <TableHead className="text-right text-muted-foreground text-xs">Due</TableHead>
+                    <TableHead className="text-right text-muted-foreground text-xs">Total</TableHead>
+                    <TableHead className="text-right w-10 text-muted-foreground text-xs"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -206,13 +205,13 @@ export function RecentTransactionsTabs({
                     const balance = Math.max(tx.total - tx.paidAmount, 0);
 
                     return (
-                      <TableRow key={tx.id} className="group border-b border-zinc-800/60 hover:bg-zinc-800/30 transition-colors">
+                      <TableRow key={tx.id} className="group border-b border-border/60 hover:bg-muted/40 transition-colors">
                         <TableCell>
                           <span
-                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${
+                            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
                               isSale
-                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                                : "bg-sky-500/15 text-sky-400 border border-sky-500/30"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20"
                             }`}
                           >
                             {isSale ? (
@@ -226,15 +225,15 @@ export function RecentTransactionsTabs({
                         <TableCell className="font-mono text-xs font-semibold">
                           <Link
                             href={`/invoices/${tx.id}`}
-                            className="text-zinc-200 hover:text-purple-400 hover:underline transition-colors"
+                            className="text-foreground hover:underline transition-colors"
                           >
                             {tx.invoiceNumber}
                           </Link>
                         </TableCell>
-                        <TableCell className="font-medium text-xs text-zinc-300">
+                        <TableCell className="font-medium text-xs text-foreground">
                           {tx.customer?.name || "Cash Customer"}
                         </TableCell>
-                        <TableCell className="text-xs text-zinc-400">
+                        <TableCell className="text-xs text-muted-foreground">
                           {format(new Date(tx.issueDate), "dd MMM yyyy")}
                         </TableCell>
                         <TableCell>
@@ -242,20 +241,20 @@ export function RecentTransactionsTabs({
                         </TableCell>
                         <TableCell className="text-right font-mono text-xs tabular-nums">
                           {balance > 0 ? (
-                            <span className="text-rose-400 font-semibold">
+                            <span className="text-rose-500 font-semibold">
                               {formatCurrency(balance, currency)}
                             </span>
                           ) : (
-                            <span className="text-zinc-500 font-normal">₹ 0.00</span>
+                            <span className="text-muted-foreground font-normal">₹0.00</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-xs text-white tabular-nums">
+                        <TableCell className="text-right font-mono font-bold text-xs text-foreground tabular-nums">
                           {formatCurrency(tx.total, currency)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Link
                             href={`/invoices/${tx.id}`}
-                            className="inline-flex size-7 items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                            className="inline-flex size-7 items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             title="View Bill"
                           >
                             <Eye className="size-3.5" />

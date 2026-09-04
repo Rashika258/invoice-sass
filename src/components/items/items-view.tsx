@@ -32,6 +32,7 @@ type ItemRecord = {
   description?: string | null;
   hsn?: string | null;
   unitPrice: number;
+  estimatePrice?: number;
   purchasePrice: number;
   unit?: string | null;
   gstRate: number;
@@ -248,7 +249,8 @@ export function ItemsView({
                   <TableHead>GST Rate</TableHead>
                   <TableHead className="text-right">Stock Quantity</TableHead>
                   <TableHead className="text-right">Purchase Price</TableHead>
-                  <TableHead className="text-right">Sale Price</TableHead>
+                  <TableHead className="text-right">Sale Price (GST)</TableHead>
+                  <TableHead className="text-right">Estimate Price</TableHead>
                   <TableHead className="text-right w-36">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -307,6 +309,18 @@ export function ItemsView({
                       </TableCell>
                       <TableCell className="text-right text-xs font-semibold text-foreground tabular-nums">
                         {formatCurrency(item.unitPrice, currency)}
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-medium tabular-nums">
+                        {item.estimatePrice && item.estimatePrice > 0 ? (
+                          <span className="text-amber-700 dark:text-amber-300 font-semibold">
+                            {formatCurrency(item.estimatePrice, currency)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {formatCurrency(item.unitPrice, currency)}
+                            <span className="text-[10px] ml-1 opacity-70">(Same)</span>
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1.5">

@@ -15,9 +15,9 @@ const fontMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vyapar - GST Billing, Inventory & Accounting Software",
+  title: "Billora — Modern Billing, Inventory & Operations Platform",
   description:
-    "India's best GST billing, invoicing, inventory management, receivables & payables tracking software for MSMEs.",
+    "Next-generation billing, inventory management, shift attendance, overtime and business operations software.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

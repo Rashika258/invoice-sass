@@ -19,6 +19,8 @@ enum InvoiceStatus {
 enum DocumentType {
   SALE
   ESTIMATE
+  PROFORMA
+  SALE_ORDER
   CREDIT_NOTE
   DELIVERY_CHALLAN
   PURCHASE
@@ -161,6 +163,7 @@ model Item {
   description    String?
   hsn            String?
   unitPrice      Float
+  estimatePrice  Float        @default(0)
   purchasePrice  Float        @default(0)
   unit           String?
   gstRate        Float        @default(18)

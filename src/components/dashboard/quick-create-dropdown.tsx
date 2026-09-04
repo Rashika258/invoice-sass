@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   ChevronDown,
@@ -26,112 +26,99 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function QuickCreateDropdown() {
+  const router = useRouter();
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={
-        <Button className="h-9 rounded-full bg-white text-zinc-950 hover:bg-zinc-100 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 font-semibold px-4 text-xs shadow-xs border border-zinc-200 dark:border-white/20 transition-all flex items-center gap-1.5 cursor-pointer">
-          <PlusCircle className="size-4" />
-          <span>Quick Create</span>
-          <ChevronDown className="size-3 opacity-60 ml-0.5" />
-        </Button>
-      } />
-      <DropdownMenuContent
-        align="end"
-        className="w-56 rounded-xl border border-zinc-800 bg-zinc-950/95 p-1.5 text-zinc-200 shadow-xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950"
-      >
-        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-          Fast Actions
+      <DropdownMenuTrigger
+        render={
+          <Button size="sm" className="h-9 gap-1.5 px-3.5 text-xs font-medium shadow-2xs">
+            <Plus className="size-3.5" />
+            <span>Quick Create</span>
+            <ChevronDown className="size-3 opacity-60 ml-0.5" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-56 p-1">
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Primary Transactions
         </DropdownMenuLabel>
 
         <DropdownMenuGroup>
-          <DropdownMenuItem render={
-            <Link
-              href="/invoices/new"
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-900 hover:text-white transition-colors"
-            >
-              <span className="flex size-6 items-center justify-center rounded-md bg-purple-500/20 text-purple-400">
-                <FileText className="size-3.5" />
-              </span>
-              <div className="flex flex-col">
-                <span className="font-semibold">Sale Invoice</span>
-                <span className="text-[10px] text-zinc-400">Press F8 anywhere</span>
-              </div>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/invoices/new")}
+            className="flex items-center gap-2.5 px-2.5 py-2 text-xs cursor-pointer"
+          >
+            <span className="flex size-6 items-center justify-center rounded-md bg-muted text-foreground">
+              <FileText className="size-3.5" />
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold">Sale Invoice</span>
+              <span className="text-[10px] text-muted-foreground">Shortcut: F8</span>
+            </div>
+          </DropdownMenuItem>
 
-          <DropdownMenuItem render={
-            <Link
-              href="/purchases/new"
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-900 hover:text-white transition-colors"
-            >
-              <span className="flex size-6 items-center justify-center rounded-md bg-sky-500/20 text-sky-400">
-                <ShoppingBag className="size-3.5" />
-              </span>
-              <div className="flex flex-col">
-                <span className="font-semibold">Purchase Bill</span>
-                <span className="text-[10px] text-zinc-400">Press F9 anywhere</span>
-              </div>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/purchases/new")}
+            className="flex items-center gap-2.5 px-2.5 py-2 text-xs cursor-pointer"
+          >
+            <span className="flex size-6 items-center justify-center rounded-md bg-muted text-foreground">
+              <ShoppingBag className="size-3.5" />
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold">Purchase Bill</span>
+              <span className="text-[10px] text-muted-foreground">Shortcut: F9</span>
+            </div>
+          </DropdownMenuItem>
 
-          <DropdownMenuItem render={
-            <Link
-              href="/attendance"
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-900 hover:text-white transition-colors"
-            >
-              <span className="flex size-6 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-400">
-                <CalendarClock className="size-3.5" />
-              </span>
-              <div className="flex flex-col">
-                <span className="font-semibold">Staff Attendance</span>
-                <span className="text-[10px] text-zinc-400">8h shift + 1h OT</span>
-              </div>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/attendance")}
+            className="flex items-center gap-2.5 px-2.5 py-2 text-xs cursor-pointer"
+          >
+            <span className="flex size-6 items-center justify-center rounded-md bg-muted text-foreground">
+              <CalendarClock className="size-3.5" />
+            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold">Staff Attendance</span>
+              <span className="text-[10px] text-muted-foreground">8h shift + 1h OT</span>
+            </div>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
 
-        <DropdownMenuSeparator className="my-1 bg-zinc-800" />
+        <DropdownMenuSeparator className="my-1" />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem render={
-            <Link
-              href="/customers"
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-zinc-900 hover:text-white"
-            >
-              <Users className="size-3.5 text-zinc-400" />
-              <span>Add Customer / Party</span>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/customers")}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs cursor-pointer"
+          >
+            <Users className="size-3.5 text-muted-foreground" />
+            <span>Add Customer / Party</span>
+          </DropdownMenuItem>
 
-          <DropdownMenuItem render={
-            <Link
-              href="/items"
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-zinc-900 hover:text-white"
-            >
-              <Package className="size-3.5 text-zinc-400" />
-              <span>Add Product / Item</span>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/items")}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs cursor-pointer"
+          >
+            <Package className="size-3.5 text-muted-foreground" />
+            <span>Add Product / Item</span>
+          </DropdownMenuItem>
 
-          <DropdownMenuItem render={
-            <Link
-              href="/payments"
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-zinc-900 hover:text-white"
-            >
-              <CreditCard className="size-3.5 text-zinc-400" />
-              <span>Record Payment In / Out</span>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/payments")}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs cursor-pointer"
+          >
+            <CreditCard className="size-3.5 text-muted-foreground" />
+            <span>Record Payment In / Out</span>
+          </DropdownMenuItem>
 
-          <DropdownMenuItem render={
-            <Link
-              href="/expenses"
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-zinc-900 hover:text-white"
-            >
-              <Receipt className="size-3.5 text-zinc-400" />
-              <span>Add Direct Expense</span>
-            </Link>
-          } />
+          <DropdownMenuItem
+            onClick={() => router.push("/expenses")}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-xs cursor-pointer"
+          >
+            <Receipt className="size-3.5 text-muted-foreground" />
+            <span>Add Direct Expense</span>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

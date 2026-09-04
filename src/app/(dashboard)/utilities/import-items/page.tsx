@@ -187,7 +187,7 @@ export default function ImportItemsPage() {
         <div className="text-center mb-8">
           <h2 className="text-xl font-bold text-foreground">Select Import Method</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Choose how you want to add your inventory items into Vyapar
+            Choose how you want to add your inventory items into Billora
           </p>
         </div>
 
@@ -230,7 +230,7 @@ export default function ImportItemsPage() {
 
             <h3 className="text-base font-bold text-foreground">Import From Barcode</h3>
             <p className="mt-2 text-xs text-muted-foreground max-w-xs leading-relaxed">
-              Import item details by scanning barcodes. Vyapar uses a library of 100 Mn+ standard barcodes to fetch all details of your items in seconds.
+              Import item details by scanning barcodes. Billora uses a library of standard barcodes to fetch all details of your items in seconds.
             </p>
 
             <Button
@@ -307,15 +307,15 @@ export default function ImportItemsPage() {
           </span>
         </div>
 
-        {/* Option 3: Import From Vyapar Library */}
-        <div className="rounded-2xl border border-border/80 bg-card/40 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Option 3: Import From Billora Library */}
+        <div className="rounded-2xl border border-border bg-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-purple-500/15 text-purple-400 shrink-0">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-muted text-foreground shrink-0">
               <Database className="size-6" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-foreground">
-                Import From Vyapar Library
+                Import From Predefined Catalog
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Quickly add 15+ popular FMCG retail goods (Rice, Atta, Salt, Biscuits, Soap, Oil) with predefined GST slabs and HSN codes.
@@ -326,7 +326,7 @@ export default function ImportItemsPage() {
           <Button
             onClick={handleLibraryImport}
             disabled={loading}
-            className="shrink-0 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs px-5 shadow-xs"
+            className="shrink-0 rounded-xl text-xs px-5 shadow-xs"
           >
             {loading ? (
               <>
@@ -336,7 +336,7 @@ export default function ImportItemsPage() {
             ) : (
               <>
                 <Sparkles className="mr-1.5 size-4" />
-                1-Click Library Import
+                1-Click Catalog Import
               </>
             )}
           </Button>
@@ -345,13 +345,13 @@ export default function ImportItemsPage() {
 
       {/* Modal 1: Barcode Entry & Scanner */}
       <Dialog open={barcodeOpen} onOpenChange={setBarcodeOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl border-zinc-800 bg-zinc-950 text-white">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Barcode className="size-5 text-primary" />
               Import Item By Barcode
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-400">
+            <DialogDescription className="text-xs text-muted-foreground">
               Scan with a barcode scanner or enter the product barcode number manually.
             </DialogDescription>
           </DialogHeader>

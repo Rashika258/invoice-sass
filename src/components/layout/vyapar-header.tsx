@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Banknote,
   Calculator,
+  CalendarClock,
   ChevronDown,
   FileCheck,
   FileSpreadsheet,
@@ -19,6 +20,7 @@ import {
   Search,
   Settings,
   ShoppingBag,
+  Sparkles,
   User,
   Users,
   Wallet,
@@ -26,7 +28,8 @@ import {
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -111,10 +114,10 @@ export function VyaparHeader({
     { title: "New Purchase Bill", href: "/purchases/new", icon: Plus, category: "Purchases" },
     { title: "Parties Directory", href: "/customers", icon: Users, category: "Parties" },
     { title: "Items & Inventory", href: "/items", icon: Package, category: "Inventory" },
+    { title: "Attendance & OT", href: "/attendance", icon: CalendarClock, category: "Operations" },
     { title: "Payment In / Out", href: "/payments", icon: Wallet, category: "Cash & Bank" },
     { title: "Cash & Bank Accounts", href: "/cash-bank", icon: Wallet, category: "Cash & Bank" },
     { title: "Expenses", href: "/expenses", icon: Banknote, category: "Cash & Bank" },
-    { title: "Attendance & Payroll", href: "/attendance", icon: FileText, category: "Payroll" },
     { title: "Staff Directory", href: "/employees", icon: Users, category: "Staff" },
     { title: "Reports & GST", href: "/reports", icon: FileText, category: "Reports" },
     { title: "Settings & Company", href: "/settings", icon: Settings, category: "Settings" },
@@ -126,270 +129,221 @@ export function VyaparHeader({
 
   return (
     <>
-      {/* Vyapar Desktop Topmost Utility Strip */}
-      <div className="flex h-7 w-full items-center justify-between border-b border-border/50 bg-card/70 px-4 text-[11px] text-muted-foreground select-none">
+      <header className="flex h-14 w-full items-center justify-between px-6 border-b border-border bg-background">
+        {/* Left: Organization / Workspace badge */}
         <div className="flex items-center gap-3">
-          <Link href="/settings" className="font-semibold text-foreground flex items-center gap-1.5 hover:text-primary transition-colors">
-            <span className="size-2 rounded-full bg-primary" />
-            Company
+          <Link
+            href="/settings"
+            className="flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+          >
+            <span className="size-2 rounded-full bg-emerald-500" />
+            <span className="font-semibold">{companyName || "My Business"}</span>
+            {taxId && (
+              <span className="text-[11px] font-mono text-muted-foreground hidden xl:inline">
+                ({taxId})
+              </span>
+            )}
           </Link>
-          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Help</span>
-          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Versions</span>
-          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Shortcuts</span>
-          <button type="button" onClick={() => router.refresh()} className="hover:text-foreground cursor-pointer" title="Refresh">
-            ↻
-          </button>
         </div>
-        <div className="hidden lg:flex items-center gap-2 text-[10px]">
-          <span>Customer Support : 📞 +91 77956 87633, +91 63644 44752</span>
-          <span className="text-border">|</span>
-          <span className="text-primary font-semibold flex items-center gap-1">
-            📡 Get Instant Online Support
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-        </div>
-      </div>
 
-      <header className="sticky top-0 z-30 flex h-13 w-full items-center justify-between border-b border-border/60 bg-background/90 backdrop-blur-md px-4 sm:px-6">
-        {/* Left: Quick Search button styled like Vyapar desktop search */}
-        <div className="flex items-center gap-3">
+        {/* Center: Command Search Bar */}
+        <div className="flex items-center justify-center max-w-md w-full px-4">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 transition-all cursor-pointer w-44 sm:w-52 justify-between shadow-2xs"
+            className="flex w-full max-w-sm items-center justify-between rounded-md border border-input bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 transition-colors shadow-2xs cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <Search className="size-3.5 text-primary" />
-              <span className="truncate">Open Anything</span>
+              <Search className="size-3.5" />
+              <span>Search invoices, items, parties...</span>
             </div>
-            <kbd className="hidden sm:inline-block rounded bg-background px-1.5 py-0.5 text-[9px] font-mono border text-muted-foreground">
-              Ctrl+K
+            <kbd className="hidden sm:inline-flex items-center rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+              ⌘K
             </kbd>
           </button>
         </div>
 
-        {/* Center: Vyapar Iconic Red/Purple Dot + Business Name */}
+        {/* Right: Quick Action Buttons, Calculator, User */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-muted/40 transition-colors group"
-            title="Click to edit business name & settings"
-          >
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt={companyName}
-                className="size-6 rounded-md object-contain bg-white shadow-2xs p-0.5 border"
-              />
-            ) : (
-              <span className="size-2.5 rounded-full bg-primary animate-pulse" />
-            )}
-            <span className="text-sm font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
-              {companyName || "Enter Business Name"}
-            </span>
-          </Link>
-        </div>
-
-        {/* Right: Vyapar Iconic Pill Action Buttons */}
-        <div className="flex items-center gap-2">
-          {/* + Add Sale (Purple pill button, F8) */}
+          {/* + Add Sale (Primary action) */}
           <Link
             href="/invoices/new"
-            className="inline-flex shrink-0 items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs px-4 h-8 gap-1.5 rounded-full text-xs transition-all active:scale-[0.98] select-none"
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs"
+            )}
           >
             <Plus className="size-3.5" />
             <span>Add Sale</span>
-            <span className="hidden xl:inline-block ml-0.5 rounded bg-black/25 px-1 py-0.2 text-[9px] font-mono">
+            <kbd className="hidden xl:inline-block ml-1 rounded bg-background/20 px-1 text-[9px] font-mono">
               F8
-            </span>
+            </kbd>
           </Link>
 
-          {/* + Add Purchase (Blue pill button, F9) */}
+          {/* + Add Purchase (Outline action) */}
           <Link
             href="/purchases/new"
-            className="inline-flex shrink-0 items-center justify-center bg-[#1976D2] hover:bg-[#1565c0] text-white font-semibold shadow-xs px-4 h-8 gap-1.5 rounded-full text-xs transition-all active:scale-[0.98] select-none"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs"
+            )}
           >
             <Plus className="size-3.5" />
             <span>Add Purchase</span>
-            <span className="hidden xl:inline-block ml-0.5 rounded bg-black/25 px-1 py-0.2 text-[9px] font-mono">
+            <kbd className="hidden xl:inline-block ml-1 rounded bg-muted px-1 text-[9px] font-mono">
               F9
-            </span>
+            </kbd>
           </Link>
 
-          {/* + Add More (Circular Button Dropdown) */}
+          {/* Quick Create Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="outline" size="icon" className="size-8 rounded-full border-border/80 text-xs" title="Add Other Transaction">
-                  <Plus className="size-4 text-primary" />
+                <Button variant="ghost" size="icon" className="size-8" title="Quick Actions">
+                  <ChevronDown className="size-4 text-muted-foreground" />
                 </Button>
               }
             />
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Sale Transactions</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">More Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => router.push("/estimates/new")}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <FileSpreadsheet className="size-4 text-blue-600" />
+                <FileSpreadsheet className="size-3.5" />
                 <span>Estimate / Quotation</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push("/payments")}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <ArrowDownLeft className="size-4 text-emerald-600" />
+                <ArrowDownLeft className="size-3.5 text-emerald-600" />
                 <span>Payment In (Receipt)</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/challans/new")}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <FileCheck className="size-4 text-purple-600" />
-                <span>Delivery Challan</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => router.push("/credit-notes/new")}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <Receipt className="size-4 text-amber-600" />
-                <span>Sale Return (Credit Note)</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Purchase &amp; Expenses</DropdownMenuLabel>
-              <DropdownMenuItem
                 onClick={() => router.push("/payments")}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <ArrowUpRight className="size-4 text-rose-600" />
+                <ArrowUpRight className="size-3.5 text-rose-600" />
                 <span>Payment Out</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/expenses")}
-                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => router.push("/challans/new")}
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <Banknote className="size-4 text-orange-600" />
-                <span>Add Expense</span>
+                <FileCheck className="size-3.5" />
+                <span>Delivery Challan</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/purchase-orders/new")}
-                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => router.push("/expenses/new")}
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <ShoppingBag className="size-4 text-blue-600" />
-                <span>Purchase Order</span>
+                <Banknote className="size-3.5" />
+                <span>Record Expense</span>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => router.push("/debit-notes/new")}
-                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => router.push("/attendance")}
+                className="flex items-center gap-2 cursor-pointer text-xs"
               >
-                <Receipt className="size-4 text-rose-600" />
-                <span>Purchase Return (Debit Note)</span>
+                <CalendarClock className="size-3.5 text-indigo-500" />
+                <span>Log Attendance & OT</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Quick Calculator Dialog Trigger */}
+          {/* Calculator Tool */}
           <Button
             variant="ghost"
             size="icon"
+            className="size-8 text-muted-foreground hover:text-foreground"
             onClick={() => setCalcOpen(true)}
-            title="Quick Calculator"
-            className="size-8 rounded-full text-muted-foreground hover:text-foreground"
+            title="Calculator"
           >
             <Calculator className="size-4" />
           </Button>
 
-          {/* Settings Gear icon */}
-          <Link
-            href="/settings"
-            className="inline-flex size-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            title="Settings & Profile"
-          >
-            <Settings className="size-4" />
-          </Link>
-
-          {/* User Profile dropdown */}
+          {/* User Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="ghost" size="icon" className="size-8 rounded-full">
-                  <User className="size-4" />
+                <Button variant="ghost" size="icon" className="size-8 rounded-full border border-border">
+                  <span className="font-semibold text-xs">
+                    {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  </span>
                 </Button>
               }
             />
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuLabel>
-                <p className="font-bold">{userName}</p>
-                <p className="text-xs text-muted-foreground font-normal truncate">{companyName}</p>
-              </DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="p-2">
+                <p className="text-xs font-semibold text-foreground">{userName}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{companyName}</p>
+              </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => router.push("/settings")}
-                className="cursor-pointer"
-              >
-                <Settings className="mr-2 size-4" />
-                <span>Settings &amp; Profile</span>
+              <DropdownMenuItem onClick={() => router.push("/settings")} className="text-xs cursor-pointer">
+                <Settings className="size-3.5 mr-2" />
+                Company Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/attendance")} className="text-xs cursor-pointer">
+                <CalendarClock className="size-3.5 mr-2" />
+                Attendance & Payroll
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/reports")} className="text-xs cursor-pointer">
+                <FileText className="size-3.5 mr-2" />
+                Reports & GST
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push("/reports")}
-                className="cursor-pointer"
+                onClick={() => logoutUser()}
+                className="text-xs text-rose-600 hover:bg-destructive/10 rounded-sm cursor-pointer"
               >
-                <FileText className="mr-2 size-4" />
-                <span>Reports Hub</span>
+                <LogOut className="size-3.5 mr-2" />
+                Sign out
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <form action={logoutUser}>
-                <button type="submit" className="w-full flex items-center px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded cursor-pointer">
-                  <LogOut className="mr-2 size-4" />
-                  <span>Sign out</span>
-                </button>
-              </form>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </header>
 
-      {/* Global Quick Search Dialog */}
+      {/* Global Search Dialog */}
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden">
-          <div className="flex items-center border-b px-3">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="flex items-center border-b border-border px-3">
             <Search className="size-4 text-muted-foreground mr-2 shrink-0" />
-            <Input
+            <input
+              type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search invoices, parties, items, reports..."
-              className="border-0 focus-visible:ring-0 shadow-none h-12 text-sm"
+              placeholder="Search sections, bills, inventory..."
+              className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               autoFocus
             />
           </div>
           <div className="max-h-80 overflow-y-auto p-2">
             {filteredNav.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">No matches found.</p>
+              <p className="py-6 text-center text-xs text-muted-foreground">No matching pages or features found.</p>
             ) : (
-              filteredNav.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.href}
-                    onClick={() => {
-                      router.push(item.href);
-                      setSearchOpen(false);
-                    }}
-                    className="flex w-full items-center justify-between rounded-md p-2 text-left text-sm hover:bg-muted transition-colors cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Icon className="size-4 text-primary" />
-                      <span className="font-medium">{item.title}</span>
-                    </span>
-                    <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                      {item.category}
-                    </span>
-                  </button>
-                );
-              })
+              <div className="space-y-1">
+                {filteredNav.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      onClick={() => {
+                        setSearchOpen(false);
+                        router.push(item.href);
+                      }}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Icon className="size-4 text-muted-foreground" />
+                        <span>{item.title}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">{item.category}</span>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
         </DialogContent>
@@ -397,46 +351,75 @@ export function VyaparHeader({
 
       {/* Quick Calculator Dialog */}
       <Dialog open={calcOpen} onOpenChange={setCalcOpen}>
-        <DialogContent className="max-w-xs p-4">
+        <DialogContent className="sm:max-w-[280px] p-4">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <Calculator className="size-4 text-primary" /> Vyapar Calculator
-            </DialogTitle>
+            <DialogTitle className="text-sm font-semibold">Quick Calculator</DialogTitle>
           </DialogHeader>
-          <div className="rounded-lg border bg-muted/40 p-3 text-right">
-            <div className="min-h-5 text-xs text-muted-foreground font-mono">
-              {calcInput || "0"}
+          <div className="space-y-3 pt-2">
+            <div className="rounded-md border border-input bg-muted/30 p-2.5 text-right font-mono text-base">
+              <div className="text-[10px] text-muted-foreground min-h-[14px]">
+                {calcResult !== null ? calcInput : ""}
+              </div>
+              <div className="text-lg font-bold text-foreground">
+                {calcResult !== null ? calcResult : calcInput || "0"}
+              </div>
             </div>
-            <div className="text-xl font-bold font-mono">
-              {calcResult !== null ? calcResult : calcInput || "0"}
+            <div className="grid grid-cols-4 gap-1.5 text-xs font-semibold">
+              {["C", "(", ")", "/"].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => handleCalcButton(btn)}
+                  className="rounded-md bg-muted p-2 hover:bg-muted/80 text-foreground transition-colors"
+                >
+                  {btn}
+                </button>
+              ))}
+              {["7", "8", "9", "*"].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => handleCalcButton(btn)}
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                >
+                  {btn}
+                </button>
+              ))}
+              {["4", "5", "6", "-"].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => handleCalcButton(btn)}
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                >
+                  {btn}
+                </button>
+              ))}
+              {["1", "2", "3", "+"].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => handleCalcButton(btn)}
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                >
+                  {btn}
+                </button>
+              ))}
+              {["0", ".", "="].map((btn) => (
+                <button
+                  key={btn}
+                  type="button"
+                  onClick={() => handleCalcButton(btn)}
+                  className={`rounded-md p-2 transition-colors ${
+                    btn === "="
+                      ? "col-span-2 bg-primary text-primary-foreground font-bold"
+                      : "bg-card border border-border hover:bg-accent text-foreground"
+                  }`}
+                >
+                  {btn}
+                </button>
+              ))}
             </div>
-          </div>
-          <div className="grid grid-cols-4 gap-2 pt-2">
-            {["7", "8", "9", "/"].map((btn) => (
-              <Button key={btn} variant="outline" onClick={() => handleCalcButton(btn)}>
-                {btn}
-              </Button>
-            ))}
-            {["4", "5", "6", "*"].map((btn) => (
-              <Button key={btn} variant="outline" onClick={() => handleCalcButton(btn)}>
-                {btn}
-              </Button>
-            ))}
-            {["1", "2", "3", "-"].map((btn) => (
-              <Button key={btn} variant="outline" onClick={() => handleCalcButton(btn)}>
-                {btn}
-              </Button>
-            ))}
-            {["C", "0", "=", "+"].map((btn) => (
-              <Button
-                key={btn}
-                variant={btn === "=" ? "default" : btn === "C" ? "destructive" : "outline"}
-                className={btn === "=" ? "bg-primary hover:bg-primary/90 text-primary-foreground font-bold" : ""}
-                onClick={() => handleCalcButton(btn)}
-              >
-                {btn}
-              </Button>
-            ))}
           </div>
         </DialogContent>
       </Dialog>

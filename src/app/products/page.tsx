@@ -2,9 +2,10 @@ import Link from "next/link";
 import { ArrowLeft, Package } from "lucide-react";
 import { getPublicProducts } from "@/actions/items";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,12 @@ export default async function PublicProductsPage() {
       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" render={<Link href="/" />}>
+            <Link
+              href="/"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+            >
               <ArrowLeft className="h-4 w-4" />
-            </Button>
+            </Link>
             <div>
               <h1 className="text-lg font-bold">Product Catalog</h1>
               <p className="text-sm text-muted-foreground">No login required</p>
@@ -26,9 +30,12 @@ export default async function PublicProductsPage() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="outline" render={<Link href="/login" />}>
+            <Link
+              href="/login"
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
               Business login
-            </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -44,7 +51,12 @@ export default async function PublicProductsPage() {
                   Check back soon or sign in to publish your own catalog.
                 </p>
               </div>
-              <Button render={<Link href="/register" />}>Create a business account</Button>
+              <Link
+                href="/register"
+                className={cn(buttonVariants())}
+              >
+                Create a business account
+              </Link>
             </CardContent>
           </Card>
         ) : (

@@ -29,13 +29,13 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/40">
       <header className="flex items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg shadow-sm">
-            V
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background font-black text-lg shadow-xs">
+            B
           </div>
           <div>
-            <span className="font-black text-base">Vyapar</span>
-            <span className="text-[10px] text-muted-foreground block -mt-1 font-medium">GST Billing</span>
+            <span className="font-bold text-base tracking-tight text-foreground">Billora</span>
+            <span className="text-[10px] text-muted-foreground block -mt-1 font-medium">Business Suite</span>
           </div>
         </Link>
         <ThemeToggle />

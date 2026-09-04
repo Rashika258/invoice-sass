@@ -2,9 +2,12 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowLeft, Eye, Plus, Search } from "lucide-react";
 import type { DocumentType } from "@/generated/prisma/client";
+import { getCustomers } from "@/actions/customers";
 import { getInvoices } from "@/actions/invoices";
 import { getCompanyProfile } from "@/actions/settings";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
+import { SaleTransactionsView } from "@/components/documents/sale-transactions-view";
+import { PurchaseTransactionsView } from "@/components/documents/purchase-transactions-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +26,34 @@ export async function DocumentListPage({ documentType }: { documentType: Documen
   const meta = DOCUMENT_META[documentType];
   const isPurchase = meta.isPurchase;
 
-  const [documents, profile] = await Promise.all([
+  const [documents, profile, customers] = await Promise.all([
     getInvoices(documentType),
     getCompanyProfile(),
+    getCustomers(),
   ]);
   const currency = profile?.currency ?? "INR";
+
+  if (!isPurchase) {
+    return (
+      <SaleTransactionsView
+        currentTab={documentType as any}
+        documents={documents as any}
+        customers={customers}
+        currency={currency}
+        companyName={profile?.companyName || "Sri Manjunatha Engineering Works"}
+      />
+    );
+  }
+
+  return (
+    <PurchaseTransactionsView
+      currentTab={documentType as any}
+      documents={documents as any}
+      customers={customers}
+      currency={currency}
+      companyName={profile?.companyName || "Sri Manjunatha Engineering Works"}
+    />
+  );
 
   const totalAmount = documents.reduce((acc, doc) => acc + doc.total, 0);
   const totalBalanceDue = documents.reduce(

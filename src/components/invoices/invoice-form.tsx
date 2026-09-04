@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -94,6 +94,161 @@ const emptyLineItem = (gstRate: number): LineItem => ({
   gstRate,
 });
 
+function ItemCombobox({
+  value,
+  catalogItems,
+  currency = "INR",
+  isPurchase = false,
+  isEstimate = false,
+  onChange,
+  onSelectItem,
+}: {
+  value: string;
+  catalogItems: Item[];
+  currency?: string;
+  isPurchase?: boolean;
+  isEstimate?: boolean;
+  onChange: (val: string) => void;
+  onSelectItem: (item: Item) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
+
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return catalogItems;
+    return catalogItems.filter(
+      (it) =>
+        it.name.toLowerCase().includes(query) ||
+        (it.hsn && it.hsn.toLowerCase().includes(query))
+    );
+  }, [catalogItems, search]);
+
+  return (
+    <div ref={dropdownRef} className="relative w-full">
+      <div className="relative flex items-center">
+        <Input
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setSearch(e.target.value);
+            if (!isOpen) setIsOpen(true);
+          }}
+          onFocus={() => {
+            setSearch("");
+            setIsOpen(true);
+          }}
+          placeholder="Select item from dropdown..."
+          required
+          className="h-8 text-xs pr-7 bg-background"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => {
+            setSearch("");
+            setIsOpen((prev) => !prev);
+          }}
+          className="absolute right-1 flex size-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+          title="Open products dropdown"
+        >
+          <ChevronDown className="size-3.5" />
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-80 sm:w-96 rounded-lg border border-border bg-popover dark:bg-zinc-950 text-popover-foreground shadow-2xl overflow-hidden flex flex-col">
+          {/* Static opaque header - completely separated from scroll list */}
+          <div className="p-2 px-3 border-b border-border bg-muted shrink-0 flex items-center justify-between text-[11px] text-muted-foreground select-none">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-foreground flex items-center gap-1.5">
+              <span>{filteredItems.length} Products Available</span>
+              {isEstimate && (
+                <span className="bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-1 py-0.2 rounded text-[9px]">
+                  Est. Rates Active
+                </span>
+              )}
+            </span>
+            <span className="text-[10px] text-muted-foreground">Select to auto-fill</span>
+          </div>
+
+          {/* Dedicated scrollable items list */}
+          <div className="max-h-60 overflow-y-auto p-1 space-y-0.5 scrollbar-none bg-popover dark:bg-zinc-950">
+            {filteredItems.length === 0 ? (
+              <div className="p-3 text-center text-xs text-muted-foreground">
+                No products match &quot;{search}&quot;.
+                <div className="mt-1 text-[11px] text-foreground font-medium">
+                  Press enter or keep typing for custom item.
+                </div>
+              </div>
+            ) : (
+              filteredItems.map((catItem) => {
+                const price = isEstimate
+                  ? (catItem.estimatePrice && catItem.estimatePrice > 0 ? catItem.estimatePrice : catItem.unitPrice)
+                  : isPurchase
+                    ? (catItem.purchasePrice || catItem.unitPrice)
+                    : catItem.unitPrice;
+
+                return (
+                  <button
+                    key={catItem.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onSelectItem(catItem);
+                      setIsOpen(false);
+                    }}
+                    className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer group"
+                  >
+                    <div className="min-w-0 flex-1 pr-2">
+                      <div className="font-semibold text-foreground truncate group-hover:text-accent-foreground">
+                        {catItem.name}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                        {catItem.hsn && <span>HSN: {catItem.hsn}</span>}
+                        <span>Unit: {catItem.unit}</span>
+                        {catItem.stockQty !== undefined && catItem.stockQty !== null && (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            Stock: {catItem.stockQty}
+                          </span>
+                        )}
+                        <span>GST: {catItem.gstRate}%</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div className="font-mono font-bold text-xs text-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/40">
+                        {formatCurrency(price, currency)}
+                      </div>
+                      {isEstimate && (
+                        <div className="text-[9px] text-amber-700 dark:text-amber-400 font-medium mt-0.5 text-right">
+                          {catItem.estimatePrice && catItem.estimatePrice > 0 ? "Estimate Rate" : "Standard Rate"}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function InvoiceForm({
   customers,
   catalogItems,
@@ -168,13 +323,20 @@ export function InvoiceForm({
   const addFromCatalog = (itemId: string) => {
     const catalogItem = catalogItems.find((item) => item.id === itemId);
     if (!catalogItem) return;
+    const isEstimate = documentType === "ESTIMATE";
+    const defaultPrice = isEstimate
+      ? (catalogItem.estimatePrice && catalogItem.estimatePrice > 0 ? catalogItem.estimatePrice : catalogItem.unitPrice)
+      : isPurchase
+        ? (catalogItem.purchasePrice || catalogItem.unitPrice)
+        : catalogItem.unitPrice;
+
     const lineItem: LineItem = {
       itemId: catalogItem.id,
       description: catalogItem.name + (catalogItem.description ? ` - ${catalogItem.description}` : ""),
       hsn: catalogItem.hsn ?? "",
       unit: catalogItem.unit ?? "PCS",
       quantity: 1,
-      unitPrice: isPurchase ? catalogItem.purchasePrice || catalogItem.unitPrice : catalogItem.unitPrice,
+      unitPrice: defaultPrice,
       gstRate: catalogItem.gstRate,
     };
     setItems((current) => {
@@ -186,6 +348,30 @@ export function InvoiceForm({
       }
       return [...next, lineItem];
     });
+  };
+
+  const selectCatalogItemForRow = (index: number, catalogItem: Item) => {
+    const isEstimate = documentType === "ESTIMATE";
+    const price = isEstimate
+      ? (catalogItem.estimatePrice && catalogItem.estimatePrice > 0 ? catalogItem.estimatePrice : catalogItem.unitPrice)
+      : isPurchase
+        ? (catalogItem.purchasePrice || catalogItem.unitPrice)
+        : catalogItem.unitPrice;
+
+    setItems((current) =>
+      current.map((item, i) => {
+        if (i !== index) return item;
+        return {
+          ...item,
+          itemId: catalogItem.id,
+          description: catalogItem.name,
+          hsn: catalogItem.hsn ?? "",
+          unit: catalogItem.unit ?? "PCS",
+          unitPrice: Number(price) || 0,
+          gstRate: catalogItem.gstRate ?? defaultTaxRate,
+        };
+      }),
+    );
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -265,7 +451,7 @@ export function InvoiceForm({
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Vyapar GST Billing Desk · Auto tax calculation &amp; inventory update
+              Billora GST Billing Desk · Auto tax calculation &amp; inventory update
             </p>
           </div>
         </div>
@@ -418,8 +604,8 @@ export function InvoiceForm({
       </Card>
 
       {/* Items Table styled like Vyapar Desktop Bill Table */}
-      <Card className="rounded-xl shadow-xs overflow-hidden">
-        <div className="flex items-center justify-between p-4 bg-muted/30 border-b">
+      <Card className="rounded-xl shadow-xs">
+        <div className="flex items-center justify-between p-4 bg-muted/30 border-b rounded-t-xl">
           <div>
             <CardTitle className="text-sm font-black uppercase tracking-wider">Item Details</CardTitle>
             <p className="text-[11px] text-muted-foreground">
@@ -436,7 +622,7 @@ export function InvoiceForm({
                 <SelectContent>
                   {catalogItems.map((item) => (
                     <SelectItem key={item.id} value={item.id} className="text-xs">
-                      {item.name} ({formatCurrency(item.unitPrice, currency)})
+                      {item.name} ({formatCurrency(documentType === "ESTIMATE" && item.estimatePrice ? item.estimatePrice : item.unitPrice, currency)})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -455,7 +641,7 @@ export function InvoiceForm({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[380px] pb-28">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
@@ -464,7 +650,9 @@ export function InvoiceForm({
                 <TableHead className="w-24">HSN/SAC</TableHead>
                 <TableHead className="w-20">Qty *</TableHead>
                 <TableHead className="w-20">Unit</TableHead>
-                <TableHead className="w-28">Rate (₹) *</TableHead>
+                <TableHead className="w-28">
+                  {documentType === "ESTIMATE" ? "Est. Rate (₹) *" : "Rate (₹) *"}
+                </TableHead>
                 <TableHead className="w-24">GST %</TableHead>
                 <TableHead className="w-32 text-right">Amount (₹)</TableHead>
                 <TableHead className="w-12" />
@@ -479,13 +667,15 @@ export function InvoiceForm({
                     <TableCell className="text-center font-mono text-xs text-muted-foreground">
                       {index + 1}
                     </TableCell>
-                    <TableCell>
-                      <Input
+                    <TableCell className="min-w-60">
+                      <ItemCombobox
                         value={item.description}
-                        onChange={(e) => updateItem(index, "description", e.target.value)}
-                        placeholder="Item name / description"
-                        required
-                        className="h-8 text-xs"
+                        catalogItems={catalogItems}
+                        currency={currency}
+                        isPurchase={isPurchase}
+                        isEstimate={documentType === "ESTIMATE"}
+                        onChange={(val) => updateItem(index, "description", val)}
+                        onSelectItem={(catItem) => selectCatalogItemForRow(index, catItem)}
                       />
                     </TableCell>
                     <TableCell>

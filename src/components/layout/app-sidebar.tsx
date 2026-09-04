@@ -1,160 +1,384 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Banknote,
   BarChart3,
   Barcode,
+  Building2,
   CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Cloud,
   Crown,
+  Database,
+  Download,
   FileCheck,
   FileSpreadsheet,
   FileText,
+  FileUp,
   Globe,
+  History,
   LayoutDashboard,
   LogOut,
   Menu,
   MessageCircle,
   Package,
+  Plus,
   Receipt,
+  Search,
   Settings,
   ShoppingBag,
+  Sparkles,
   Store,
+  TrendingUp,
+  Upload,
+  UserCheck,
   UserCircle,
   Users,
   Wallet,
   Wrench,
+  Zap,
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-const navGroups = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon?: any;
+  plusHref?: string;
+  badge?: string;
+}
+
+interface NavGroup {
+  id: string;
+  title: string;
+  icon: any;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+  items: NavItem[];
+}
+
+const navConfig: NavGroup[] = [
   {
-    title: "General",
+    id: "home",
+    title: "Home",
+    icon: LayoutDashboard,
+    collapsible: false,
     items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
-    title: "Parties & Inventory",
+    id: "parties",
+    title: "Parties",
+    icon: Users,
+    collapsible: true,
+    defaultOpen: false,
     items: [
-      { href: "/customers", label: "Parties", icon: Users },
-      { href: "/items", label: "Items", icon: Package },
+      { href: "/customers", label: "Parties Directory", icon: Users, plusHref: "/customers" },
     ],
   },
   {
-    title: "Sales",
+    id: "items",
+    title: "Items",
+    icon: Package,
+    collapsible: false,
+    items: [{ href: "/items", label: "Items & Inventory", icon: Package, plusHref: "/items" }],
+  },
+  {
+    id: "sale",
+    title: "Sale",
+    icon: FileText,
+    collapsible: true,
+    defaultOpen: true,
     items: [
-      { href: "/invoices", label: "Sale Invoices", icon: FileText },
-      { href: "/estimates", label: "Estimates / Quotations", icon: FileSpreadsheet },
-      { href: "/payments", label: "Payment In / Out", icon: Wallet },
-      { href: "/challans", label: "Delivery Challan", icon: FileCheck },
-      { href: "/credit-notes", label: "Sale Return (Cr Note)", icon: Receipt },
+      { href: "/invoices", label: "Sale Invoices", icon: FileText, plusHref: "/invoices/new" },
+      { href: "/estimates", label: "Estimate/ Quotation", icon: FileSpreadsheet, plusHref: "/estimates/new" },
+      { href: "/proforma", label: "Proforma Invoice", icon: FileText, plusHref: "/proforma/new" },
+      { href: "/payment-in", label: "Payment-In", icon: Wallet, plusHref: "/payment-in" },
+      { href: "/sale-orders", label: "Sale Order", icon: ShoppingBag, plusHref: "/sale-orders/new" },
+      { href: "/challans", label: "Delivery Challan", icon: FileCheck, plusHref: "/challans/new" },
+      { href: "/credit-notes", label: "Sale Return/ Credit Note", icon: Receipt, plusHref: "/credit-notes/new" },
+      { href: "/pos", label: "Vyapar POS", icon: Zap, badge: "FAST" },
     ],
   },
   {
-    title: "Purchases",
+    id: "purchase",
+    title: "Purchase & Expense",
+    icon: ShoppingBag,
+    collapsible: true,
+    defaultOpen: true,
     items: [
-      { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag },
-      { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingBag },
-      { href: "/debit-notes", label: "Purchase Return (Dr Note)", icon: Receipt },
-      { href: "/expenses", label: "Expenses", icon: Banknote },
+      { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag, plusHref: "/purchases/new" },
+      { href: "/payment-out", label: "Payment-Out", icon: Wallet, plusHref: "/payment-out" },
+      { href: "/expenses", label: "Expenses", icon: Banknote, plusHref: "/expenses" },
+      { href: "/purchase-orders", label: "Purchase Order", icon: ShoppingBag, plusHref: "/purchase-orders/new" },
+      { href: "/debit-notes", label: "Purchase Return/ Dr. Note", icon: Receipt, plusHref: "/debit-notes/new" },
     ],
   },
   {
+    id: "grow",
     title: "Grow Your Business",
+    icon: TrendingUp,
+    collapsible: true,
+    defaultOpen: false,
     items: [
-      { href: "/grow/online-store", label: "My Online Store", icon: Store },
-      { href: "/grow/whatsapp-marketing", label: "WhatsApp Marketing", icon: MessageCircle },
       { href: "/grow/google-profile", label: "Google Profile Manager", icon: Globe },
+      { href: "/grow/marketing-tools", label: "Marketing Tools", icon: Sparkles },
+      { href: "/grow/whatsapp-marketing", label: "WhatsApp Marketing", icon: MessageCircle },
+      { href: "/grow/online-store", label: "Online Store", icon: Store, badge: "NEW" },
+      { href: "/grow/smart-ads", label: "Smart Ads", icon: Zap },
     ],
   },
   {
+    id: "cash-bank",
     title: "Cash & Bank",
+    icon: Building2,
+    collapsible: true,
+    defaultOpen: false,
     items: [
-      { href: "/cash-bank", label: "Banks & Cash", icon: Wallet },
+      { href: "/cash-bank/banks", label: "Bank Accounts", icon: Building2, plusHref: "/cash-bank/banks" },
+      { href: "/cash-bank/cash", label: "Cash In Hand", icon: Wallet, plusHref: "/cash-bank/cash" },
+      { href: "/cash-bank/cheques", label: "Cheques", icon: Receipt },
+      { href: "/cash-bank/loans", label: "Loan Accounts", icon: Banknote, plusHref: "/cash-bank/loans" },
     ],
   },
   {
-    title: "Business Reports",
+    id: "reports",
+    title: "Reports",
+    icon: BarChart3,
+    collapsible: false,
     items: [{ href: "/reports", label: "Reports Directory", icon: BarChart3 }],
   },
   {
-    title: "Sync & Utilities",
+    id: "sync-backup",
+    title: "Sync, Share & Backup",
+    icon: Cloud,
+    collapsible: true,
+    defaultOpen: false,
     items: [
-      { href: "/sync-share", label: "Sync, Share & Backup", icon: Cloud },
+      { href: "/sync-share", label: "Sync & Share", icon: Cloud },
+      { href: "/sync-share/auto-backup", label: "Auto Backup", icon: History },
+      { href: "/sync-share/computer", label: "Backup To Computer", icon: Download },
+      { href: "/sync-share/drive", label: "Backup To Drive", icon: Cloud },
+      { href: "/sync-share/restore", label: "Restore Backup", icon: Upload },
+    ],
+  },
+  {
+    id: "utilities",
+    title: "Utilities",
+    icon: Wrench,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
       { href: "/utilities/import-items", label: "Import Items", icon: Package },
+      { href: "/utilities/setup-business", label: "Set Up My Business", icon: Sparkles },
+      { href: "/utilities/accountant-access", label: "Accountant Access", icon: UserCheck },
       { href: "/utilities/barcode-generator", label: "Barcode Generator", icon: Barcode },
-      { href: "/utilities/export-tally", label: "Exports To Tally", icon: Wrench },
+      { href: "/utilities/bulk-update", label: "Update Items In Bulk", icon: Database },
+      { href: "/utilities/import-tally", label: "Import From Tally", icon: FileUp },
+      { href: "/utilities/import-parties", label: "Import Parties", icon: Users },
+      { href: "/utilities/track-salesmen", label: "Track Your Salesmen", icon: UserCircle },
+      { href: "/utilities/export-tally", label: "Exports To Tally", icon: FileSpreadsheet },
+      { href: "/utilities/export-items", label: "Export Items", icon: Download },
+      { href: "/utilities/verify-data", label: "Verify My Data", icon: CheckCircle2 },
+      { href: "/utilities/close-fy", label: "Close Financial Year", icon: CalendarClock },
     ],
   },
   {
-    title: "Staff & Payroll",
-    items: [
-      { href: "/employees", label: "Employees", icon: UserCircle },
-      { href: "/attendance", label: "Attendance & OT", icon: CalendarClock },
-    ],
-  },
-  {
+    id: "settings",
     title: "Settings",
-    items: [{ href: "/settings", label: "Company Profile & GST", icon: Settings }],
+    icon: Settings,
+    collapsible: false,
+    items: [{ href: "/settings", label: "Settings", icon: Settings }],
+  },
+  {
+    id: "plans",
+    title: "Plans & Pricing",
+    icon: Crown,
+    collapsible: false,
+    items: [{ href: "/plans", label: "Plans & Pricing", icon: Crown, badge: "SAVE 40%" }],
   },
 ];
 
 function NavLinks({
   pathname,
-  userRole = "ADMIN",
   onNavigate,
 }: {
   pathname: string;
-  userRole?: string;
   onNavigate?: () => void;
 }) {
-  const filteredGroups = navGroups.filter((group) => {
-    if (userRole === "STAFF") {
-      return group.title === "General" || group.title === "Staff & Payroll";
-    }
-    return true;
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {
+      sale: true,
+      purchase: true,
+    };
+    navConfig.forEach((grp) => {
+      if (grp.items.some((it) => pathname.startsWith(it.href))) {
+        initial[grp.id] = true;
+      }
+    });
+    return initial;
   });
 
+  const toggleGroup = (id: string) => {
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
-    <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2.5 py-3">
-      {filteredGroups.map((group) => (
-        <div key={group.title}>
-          <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-            {group.title}
-          </p>
-          <div className="flex flex-col gap-0.5">
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onNavigate}
+    <div className="flex flex-col gap-0.5 px-2 py-1 select-none">
+      {navConfig.map((group) => {
+        const GroupIcon = group.icon;
+        const isOpen = openGroups[group.id] ?? false;
+        const hasSubItems = group.collapsible && group.items.length > 0;
+        const isGroupActive = group.items.some(
+          (it) => pathname === it.href || (it.href !== "/dashboard" && pathname.startsWith(`${it.href}/`))
+        );
+
+        if (!hasSubItems && group.items.length === 1) {
+          const singleItem = group.items[0];
+          const isActive =
+            singleItem.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname === singleItem.href || pathname.startsWith(`${singleItem.href}/`);
+
+          return (
+            <div
+              key={group.id}
+              className={cn(
+                "group relative flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all",
+                isActive
+                  ? "bg-[#ef4444]/15 text-[#ef4444] font-bold border-l-3 border-[#ef4444] rounded-l-none"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              )}
+            >
+              <Link
+                href={singleItem.href}
+                onClick={onNavigate}
+                className="flex items-center gap-2.5 flex-1 min-w-0"
+              >
+                <GroupIcon
                   className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150",
-                    isActive
-                      ? "bg-primary text-primary-foreground font-medium shadow-xs"
-                      : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-white",
+                    "size-4 shrink-0 transition-colors",
+                    isActive ? "text-[#ef4444]" : "text-muted-foreground group-hover:text-foreground"
                   )}
+                />
+                <span className="truncate">{group.title}</span>
+                {singleItem.badge && (
+                  <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-emerald-500/15 text-emerald-500 border-none">
+                    {singleItem.badge}
+                  </Badge>
+                )}
+              </Link>
+              {singleItem.plusHref && (
+                <Link
+                  href={singleItem.plusHref}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigate?.();
+                  }}
+                  className="flex size-5 items-center justify-center rounded-md hover:bg-background/80 text-muted-foreground hover:text-foreground shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+                  title={`Add ${singleItem.label}`}
                 >
-                  <Icon className="h-4 w-4 shrink-0 opacity-90" />
-                  <span>{item.label}</span>
+                  <Plus className="size-3.5" />
                 </Link>
-              );
-            })}
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div key={group.id} className="space-y-0.5">
+            <div
+              onClick={() => toggleGroup(group.id)}
+              className={cn(
+                "flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold cursor-pointer transition-colors",
+                isGroupActive && !isOpen
+                  ? "text-[#ef4444] bg-[#ef4444]/10 border-l-3 border-[#ef4444] rounded-l-none"
+                  : "text-foreground/90 hover:bg-muted/50"
+              )}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <GroupIcon className={cn("size-4 shrink-0", isGroupActive ? "text-[#ef4444]" : "text-muted-foreground")} />
+                <span className="truncate">{group.title}</span>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "size-3.5 text-muted-foreground transition-transform duration-150",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </div>
+
+            {isOpen && (
+              <div className="space-y-0.5 pl-3 pt-0.5">
+                {group.items.map((item) => {
+                  const SubIcon = item.icon;
+                  const isActive =
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+
+                  return (
+                    <div
+                      key={item.href}
+                      className={cn(
+                        "group flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all",
+                        isActive
+                          ? "bg-[#ef4444]/15 text-[#ef4444] font-bold border-l-3 border-[#ef4444] rounded-l-none"
+                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                      )}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={onNavigate}
+                        className="flex items-center gap-2 flex-1 min-w-0"
+                      >
+                        {SubIcon && (
+                          <SubIcon
+                            className={cn(
+                              "size-3.5 shrink-0 transition-colors",
+                              isActive ? "text-[#ef4444]" : "text-muted-foreground/80 group-hover:text-foreground"
+                            )}
+                          />
+                        )}
+                        <span className="truncate">{item.label}</span>
+                        {item.badge && (
+                          <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-[#ef4444]/15 text-[#ef4444] border-none font-bold">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+
+                      {item.plusHref && (
+                        <Link
+                          href={item.plusHref}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate?.();
+                          }}
+                          className="flex size-5 items-center justify-center rounded hover:bg-background/80 text-muted-foreground hover:text-foreground shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                          title={`Add new`}
+                        >
+                          <Plus className="size-3" />
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
-    </nav>
+        );
+      })}
+    </div>
   );
 }
 
@@ -162,7 +386,6 @@ export function AppSidebar({
   userName,
   companyName,
   userRole = "ADMIN",
-  logoUrl,
 }: {
   userName: string;
   companyName: string;
@@ -170,88 +393,78 @@ export function AppSidebar({
   logoUrl?: string | null;
 }) {
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <aside className="hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      {/* Brand / Company Header */}
-      <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-3.5">
-        <div className="flex items-center gap-2.5 min-w-0">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt={companyName}
-              className="size-8 rounded-lg object-contain bg-white/10 p-0.5 shadow-xs shrink-0"
-            />
-          ) : (
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-sm shadow-xs">
-              {companyName ? companyName.charAt(0).toUpperCase() : "V"}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-bold leading-tight text-white">{companyName}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-medium text-sidebar-foreground/60 truncate">Vyapar ERP</span>
-              <span className="rounded bg-primary/25 px-1 py-0.2 text-[9px] font-semibold text-primary-foreground">
-                {userRole}
-              </span>
-            </div>
-          </div>
+    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-[#0f1117] text-white lg:flex sticky top-0 z-30 select-none">
+      {/* Top Search: Open Anything (Ctrl+F) matching media_1788527179966.png */}
+      <div className="p-3 border-b border-border/40">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 size-3.5 text-zinc-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Open Anything (Ctrl+F)"
+            className="w-full h-8 pl-8 pr-3 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden focus:border-zinc-700"
+          />
         </div>
-        <ThemeToggle />
       </div>
 
-      <NavLinks pathname={pathname} userRole={userRole} />
+      {/* Nav List (clean scrolling) */}
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none py-1.5">
+        <NavLinks pathname={pathname} />
+      </div>
 
-      {/* Bottom Trial & My Company Widget matching reference screenshots */}
-      <div className="mt-auto border-t border-sidebar-border p-2.5 space-y-2">
-        {/* Trial Card */}
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-2.5 space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-amber-300">
+      {/* Bottom Section matching Vyapar desktop */}
+      <div className="shrink-0 border-t border-border/40 p-3 space-y-2.5 bg-[#0b0d13]">
+        {/* 6 days Free Trial Left Card */}
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-amber-300">
             <span>6 days Free Trial left</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-sidebar-accent overflow-hidden">
-            <div className="h-full w-4/6 rounded-full bg-emerald-500" />
+          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+            <div className="h-full w-2/3 rounded-full bg-emerald-500" />
           </div>
           <Link
-            href="/settings"
-            className="flex items-center justify-between text-[11px] font-bold text-amber-400 hover:text-amber-300 transition-colors pt-1"
+            href="/plans"
+            className="flex items-center justify-between rounded-lg bg-[#ef4444] hover:bg-[#dc2626] text-white px-2.5 py-1.5 text-xs font-bold transition-colors shadow-xs"
           >
-            <span className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <Crown className="size-3.5" />
-              Get Vyapar Premium
-            </span>
-            <span>&rarr;</span>
+              <span>Get Vyapar Premium</span>
+            </div>
+            <ChevronRight className="size-3.5" />
           </Link>
         </div>
 
-        {/* My Company Quick Row */}
-        <Link
-          href="/settings"
-          className="flex items-center justify-between rounded-lg border border-sidebar-border/60 bg-sidebar-accent/50 px-2.5 py-1.5 text-xs text-sidebar-foreground hover:text-white transition-colors"
-        >
-          <span className="flex items-center gap-2">
-            <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-[9px]">
-              +
-            </span>
-            <span className="font-semibold truncate max-w-[120px]">
-              {companyName}
-            </span>
-          </span>
-          <span className="text-[10px] text-sidebar-foreground/60">&gt;</span>
-        </Link>
-
-        <form action={logoutUser}>
-          <Button
-            type="submit"
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white h-7 text-xs rounded-lg font-normal"
-          >
-            <LogOut className="mr-2 h-3.5 w-3.5" />
-            Sign out ({userName})
-          </Button>
-        </form>
+        {/* Company profile selector */}
+        <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-2 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-500/20 text-sky-400 font-bold text-xs">
+              M
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-zinc-200 leading-tight">
+                {companyName || "My Company"}
+              </p>
+              <p className="truncate text-[10px] text-zinc-400">{userRole}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => logoutUser()}
+              className="size-7 text-zinc-400 hover:text-white"
+              title="Sign Out"
+            >
+              <LogOut className="size-3.5" />
+            </Button>
+          </div>
+        </div>
       </div>
     </aside>
   );
@@ -271,77 +484,81 @@ export function MobileHeader({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-2.5 lg:hidden shadow-xs">
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-xs px-4 py-2.5 lg:hidden">
       <div className="flex items-center gap-2.5">
         <Sheet>
           <SheetTrigger
             render={
               <Button variant="outline" size="icon" className="size-8">
-                <Menu className="h-4 w-4" />
+                <Menu className="size-4" />
               </Button>
             }
           />
-          <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground">
-            <div className="border-b border-sidebar-border px-4 py-3.5">
-              <div className="flex items-center gap-2">
-                {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={logoUrl}
-                    alt={companyName}
-                    className="size-8 rounded-lg object-contain bg-white/10 p-0.5 shadow-xs"
-                  />
-                ) : (
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-                    {companyName.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
+          <SheetContent side="left" className="w-72 p-0 flex flex-col h-full bg-sidebar border-r border-border text-sidebar-foreground">
+            {/* Drawer Header */}
+            <div className="border-b border-border p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background font-black text-sm">
+                  B
+                </div>
                 <div>
-                  <p className="text-sm font-semibold text-white truncate max-w-[140px]">{companyName}</p>
-                  <p className="truncate text-[10px] text-sidebar-foreground/60">{userName} ({userRole})</p>
+                  <h3 className="text-sm font-bold text-foreground">Billora</h3>
+                  <p className="text-[11px] text-muted-foreground truncate max-w-[140px]">{companyName}</p>
                 </div>
               </div>
+              <Badge variant="outline" className="text-[10px]">
+                {userRole}
+              </Badge>
             </div>
-            <NavLinks
-              pathname={pathname}
-              userRole={userRole}
-              onNavigate={() => {
-                document.dispatchEvent(
-                  new KeyboardEvent("keydown", { key: "Escape" }),
-                );
-              }}
-            />
-            <div className="mt-auto border-t border-sidebar-border p-3">
-              <p className="mb-1.5 truncate text-xs font-medium text-white">{userName}</p>
-              <form action={logoutUser}>
-                <Button type="submit" variant="outline" size="sm" className="w-full h-8 text-xs">
-                  Sign out
-                </Button>
-              </form>
+
+            {/* Scrollable Nav Links */}
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none py-2">
+              <NavLinks
+                pathname={pathname}
+                onNavigate={() => {
+                  document.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "Escape" }),
+                  );
+                }}
+              />
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="border-t border-border p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">{userName}</span>
+                <ThemeToggle />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => logoutUser()}
+                suppressHydrationWarning
+                className="w-full text-xs cursor-pointer"
+              >
+                <LogOut className="size-3.5 mr-2" />
+                Sign out
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
-        <div className="flex items-center gap-1.5">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={companyName} className="size-7 rounded-md object-contain bg-primary/10 p-0.5" />
-          ) : (
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground font-black text-xs">
-              {companyName ? companyName.charAt(0).toUpperCase() : "V"}
-            </div>
-          )}
-          <div>
-            <p className="text-xs font-bold leading-tight">{companyName}</p>
-            <p className="text-[10px] text-muted-foreground truncate max-w-[140px]">{userRole}</p>
+
+        <div className="flex items-center gap-2">
+          <div className="flex size-6 items-center justify-center rounded-md bg-foreground text-background font-bold text-xs">
+            B
           </div>
+          <span className="text-sm font-bold text-foreground">Billora</span>
         </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        {userRole === "ADMIN" && (
-          <Link href="/invoices/new" className="inline-flex items-center justify-center h-7 px-2.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-md shadow-xs">
-            + Sale
-          </Link>
-        )}
+
+      <div className="flex items-center gap-2">
+        <Link
+          href="/invoices/new"
+          className="inline-flex items-center justify-center h-8 px-3 text-xs bg-primary text-primary-foreground font-medium rounded-md shadow-xs"
+        >
+          + Sale
+        </Link>
         <ThemeToggle />
       </div>
     </header>
