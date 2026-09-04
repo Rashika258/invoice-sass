@@ -87,6 +87,7 @@ export const invoiceSchema = z.object({
 
 export const companyProfileSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
+  logoUrl: z.string().optional().or(z.literal("")),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),

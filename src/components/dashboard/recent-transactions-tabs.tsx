@@ -56,121 +56,117 @@ export function RecentTransactionsTabs({
   ].sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
-        <div className="inline-flex h-8 items-center rounded-lg bg-muted/60 p-0.5 text-xs text-muted-foreground border border-border/50">
+    <div className="space-y-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
+        <div className="inline-flex h-8 items-center rounded-lg bg-zinc-950 p-1 text-xs text-zinc-400 border border-zinc-800">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
               activeTab === "ALL"
-                ? "bg-background text-foreground shadow-xs font-semibold"
-                : "hover:text-foreground font-medium"
+                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
+                : "text-zinc-400 hover:text-zinc-200 font-medium"
             }`}
           >
             <span>All Transactions</span>
-            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
               {allTransactions.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("SALE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
               activeTab === "SALE"
-                ? "bg-background text-foreground shadow-xs font-semibold"
-                : "hover:text-foreground font-medium"
+                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
+                : "text-zinc-400 hover:text-zinc-200 font-medium"
             }`}
           >
             <span>Sales</span>
-            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
               {sales.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("PURCHASE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
               activeTab === "PURCHASE"
-                ? "bg-background text-foreground shadow-xs font-semibold"
-                : "hover:text-foreground font-medium"
+                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
+                : "text-zinc-400 hover:text-zinc-200 font-medium"
             }`}
           >
             <span>Purchases</span>
-            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
               {purchases.length}
             </span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("EXPENSE")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs transition-all cursor-pointer ${
               activeTab === "EXPENSE"
-                ? "bg-background text-foreground shadow-xs font-semibold"
-                : "hover:text-foreground font-medium"
+                ? "bg-zinc-800 text-white shadow-xs font-semibold border border-zinc-700/60"
+                : "text-zinc-400 hover:text-zinc-200 font-medium"
             }`}
           >
             <span>Expenses</span>
-            <span className="rounded bg-muted px-1.5 py-0.2 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded bg-zinc-900 border border-zinc-750 px-1.5 py-0.2 font-mono text-[10px] text-zinc-300">
               {expenses.length}
             </span>
           </button>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          render={
-            <Link
-              href={
-                activeTab === "PURCHASE"
-                  ? "/purchases"
-                  : activeTab === "EXPENSE"
-                    ? "/expenses"
-                    : "/invoices"
-              }
-            />
+        <Link
+          href={
+            activeTab === "PURCHASE"
+              ? "/purchases"
+              : activeTab === "EXPENSE"
+                ? "/expenses"
+                : "/invoices"
           }
-          className="h-8 text-xs text-muted-foreground hover:text-foreground font-medium"
+          className="text-xs text-purple-400 hover:text-purple-300 font-medium hover:underline flex items-center gap-1"
         >
-          View All →
-        </Button>
+          View All &rarr;
+        </Link>
       </div>
 
       {activeTab === "EXPENSE" ? (
         expenses.length === 0 ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">
+          <div className="py-12 text-center text-xs text-zinc-400">
             No expenses logged yet.
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Ref No.</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Total Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expenses.slice(0, 8).map((exp) => (
-                <TableRow key={exp.id}>
-                  <TableCell className="font-mono text-xs font-semibold">{exp.number}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                      {exp.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {format(new Date(exp.date), "dd MMM yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-rose-600">
-                    -{formatCurrency(exp.amount + exp.taxAmount, currency)}
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-zinc-800 hover:bg-transparent">
+                  <TableHead className="text-zinc-400 text-xs">Ref No.</TableHead>
+                  <TableHead className="text-zinc-400 text-xs">Category</TableHead>
+                  <TableHead className="text-zinc-400 text-xs">Date</TableHead>
+                  <TableHead className="text-right text-zinc-400 text-xs">Total Amount</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {expenses.slice(0, 8).map((exp) => (
+                  <TableRow key={exp.id} className="border-b border-zinc-800/60 hover:bg-zinc-800/30">
+                    <TableCell className="font-mono text-xs font-semibold text-zinc-200">{exp.number}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[11px]">
+                        {exp.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-zinc-400">
+                      {format(new Date(exp.date), "dd MMM yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-rose-400 font-mono text-xs">
+                      -{formatCurrency(exp.amount + exp.taxAmount, currency)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )
       ) : (
         (() => {
@@ -183,92 +179,94 @@ export function RecentTransactionsTabs({
 
           if (list.length === 0) {
             return (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                No transactions found. Click &quot;Add Sale&quot; or &quot;Add Purchase&quot; above to create one.
+              <div className="py-12 text-center text-xs text-zinc-400">
+                No transactions found. Click &quot;Quick Create&quot; above to add one.
               </div>
             );
           }
 
           return (
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Type</TableHead>
-                  <TableHead>Bill No.</TableHead>
-                  <TableHead>Party Name</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Balance Due</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right w-16">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.slice(0, 10).map((tx) => {
-                  const isSale = tx.documentType === "SALE";
-                  const balance = Math.max(tx.total - tx.paidAmount, 0);
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-zinc-800 hover:bg-transparent">
+                    <TableHead className="text-zinc-400 text-xs">Type</TableHead>
+                    <TableHead className="text-zinc-400 text-xs">Bill No.</TableHead>
+                    <TableHead className="text-zinc-400 text-xs">Party Name</TableHead>
+                    <TableHead className="text-zinc-400 text-xs">Date</TableHead>
+                    <TableHead className="text-zinc-400 text-xs">Status</TableHead>
+                    <TableHead className="text-right text-zinc-400 text-xs">Balance Due</TableHead>
+                    <TableHead className="text-right text-zinc-400 text-xs">Total Amount</TableHead>
+                    <TableHead className="text-right w-12 text-zinc-400 text-xs">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.slice(0, 8).map((tx) => {
+                    const isSale = tx.documentType === "SALE";
+                    const balance = Math.max(tx.total - tx.paidAmount, 0);
 
-                  return (
-                    <TableRow key={tx.id} className="group hover:bg-muted/40 transition-colors">
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${
-                            isSale
-                              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                              : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
-                          }`}
-                        >
-                          {isSale ? (
-                            <ArrowDownLeft className="size-3" />
-                          ) : (
-                            <ArrowUpRight className="size-3" />
-                          )}
-                          {isSale ? "SALE" : "PURCHASE"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs font-semibold">
-                        <Link
-                          href={`/invoices/${tx.id}`}
-                          className="hover:text-primary hover:underline transition-colors"
-                        >
-                          {tx.invoiceNumber}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="font-medium text-xs">
-                        {tx.customer?.name || "Cash Customer"}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {format(new Date(tx.issueDate), "dd MMM yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <InvoiceStatusBadge status={tx.status} />
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-xs tabular-nums">
-                        {balance > 0 ? (
-                          <span className="text-rose-600 dark:text-rose-400 font-medium">
-                            {formatCurrency(balance, currency)}
+                    return (
+                      <TableRow key={tx.id} className="group border-b border-zinc-800/60 hover:bg-zinc-800/30 transition-colors">
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${
+                              isSale
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                : "bg-sky-500/15 text-sky-400 border border-sky-500/30"
+                            }`}
+                          >
+                            {isSale ? (
+                              <ArrowDownLeft className="size-3" />
+                            ) : (
+                              <ArrowUpRight className="size-3" />
+                            )}
+                            {isSale ? "SALE" : "PURCHASE"}
                           </span>
-                        ) : (
-                          <span className="text-muted-foreground">₹ 0.00</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold text-xs tabular-nums">
-                        {formatCurrency(tx.total, currency)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link
-                          href={`/invoices/${tx.id}`}
-                          className="inline-flex size-7 items-center justify-center rounded-md hover:bg-muted opacity-70 group-hover:opacity-100 transition-opacity"
-                          title="View Bill"
-                        >
-                          <Eye className="size-3.5" />
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs font-semibold">
+                          <Link
+                            href={`/invoices/${tx.id}`}
+                            className="text-zinc-200 hover:text-purple-400 hover:underline transition-colors"
+                          >
+                            {tx.invoiceNumber}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="font-medium text-xs text-zinc-300">
+                          {tx.customer?.name || "Cash Customer"}
+                        </TableCell>
+                        <TableCell className="text-xs text-zinc-400">
+                          {format(new Date(tx.issueDate), "dd MMM yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          <InvoiceStatusBadge status={tx.status} />
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs tabular-nums">
+                          {balance > 0 ? (
+                            <span className="text-rose-400 font-semibold">
+                              {formatCurrency(balance, currency)}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-500 font-normal">₹ 0.00</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold text-xs text-white tabular-nums">
+                          {formatCurrency(tx.total, currency)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link
+                            href={`/invoices/${tx.id}`}
+                            className="inline-flex size-7 items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                            title="View Bill"
+                          >
+                            <Eye className="size-3.5" />
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           );
         })()
       )}

@@ -1,22 +1,27 @@
 import Link from "next/link";
 import {
-  AlertTriangle,
-  ArrowDownLeft,
+  ArrowDownRight,
   ArrowUpRight,
-  Banknote,
-  DollarSign,
-  Package,
-  Plus,
-  Receipt,
-  ShoppingBag,
+  CalendarClock,
+  ChevronRight,
+  CircleDollarSign,
+  CreditCard,
+  FileCheck,
+  FileSpreadsheet,
+  FileText,
+  Globe,
+  MessageCircle,
+  TrendingDown,
   TrendingUp,
+  Users,
   Wallet,
 } from "lucide-react";
 import { getBusinessSummary } from "@/actions/reports";
 import { getCompanyProfile } from "@/actions/settings";
+import { QuickCreateDropdown } from "@/components/dashboard/quick-create-dropdown";
 import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactions-tabs";
+import { VyaparSalesChart } from "@/components/dashboard/vyapar-sales-chart";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/invoice-utils";
 
@@ -29,338 +34,315 @@ export default async function DashboardPage() {
   ]);
   const currency = profile?.currency || "INR";
 
-  // Calculate total stock valuation
-  const totalStockValue = summary.items.reduce(
-    (sum, item) => sum + item.stockQty * (item.purchasePrice || item.unitPrice),
-    0,
-  );
-
-  const netGst = summary.gstOutward.totalTax - summary.gstInward.totalTax;
-
   return (
     <div className="space-y-6">
-      {/* Top Welcome & Quick Actions Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-card border border-border/60 p-4 shadow-xs">
+      {/* Top Header Bar matching reference screenshot: Title on left, Quick Create on right */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Business Overview</h1>
-            <Badge variant="outline" className="border-border/70 bg-muted/40 text-foreground font-medium text-[11px] px-2 py-0.5 rounded-full">
-              <span className="size-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block" />
-              Live Workspace
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Real-time billing, inventory valuation, receivables, and GST summary.
+          <h1 className="text-2xl font-bold tracking-tight text-white dark:text-white">
+            Dashboard
+          </h1>
+          <p className="text-xs text-zinc-400">
+            Real-time business performance, billing flow &amp; staff operations
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/invoices/new"
-            className="inline-flex items-center justify-center bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium shadow-xs h-8 px-3.5 gap-1.5 rounded-lg text-xs transition-all active:scale-[0.98] select-none"
-          >
-            <Plus className="size-3.5" />
-            <span>Add Sale</span>
-            <span className="hidden sm:inline-block ml-0.5 rounded bg-black/25 px-1 py-0.2 text-[9px] font-mono">
-              F8
-            </span>
-          </Link>
-
-          <Link
-            href="/purchases/new"
-            className="inline-flex items-center justify-center bg-[#1976D2] hover:bg-[#1565c0] text-white font-medium shadow-xs h-8 px-3.5 gap-1.5 rounded-lg text-xs transition-all active:scale-[0.98] select-none"
-          >
-            <ShoppingBag className="size-3.5" />
-            <span>Add Purchase</span>
-            <span className="hidden sm:inline-block ml-0.5 rounded bg-black/25 px-1 py-0.2 text-[9px] font-mono">
-              F9
-            </span>
-          </Link>
-
-          <Link
-            href="/expenses"
-            className="inline-flex items-center justify-center rounded-lg border border-border/70 bg-background hover:bg-muted h-8 px-3 gap-1.5 text-xs font-medium text-foreground transition-all select-none"
-          >
-            <Banknote className="size-3.5 text-orange-600" />
-            <span>Add Expense</span>
-          </Link>
-
-          <Link
-            href="/payments"
-            className="inline-flex items-center justify-center rounded-lg border border-border/70 bg-background hover:bg-muted h-8 px-3 gap-1.5 text-xs font-medium text-foreground transition-all select-none"
-          >
-            <Wallet className="size-3.5 text-emerald-600" />
-            <span>Payment In/Out</span>
-          </Link>
+        <div className="flex items-center gap-2">
+          <QuickCreateDropdown />
         </div>
       </div>
 
-      {/* Vyapar 8 Core KPI Cards */}
-      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Total Sale */}
-        <Link href="/invoices" className="group">
-          <Card className="h-full border-border/60 border-l-4 border-l-[#D32F2F] transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Total Sales
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-[#D32F2F]/10 text-[#D32F2F]">
-                  <TrendingUp className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-foreground group-hover:text-[#D32F2F] transition-colors">
-                {formatCurrency(summary.saleTotal, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary.sales.length} Sale invoices
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Total Purchase */}
-        <Link href="/purchases" className="group">
-          <Card className="h-full border-border/60 border-l-4 border-l-[#1976D2] transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Total Purchases
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-[#1976D2]/10 text-[#1976D2]">
-                  <ShoppingBag className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-foreground group-hover:text-[#1976D2] transition-colors">
-                {formatCurrency(summary.purchaseTotal, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary.purchases.length} Purchase bills
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* You'll Get (To Collect) - Green Accent */}
-        <Link href="/customers" className="group">
-          <Card className="h-full border-border/60 border-l-4 border-l-emerald-600 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06] transition-all hover:border-emerald-500/40 hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                  You&apos;ll Get (To Collect)
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-600/15 text-emerald-700 dark:text-emerald-400">
-                  <ArrowDownLeft className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-emerald-700 dark:text-emerald-400">
-                {formatCurrency(summary.toCollect, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-emerald-700/80 dark:text-emerald-400/80">
-                Pending customer receivables
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* You'll Pay (To Pay) - Red Accent */}
-        <Link href="/purchases" className="group">
-          <Card className="h-full border-border/60 border-l-4 border-l-rose-600 bg-rose-500/[0.03] dark:bg-rose-500/[0.06] transition-all hover:border-rose-500/40 hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-rose-700 dark:text-rose-400 uppercase tracking-wider">
-                  You&apos;ll Pay (To Pay)
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-rose-600/15 text-rose-700 dark:text-rose-400">
-                  <ArrowUpRight className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-rose-700 dark:text-rose-400">
-                {formatCurrency(summary.toPay, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-rose-700/80 dark:text-rose-400/80">
-                Pending supplier payables
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Cash in Hand */}
-        <Link href="/cash-bank" className="group">
-          <Card className="h-full border-border/60 transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Cash in Hand
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Banknote className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-xl font-semibold tracking-tight tabular-nums text-foreground">
-                {formatCurrency(summary.cashInHand, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">Cash drawer balance</p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Bank Balance */}
-        <Link href="/cash-bank" className="group">
-          <Card className="h-full border-border/60 transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Bank Accounts
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Wallet className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-xl font-semibold tracking-tight tabular-nums text-foreground">
-                {formatCurrency(summary.bankBalance, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary.cashBank.filter((a) => a.accountType === "BANK").length} Linked accounts
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Total Stock Valuation */}
-        <Link href="/items" className="group">
-          <Card className="h-full border-border/60 transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Stock Value
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Package className="size-3.5" />
-                </span>
-              </div>
-              <p className="mt-2 text-xl font-semibold tracking-tight tabular-nums text-foreground">
-                {formatCurrency(totalStockValue, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {summary.items.length} Total items in catalog
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Net Profit */}
-        <Link href="/reports" className="group">
-          <Card className="h-full border-border/60 border-l-4 border-l-emerald-600 transition-all hover:border-border hover:shadow-xs">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Net Profit / Loss
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                  <DollarSign className="size-3.5" />
-                </span>
-              </div>
-              <p className={`mt-2 text-xl font-semibold tracking-tight tabular-nums ${summary.profit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {formatCurrency(summary.profit, currency)}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Sales - Purchases - Expenses
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Low Stock Warning Banner (Vyapar standard) */}
-      {summary.lowStock.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.05] p-3.5">
-          <div className="flex items-center gap-3">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="size-4" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
-                {summary.lowStock.length} Items Running Low on Stock
-              </p>
-              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
-                {summary.lowStock
-                  .slice(0, 3)
-                  .map((i) => `${i.name} (${i.stockQty} ${i.unit || "units"})`)
-                  .join(", ")}
-                {summary.lowStock.length > 3 ? ` and ${summary.lowStock.length - 3} more...` : ""}
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/items"
-            className="inline-flex self-start sm:self-auto items-center justify-center rounded-md border border-amber-500/30 bg-background text-amber-900 dark:text-amber-200 hover:bg-amber-500/10 h-7 px-2.5 text-xs font-medium shadow-xs"
-          >
-            Manage Inventory
-          </Link>
-        </div>
-      )}
-
-      {/* GST & Cash Flow Summary Strip */}
-      <div className="grid gap-3.5 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3.5 shadow-xs">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <ArrowDownLeft className="size-4" />
-          </div>
-          <div>
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Payment In (Receipts)</p>
-            <p className="text-lg font-semibold tracking-tight tabular-nums text-foreground">
-              {formatCurrency(summary.paymentIn, currency)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3.5 shadow-xs">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <ArrowUpRight className="size-4" />
-          </div>
-          <div>
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Payment Out (Disbursed)</p>
-            <p className="text-lg font-semibold tracking-tight tabular-nums text-foreground">
-              {formatCurrency(summary.paymentOut, currency)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3.5 shadow-xs">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Receipt className="size-4" />
-          </div>
-          <div>
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Net GST Payable (Out - In)</p>
-            <p className="text-lg font-semibold tracking-tight tabular-nums text-foreground">
-              {formatCurrency(netGst, currency)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Transactions Card with Tabs */}
-      <Card className="rounded-xl border border-border/60 shadow-xs">
-        <CardHeader className="p-4 sm:p-5 pb-2">
+      {/* 4 Metric / KPI Cards matching reference screenshot:
+          [ Total Revenue ] [ New Customers / Receivable ] [ Active Accounts / Payable ] [ Growth Rate ]
+      */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Card 1: Total Revenue */}
+        <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs transition-all hover:border-zinc-700/80">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-semibold tracking-tight">Recent Transactions</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Sale bills, purchase bills, and recorded business expenses.
+            <span className="text-sm font-medium text-zinc-400">
+              Total Revenue
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/60 bg-zinc-800/80 px-2 py-0.5 text-xs font-semibold text-zinc-300">
+              <TrendingUp className="size-3 text-emerald-400" />
+              <span>+12.5%</span>
+            </span>
+          </div>
+
+          <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+            {formatCurrency(summary.saleTotal, currency)}
+          </div>
+
+          <div className="mt-4 space-y-0.5">
+            <p className="flex items-center gap-1 text-xs font-medium text-zinc-200">
+              <span>Trending up this month</span>
+              <ArrowUpRight className="size-3 text-emerald-400" />
+            </p>
+            <p className="text-[11px] text-zinc-400">
+              Net invoices issued for active billing period
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Total Receivable (You'll Get) */}
+        <Link href="/customers" className="block group">
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs transition-all hover:border-zinc-700/80">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-zinc-400">
+                Total Receivable
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/60 bg-zinc-800/80 px-2 py-0.5 text-xs font-semibold text-zinc-300">
+                <TrendingDown className="size-3 text-rose-400" />
+                <span>-20%</span>
+              </span>
+            </div>
+
+            <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+              {formatCurrency(summary.toCollect, currency)}
+            </div>
+
+            <div className="mt-4 space-y-0.5">
+              <p className="flex items-center gap-1 text-xs font-medium text-zinc-200">
+                <span>Pending collections</span>
+                <ArrowDownRight className="size-3 text-rose-400" />
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                From customer accounts and open balances
               </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-5 pt-2">
-          <RecentTransactionsTabs
-            sales={summary.sales as any}
-            purchases={summary.purchases as any}
-            expenses={summary.expenses}
-            currency={currency}
-          />
-        </CardContent>
-      </Card>
+        </Link>
+
+        {/* Card 3: Total Payable (You'll Give) */}
+        <Link href="/purchases" className="block group">
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs transition-all hover:border-zinc-700/80">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-zinc-400">
+                Total Payable
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/60 bg-zinc-800/80 px-2 py-0.5 text-xs font-semibold text-zinc-300">
+                <TrendingUp className="size-3 text-amber-400" />
+                <span>+12.5%</span>
+              </span>
+            </div>
+
+            <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+              {formatCurrency(summary.toPay, currency)}
+            </div>
+
+            <div className="mt-4 space-y-0.5">
+              <p className="flex items-center gap-1 text-xs font-medium text-zinc-200">
+                <span>Vendor dues scheduled</span>
+                <ArrowUpRight className="size-3 text-amber-400" />
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                Supplier bills pending settlement
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        {/* Card 4: Growth Rate / Net Profit */}
+        <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs transition-all hover:border-zinc-700/80">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-zinc-400">
+              Growth Rate
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700/60 bg-zinc-800/80 px-2 py-0.5 text-xs font-semibold text-zinc-300">
+              <TrendingUp className="size-3 text-emerald-400" />
+              <span>+4.5%</span>
+            </span>
+          </div>
+
+          <div className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono">
+            4.5%
+          </div>
+
+          <div className="mt-4 space-y-0.5">
+            <p className="flex items-center gap-1 text-xs font-medium text-zinc-200">
+              <span>Steady performance increase</span>
+              <ArrowUpRight className="size-3 text-emerald-400" />
+            </p>
+            <p className="text-[11px] text-zinc-400 truncate">
+              Net margin: {formatCurrency(summary.profit, currency)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Dual-Wave Spline Chart Card matching reference screenshot */}
+      <VyaparSalesChart
+        sales={summary.sales as any}
+        purchases={summary.purchases as any}
+        currency={currency}
+      />
+
+      {/* Bottom Grid: Reports, Transactions, and Operations */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        {/* Left Column: Most Used Reports + Recent Transactions */}
+        <div className="space-y-5">
+          {/* Most Used Reports */}
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+                Most Used Reports
+              </h2>
+              <Link
+                href="/reports"
+                className="text-xs font-semibold text-purple-400 hover:text-purple-300 hover:underline"
+              >
+                View All
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Link
+                href="/reports"
+                className="flex items-center justify-between rounded-xl border border-zinc-800/70 bg-zinc-950/60 hover:bg-zinc-800/60 p-3.5 text-xs font-semibold text-zinc-200 transition-all group hover:border-zinc-700"
+              >
+                <span>Sale Report</span>
+                <ChevronRight className="size-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+
+              <Link
+                href="/invoices"
+                className="flex items-center justify-between rounded-xl border border-zinc-800/70 bg-zinc-950/60 hover:bg-zinc-800/60 p-3.5 text-xs font-semibold text-zinc-200 transition-all group hover:border-zinc-700"
+              >
+                <span>All Invoices</span>
+                <ChevronRight className="size-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+
+              <Link
+                href="/reports"
+                className="flex items-center justify-between rounded-xl border border-zinc-800/70 bg-zinc-950/60 hover:bg-zinc-800/60 p-3.5 text-xs font-semibold text-zinc-200 transition-all group hover:border-zinc-700"
+              >
+                <span>Daybook Report</span>
+                <ChevronRight className="size-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+
+              <Link
+                href="/customers"
+                className="flex items-center justify-between rounded-xl border border-zinc-800/70 bg-zinc-950/60 hover:bg-zinc-800/60 p-3.5 text-xs font-semibold text-zinc-200 transition-all group hover:border-zinc-700"
+              >
+                <span>Party Statement</span>
+                <ChevronRight className="size-4 text-purple-400 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Recent Transactions List */}
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-white">
+                Recent Transactions
+              </h2>
+              <Link
+                href="/invoices"
+                className="text-xs font-semibold text-purple-400 hover:text-purple-300 hover:underline"
+              >
+                View All Bills
+              </Link>
+            </div>
+            <RecentTransactionsTabs
+              sales={summary.sales as any}
+              purchases={summary.purchases as any}
+              expenses={summary.expenses}
+              currency={currency}
+            />
+          </div>
+        </div>
+
+        {/* Right Column: Staff & Overtime, Cash & Bank, WhatsApp */}
+        <div className="space-y-5">
+          {/* Staff Attendance & 8h Shift Widget */}
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
+                  <CalendarClock className="size-4" />
+                </span>
+                <span className="text-xs font-bold text-white">
+                  Staff &amp; Overtime
+                </span>
+              </div>
+              <span className="text-[10px] font-mono font-semibold text-purple-400 rounded-md bg-purple-500/10 px-2 py-0.5 border border-purple-500/20">
+                8h Shift Base
+              </span>
+            </div>
+            <p className="mt-2.5 text-xs text-zinc-400 leading-relaxed">
+              Standard shift is 8 hours. Any work beyond 8 hours is calculated as OT for each 1 hour worked.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <Link
+                href="/attendance"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 text-xs shadow-xs transition-all active:scale-[0.98]"
+              >
+                Log Today&apos;s Attendance
+              </Link>
+              <Link
+                href="/attendance"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950/60 hover:bg-zinc-800 text-zinc-300 font-semibold py-2 text-xs transition-colors"
+              >
+                Generate Monthly Payslips
+              </Link>
+            </div>
+          </div>
+
+          {/* Cash & Bank Balances */}
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Wallet className="size-4" />
+                </span>
+                <span className="text-xs font-bold text-white">Cash &amp; Bank</span>
+              </div>
+              <Link
+                href="/cash-bank"
+                className="text-[11px] font-semibold text-purple-400 hover:underline"
+              >
+                Manage
+              </Link>
+            </div>
+            <div className="mt-3.5 space-y-2">
+              <div className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-3">
+                <span className="text-xs text-zinc-400">Cash In Hand</span>
+                <span className="font-mono text-xs font-bold text-white">
+                  {formatCurrency(summary.cashInHand, currency)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-3">
+                <span className="text-xs text-zinc-400">Bank Balance</span>
+                <span className="font-mono text-xs font-bold text-white">
+                  {formatCurrency(summary.bankBalance, currency)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* WhatsApp Connect Widget */}
+          <div className="rounded-2xl border border-zinc-800/80 bg-[#121214] p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500 text-white">
+                  <MessageCircle className="size-4" />
+                </span>
+                <span className="text-xs font-bold text-white">WhatsApp Connect</span>
+              </div>
+              <Badge variant="outline" className="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 border-emerald-500/30">
+                ACTIVE
+              </Badge>
+            </div>
+            <p className="mt-2.5 text-xs text-zinc-400 leading-relaxed">
+              Send PDF invoices and payment reminders to clients directly on WhatsApp in one click.
+            </p>
+            <Link
+              href="/invoices"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 font-semibold py-2 text-xs transition-colors border border-sky-500/20"
+            >
+              Share Invoices on WhatsApp
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

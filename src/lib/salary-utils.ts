@@ -46,3 +46,32 @@ export function calculatePeriodSalary(
     },
   );
 }
+
+export function calculateShiftFromTimes(
+  checkIn: string,
+  checkOut: string,
+): { hours: number; error?: string } {
+  if (!checkIn || !checkOut) {
+    return { hours: 0 };
+  }
+
+  const [inH, inM] = checkIn.split(":").map(Number);
+  const [outH, outM] = checkOut.split(":").map(Number);
+
+  if (isNaN(inH) || isNaN(inM) || isNaN(outH) || isNaN(outM)) {
+    return { hours: 0, error: "Invalid time format" };
+  }
+
+  const inMinutes = inH * 60 + inM;
+  let outMinutes = outH * 60 + outM;
+
+  // Handle overnight shift if checkout is earlier than checkin
+  if (outMinutes < inMinutes) {
+    outMinutes += 24 * 60;
+  }
+
+  const diffMinutes = outMinutes - inMinutes;
+  const hours = Math.round((diffMinutes / 60) * 10) / 10;
+
+  return { hours };
+}

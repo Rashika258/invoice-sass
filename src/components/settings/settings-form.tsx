@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, CreditCard, FileText, Save } from "lucide-react";
+import { useState, useRef } from "react";
+import { Building2, CreditCard, FileText, Image as ImageIcon, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { CompanyProfile } from "@/generated/prisma/client";
 import { updateCompanyProfile } from "@/actions/settings";
@@ -13,6 +13,22 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>(profile?.logoUrl ?? "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image file size should be under 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -21,6 +37,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
     const formData = new FormData(event.currentTarget);
     const data = {
       companyName: String(formData.get("companyName") ?? ""),
+      logoUrl: logoUrl.trim() || undefined,
       email: String(formData.get("email") ?? ""),
       phone: String(formData.get("phone") ?? ""),
       address: String(formData.get("address") ?? ""),
@@ -54,33 +71,101 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">Business Profile & Settings</h1>
-          <p className="text-xs text-muted-foreground">
-            Configure your business details, GSTIN, bank accounts, and invoice templates.
+          <h1 className="text-2xl font-semibold tracking-tight">Business Profile &amp; Settings</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Configure your business details, custom logo, GSTIN, bank accounts, and invoice templates.
           </p>
         </div>
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-bold h-9 px-5 gap-1.5 shadow-xs"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-8 px-4 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98]"
         >
-          <Save className="size-4" />
+          <Save className="size-3.5" />
           <span>{isSubmitting ? "Saving..." : "Save Settings"}</span>
         </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Company Profile Card */}
-        <Card className="rounded-xl shadow-xs">
-          <CardHeader className="p-4 pb-2 border-b bg-muted/20">
-            <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
-              <Building2 className="size-4 text-[#D32F2F]" />
-              <span>Company Information</span>
+        {/* Company Profile & Logo Card */}
+        <Card className="rounded-xl border border-border/60 shadow-xs">
+          <CardHeader className="p-4 pb-2 border-b border-border/60 bg-muted/20">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+              <Building2 className="size-4 text-primary" />
+              <span>Company Information &amp; Branding</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 space-y-3.5">
+          <CardContent className="p-4 space-y-4">
+            {/* Logo Configuration Block */}
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-3.5 space-y-3">
+              <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <ImageIcon className="size-3.5 text-primary" />
+                <span>Company Logo</span>
+              </Label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+                {/* Logo Preview Box */}
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-card overflow-hidden shadow-xs">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt="Logo preview"
+                      className="size-full object-contain p-1"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-muted-foreground text-[10px]">
+                      <Building2 className="size-6 text-muted-foreground/60 mb-0.5" />
+                      <span>No Logo</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2 w-full">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleLogoUpload}
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-7 text-xs font-medium gap-1.5 rounded-md"
+                    >
+                      <Upload className="size-3.5 text-primary" />
+                      <span>Upload Logo</span>
+                    </Button>
+                    {logoUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLogoUrl("")}
+                        className="h-7 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded-md"
+                      >
+                        <Trash2 className="size-3.5" />
+                        <span>Remove</span>
+                      </Button>
+                    )}
+                  </div>
+                  <Input
+                    placeholder="Or paste an image URL (https://...)"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    className="h-7 text-[11px] rounded-md"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Supported: PNG, JPEG, SVG or WebP. Displayed on bills, sidebar, and headers.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="companyName" className="text-xs font-bold text-muted-foreground">
+              <Label htmlFor="companyName" className="text-xs font-medium text-foreground">
                 Company / Trade Name *
               </Label>
               <Input
@@ -89,7 +174,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
                 defaultValue={profile?.companyName ?? ""}
                 required
                 placeholder="E.g. Sharma Enterprises"
-                className="h-9 text-xs font-semibold"
+                className="h-8 text-xs font-medium"
               />
             </div>
 
@@ -208,16 +293,16 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
 
         {/* Bank & Payment Details */}
         <div className="space-y-6">
-          <Card className="rounded-xl shadow-xs">
-            <CardHeader className="p-4 pb-2 border-b bg-muted/20">
-              <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
-                <CreditCard className="size-4 text-[#1976D2]" />
-                <span>Bank & UPI Details (For Invoices)</span>
+          <Card className="rounded-xl border border-border/60 shadow-xs">
+            <CardHeader className="p-4 pb-2 border-b border-border/60 bg-muted/20">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                <CreditCard className="size-4 text-primary" />
+                <span>Bank &amp; UPI Details (For Invoices)</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3.5">
               <div className="space-y-1.5">
-                <Label htmlFor="bankName" className="text-xs font-bold text-muted-foreground">
+                <Label htmlFor="bankName" className="text-xs font-medium text-foreground">
                   Bank Name
                 </Label>
                 <Input
@@ -225,13 +310,13 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
                   name="bankName"
                   defaultValue={profile?.bankName ?? ""}
                   placeholder="State Bank of India / HDFC Bank"
-                  className="h-9 text-xs"
+                  className="h-8 text-xs"
                 />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="accountNumber" className="text-xs font-bold text-muted-foreground">
+                  <Label htmlFor="accountNumber" className="text-xs font-medium text-foreground">
                     Bank Account Number
                   </Label>
                   <Input
@@ -239,12 +324,12 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
                     name="accountNumber"
                     defaultValue={profile?.accountNumber ?? ""}
                     placeholder="9876543210123"
-                    className="h-9 text-xs font-mono"
+                    className="h-8 text-xs font-mono"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="routingNumber" className="text-xs font-bold text-muted-foreground">
+                  <Label htmlFor="routingNumber" className="text-xs font-medium text-foreground">
                     IFSC Code / UPI ID
                   </Label>
                   <Input
@@ -252,7 +337,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
                     name="routingNumber"
                     defaultValue={profile?.routingNumber ?? ""}
                     placeholder="SBIN0001234 or yourname@upi"
-                    className="h-9 text-xs font-mono uppercase"
+                    className="h-8 text-xs font-mono uppercase"
                   />
                 </div>
               </div>
@@ -260,10 +345,10 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
           </Card>
 
           {/* Invoice Defaults */}
-          <Card className="rounded-xl shadow-xs">
-            <CardHeader className="p-4 pb-2 border-b bg-muted/20">
-              <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
-                <FileText className="size-4 text-emerald-600" />
+          <Card className="rounded-xl border border-border/60 shadow-xs">
+            <CardHeader className="p-4 pb-2 border-b border-border/60 bg-muted/20">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                <FileText className="size-4 text-primary" />
                 <span>Invoice Defaults</span>
               </CardTitle>
             </CardHeader>

@@ -114,7 +114,16 @@ export async function requireUser() {
   return user;
 }
 
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") {
+    throw new Error("Unauthorized: Admin privileges required");
+  }
+  return user;
+}
+
 export async function getOrganizationId() {
   const user = await requireUser();
   return user.organizationId;
 }
+

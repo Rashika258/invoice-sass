@@ -16,9 +16,10 @@ type InvoiceViewProps = {
     items: InvoiceItem[];
   };
   currency: string;
+  logoUrl?: string | null;
 };
 
-export function InvoiceViewActions({ invoice, currency }: InvoiceViewProps) {
+export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewProps) {
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -66,7 +67,7 @@ export function InvoiceViewActions({ invoice, currency }: InvoiceViewProps) {
           </Button>
           <Link
             href={`/invoices/${invoice.id}/edit`}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-3 py-1.5 text-sm font-semibold shadow-xs"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 text-sm font-semibold shadow-xs transition-all active:scale-[0.98]"
           >
             <Pencil className="mr-2 h-4 w-4" />
             Edit Bill
@@ -77,7 +78,7 @@ export function InvoiceViewActions({ invoice, currency }: InvoiceViewProps) {
         </div>
       </div>
 
-      <InvoiceTemplate invoice={invoice} currency={currency} />
+      <InvoiceTemplate invoice={invoice} currency={currency} logoUrl={logoUrl} />
     </div>
   );
 }

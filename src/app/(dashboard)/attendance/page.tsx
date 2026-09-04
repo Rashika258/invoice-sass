@@ -1,8 +1,12 @@
 import { format } from "date-fns";
+import { Clock, Users, CalendarCheck, Wallet } from "lucide-react";
 import { getAttendanceRecords, getEmployees } from "@/actions/employees";
 import { getCompanyProfile } from "@/actions/settings";
 import { AttendanceForm } from "@/components/attendance/attendance-form";
+import { PayslipDialog } from "@/components/attendance/payslip-dialog";
+import { DeleteAttendanceButton } from "@/components/attendance/delete-attendance-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -30,7 +34,12 @@ export default async function AttendancePage({
     getCompanyProfile(),
   ]);
 
-  const currency = profile?.currency ?? "USD";
+  const currency = profile?.currency ?? "INR";
+  const companyName = profile?.companyName || "My Business";
+  const logoUrl = profile?.logoUrl;
+  const taxId = profile?.taxId;
+  const phone = profile?.phone;
+  const address = profile?.address;
 
   const salarySummary = employees.map((employee) => {
     const employeeRecords = records.filter(
@@ -50,146 +59,242 @@ export default async function AttendancePage({
     0,
   );
 
+  const totalOtHours = salarySummary.reduce(
+    (sum, item) => sum + item.salary.overtimeHours,
+    0,
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* Header with Title and Month Filter */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Attendance & Payroll</h1>
-          <p className="text-muted-foreground">
-            Track daily hours. Standard day is {STANDARD_WORK_HOURS} hours; overtime
-            is paid per extra hour.
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Attendance &amp; Payroll
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Standard shift is {STANDARD_WORK_HOURS} hours. Overtime (OT) is calculated per extra hour worked.
           </p>
         </div>
-        <form className="flex items-end gap-2">
+        <form className="flex items-center gap-2">
           <div>
-            <label htmlFor="month" className="mb-1 block text-sm font-medium">
-              Month
-            </label>
             <input
               id="month"
               name="month"
               type="month"
               defaultValue={month}
-              className="flex h-9 rounded-lg border border-input bg-background px-3 text-sm"
+              className="flex h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium shadow-xs"
             />
           </div>
           <button
             type="submit"
-            className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
+            className="h-9 rounded-lg bg-primary hover:bg-primary/90 px-3.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all active:scale-[0.98]"
           >
-            Filter
+            Filter Month
           </button>
         </form>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Employees
-            </CardTitle>
+      {/* KPI Cards */}
+      <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-border/60 shadow-xs">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Total Staff
+              </span>
+              <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Users className="size-3.5" />
+              </span>
+            </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{employees.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Attendance Records
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{records.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total OT Hours
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {salarySummary
-                .reduce((sum, item) => sum + item.salary.overtimeHours, 0)
-                .toFixed(1)}
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold tracking-tight text-foreground">
+              {employees.length}
             </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Active employees</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Monthly Payroll
-            </CardTitle>
+
+        <Card className="border-border/60 shadow-xs">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Days Logged
+              </span>
+              <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                <CalendarCheck className="size-3.5" />
+              </span>
+            </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold tracking-tight text-foreground">
+              {records.length}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Entries for {format(new Date(`${month}-01`), "MMM yyyy")}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 shadow-xs">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Total OT Hours
+              </span>
+              <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Clock className="size-3.5" />
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold tracking-tight text-primary font-mono">
+              +{totalOtHours.toFixed(1)} hrs
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Overtime beyond 8h shift</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 shadow-xs">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Monthly Payroll
+              </span>
+              <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                <Wallet className="size-3.5" />
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold tracking-tight text-emerald-600 font-mono">
               {formatCurrency(totalPayroll, currency)}
             </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Regular + OT compensation</p>
           </CardContent>
         </Card>
       </div>
 
-      <AttendanceForm employees={employees} />
+      {/* Attendance Form with 8h Shift Engine */}
+      <AttendanceForm employees={employees} currency={currency} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Salary Summary — {format(new Date(`${month}-01`), "MMMM yyyy")}</CardTitle>
+      {/* Monthly Salary Summary Table with Payslip Generation */}
+      <Card className="rounded-xl shadow-xs border">
+        <CardHeader className="border-b bg-card/60 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">
+                Staff Payroll &amp; Salary Summary &mdash; {format(new Date(`${month}-01`), "MMMM yyyy")}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Calculated based on {STANDARD_WORK_HOURS}-hour standard shifts and hourly overtime. Generate individual printable payslips below.
+              </p>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Days</TableHead>
-                <TableHead>Total Hours</TableHead>
-                <TableHead>Regular</TableHead>
-                <TableHead>OT Hours</TableHead>
-                <TableHead>Regular Pay</TableHead>
-                <TableHead>OT Pay</TableHead>
-                <TableHead className="text-right">Total Salary</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {salarySummary.map(({ employee, salary, records: empRecords }) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{empRecords.length}</TableCell>
-                  <TableCell>{salary.totalHours.toFixed(1)}</TableCell>
-                  <TableCell>{salary.regularHours.toFixed(1)}</TableCell>
-                  <TableCell>{salary.overtimeHours.toFixed(1)}</TableCell>
-                  <TableCell>{formatCurrency(salary.regularPay, currency)}</TableCell>
-                  <TableCell>{formatCurrency(salary.overtimePay, currency)}</TableCell>
-                  <TableCell className="text-right font-semibold">
-                    {formatCurrency(salary.totalPay, currency)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Attendance</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          {records.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              No attendance records for this month.
+        <CardContent className="p-0 overflow-x-auto">
+          {salarySummary.length === 0 ? (
+            <p className="py-8 text-center text-xs text-muted-foreground">
+              No employees configured yet. Add employees from the Employees tab.
             </p>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Hours</TableHead>
-                  <TableHead>Regular</TableHead>
-                  <TableHead>OT</TableHead>
-                  <TableHead className="text-right">Day Pay</TableHead>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="text-xs font-bold">Employee</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Days</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Total Hours</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Regular (8h Base)</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Overtime (OT)</TableHead>
+                  <TableHead className="text-xs font-bold text-right">Regular Pay</TableHead>
+                  <TableHead className="text-xs font-bold text-right">OT Pay</TableHead>
+                  <TableHead className="text-xs font-bold text-right">Total Salary</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Payslip</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {salarySummary.map(({ employee, salary, records: empRecords }) => (
+                  <TableRow key={employee.id} className="hover:bg-muted/30">
+                    <TableCell>
+                      <div>
+                        <p className="font-semibold text-xs text-foreground">{employee.name}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {employee.position || "Staff"} · ₹{employee.hourlyRate}/h (OT: ₹{employee.overtimeRate}/h)
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-mono text-xs">{empRecords.length}</TableCell>
+                    <TableCell className="text-center font-mono text-xs font-semibold">{salary.totalHours.toFixed(1)}</TableCell>
+                    <TableCell className="text-center font-mono text-xs">{salary.regularHours.toFixed(1)}</TableCell>
+                    <TableCell className="text-center">
+                      {salary.overtimeHours > 0 ? (
+                        <Badge className="bg-primary text-primary-foreground font-mono text-[10px] font-bold">
+                          +{salary.overtimeHours.toFixed(1)}h
+                        </Badge>
+                      ) : (
+                        <span className="font-mono text-xs text-muted-foreground">0.0</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                      {formatCurrency(salary.regularPay, currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs font-semibold text-primary">
+                      {formatCurrency(salary.overtimePay, currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs font-black text-foreground">
+                      {formatCurrency(salary.totalPay, currency)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <PayslipDialog
+                        data={{
+                          employee,
+                          month,
+                          daysWorked: empRecords.length,
+                          totalHours: salary.totalHours,
+                          regularHours: salary.regularHours,
+                          overtimeHours: salary.overtimeHours,
+                          regularPay: salary.regularPay,
+                          overtimePay: salary.overtimePay,
+                          totalPay: salary.totalPay,
+                          companyName,
+                          logoUrl,
+                          taxId,
+                          phone,
+                          address,
+                          currency,
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Daily Attendance Logs */}
+      <Card className="rounded-xl shadow-xs border">
+        <CardHeader className="border-b bg-card/60 p-4">
+          <CardTitle className="text-base font-semibold">
+            Daily Attendance Logs &mdash; {format(new Date(`${month}-01`), "MMMM yyyy")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 overflow-x-auto">
+          {records.length === 0 ? (
+            <p className="py-8 text-center text-xs text-muted-foreground">
+              No daily attendance records found for this month.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="text-xs font-bold">Date</TableHead>
+                  <TableHead className="text-xs font-bold">Employee</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Total Hours</TableHead>
+                  <TableHead className="text-xs font-bold text-center">Shift Breakdown</TableHead>
+                  <TableHead className="text-xs font-bold">Shift Notes / Remarks</TableHead>
+                  <TableHead className="text-xs font-bold text-right">Day Earnings</TableHead>
+                  <TableHead className="w-10 text-center"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,16 +306,41 @@ export default async function AttendancePage({
                   );
 
                   return (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        {format(record.date, "MMM dd, yyyy")}
+                    <TableRow key={record.id} className="hover:bg-muted/30">
+                      <TableCell className="text-xs font-medium">
+                        {format(new Date(record.date), "dd MMM yyyy")}
                       </TableCell>
-                      <TableCell>{record.employee.name}</TableCell>
-                      <TableCell>{record.hoursWorked}</TableCell>
-                      <TableCell>{dayPay.regularHours}</TableCell>
-                      <TableCell>{dayPay.overtimeHours}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell>
+                        <span className="font-semibold text-xs text-foreground">
+                          {record.employee.name}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground ml-1.5">
+                          ({record.employee.position || "Staff"})
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-bold">
+                        {record.hoursWorked} hrs
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="inline-flex items-center gap-1.5 text-[11px]">
+                          <span className="font-mono text-muted-foreground">
+                            {dayPay.regularHours}h reg
+                          </span>
+                          {dayPay.overtimeHours > 0 && (
+                            <Badge className="bg-primary text-primary-foreground font-mono text-[9px] font-bold px-1.5 py-0.2">
+                              +{dayPay.overtimeHours}h OT
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
+                        {record.notes || "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs font-bold text-emerald-600">
                         {formatCurrency(dayPay.totalPay, currency)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <DeleteAttendanceButton recordId={record.id} />
                       </TableCell>
                     </TableRow>
                   );

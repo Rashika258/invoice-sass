@@ -80,7 +80,7 @@ export function PartiesView({
         </div>
         <CustomerFormDialog
           trigger={
-            <Button className="bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium h-8 px-3.5 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98]">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 px-3.5 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98]">
               <Plus className="size-3.5" />
               <span>Add New Party</span>
             </Button>

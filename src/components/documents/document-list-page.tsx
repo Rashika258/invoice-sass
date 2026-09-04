@@ -47,7 +47,7 @@ export async function DocumentListPage({ documentType }: { documentType: Documen
               className={
                 isPurchase
                   ? "border-blue-500/30 text-blue-700 dark:text-blue-400 bg-blue-500/10 text-[11px] font-medium px-2 py-0.5 rounded-full"
-                  : "border-[#D32F2F]/30 text-[#D32F2F] bg-[#D32F2F]/10 text-[11px] font-medium px-2 py-0.5 rounded-full"
+                  : "border-primary/30 text-primary bg-primary/10 text-[11px] font-medium px-2 py-0.5 rounded-full"
               }
             >
               {documents.length} Records
@@ -63,7 +63,7 @@ export async function DocumentListPage({ documentType }: { documentType: Documen
           className={
             isPurchase
               ? "inline-flex items-center justify-center bg-[#1976D2] hover:bg-[#1565c0] text-white font-medium h-8 px-3.5 gap-1.5 shadow-xs rounded-lg text-xs transition-all active:scale-[0.98] select-none"
-              : "inline-flex items-center justify-center bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium h-8 px-3.5 gap-1.5 shadow-xs rounded-lg text-xs transition-all active:scale-[0.98] select-none"
+              : "inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 px-3.5 gap-1.5 shadow-xs rounded-lg text-xs transition-all active:scale-[0.98] select-none"
           }
         >
           <Plus className="size-3.5" />
@@ -73,7 +73,7 @@ export async function DocumentListPage({ documentType }: { documentType: Documen
 
       {/* Summary KPI Strip */}
       <div className="grid gap-3.5 sm:grid-cols-3">
-        <Card className={`border-border/60 border-l-4 ${isPurchase ? "border-l-[#1976D2]" : "border-l-[#D32F2F]"} shadow-xs`}>
+        <Card className={`border-border/60 border-l-4 ${isPurchase ? "border-l-[#1976D2]" : "border-l-primary"} shadow-xs`}>
           <CardContent className="p-4">
             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
               Total {meta.label} Volume
@@ -127,7 +127,7 @@ export async function DocumentListPage({ documentType }: { documentType: Documen
                 className={
                   isPurchase
                     ? "inline-flex items-center justify-center rounded-md bg-[#1976D2] hover:bg-[#1565C0] text-white font-semibold h-8 px-3 text-xs shadow-xs"
-                    : "inline-flex items-center justify-center rounded-md bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-semibold h-8 px-3 text-xs shadow-xs"
+                    : "inline-flex items-center justify-center rounded-md bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 px-3 text-xs shadow-xs"
                 }
               >
                 <Plus className="size-4 mr-1.5" />

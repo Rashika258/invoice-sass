@@ -22,6 +22,7 @@ export default async function InvoiceDetailPage({
     <InvoiceViewActions
       invoice={invoice}
       currency={profile?.currency ?? "INR"}
+      logoUrl={profile?.logoUrl}
     />
   );
 }

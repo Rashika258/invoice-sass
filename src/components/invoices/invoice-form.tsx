@@ -258,7 +258,7 @@ export function InvoiceForm({
                 className={
                   isPurchase
                     ? "bg-[#1976D2] hover:bg-[#1976D2] text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
-                    : "bg-[#D32F2F] hover:bg-[#D32F2F] text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
+                    : "bg-primary hover:bg-primary text-primary-foreground font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
                 }
               >
                 {meta.label.toUpperCase()}
@@ -280,7 +280,7 @@ export function InvoiceForm({
             className={
               isPurchase
                 ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
-                : "bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
             }
           >
             {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
@@ -661,7 +661,7 @@ export function InvoiceForm({
 
         {/* Right Column: Totals Calculation Summary */}
         <div className="lg:col-span-5">
-          <Card className="rounded-xl shadow-xs border-t-4 border-t-[#D32F2F]">
+          <Card className={`rounded-xl shadow-xs border-t-4 ${isPurchase ? "border-t-[#1976D2]" : "border-t-primary"}`}>
             <CardHeader className="p-4 pb-2 border-b bg-muted/20">
               <CardTitle className="text-sm font-black uppercase tracking-wider">
                 Bill Summary
@@ -727,7 +727,7 @@ export function InvoiceForm({
                     <span className="text-base font-black tracking-tight">Grand Total</span>
                     <p className="text-[10px] text-muted-foreground">Inclusive of all taxes</p>
                   </div>
-                  <span className="text-2xl font-black font-mono text-[#D32F2F]">
+                  <span className="text-2xl font-black font-mono text-primary">
                     {formatCurrency(totals.total, currency)}
                   </span>
                 </div>
@@ -744,7 +744,7 @@ export function InvoiceForm({
                   className={
                     isPurchase
                       ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-bold h-10 px-6 shadow-sm"
-                      : "bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-bold h-10 px-6 shadow-sm"
+                      : "bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 shadow-sm"
                   }
                 >
                   {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}

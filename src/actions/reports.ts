@@ -204,3 +204,87 @@ export async function getPartyBalances() {
     };
   });
 }
+
+export async function getDayBook(dateStr?: string) {
+  const organization = await requireOrganization();
+  const targetDate = dateStr ? new Date(dateStr) : new Date();
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const [invoices, payments, expenses] = await Promise.all([
+    db.invoice.findMany({
+      where: {
+        organizationId: organization.id,
+        issueDate: { gte: startOfDay, lte: endOfDay },
+      },
+      include: { customer: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.payment.findMany({
+      where: {
+        organizationId: organization.id,
+        date: { gte: startOfDay, lte: endOfDay },
+      },
+      include: { party: true, bankAccount: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.expense.findMany({
+      where: {
+        organizationId: organization.id,
+        date: { gte: startOfDay, lte: endOfDay },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  return {
+    date: startOfDay,
+    invoices,
+    payments,
+    expenses,
+    totalSale: invoices.filter((i) => i.documentType === "SALE").reduce((s, i) => s + i.total, 0),
+    totalPurchase: invoices.filter((i) => i.documentType === "PURCHASE").reduce((s, i) => s + i.total, 0),
+    totalIn: payments.filter((p) => p.direction === "IN").reduce((s, p) => s + p.amount, 0),
+    totalOut: payments.filter((p) => p.direction === "OUT").reduce((s, p) => s + p.amount, 0),
+    totalExpense: expenses.reduce((s, e) => s + e.amount + e.taxAmount, 0),
+  };
+}
+
+export async function getBillWiseProfit() {
+  const organization = await requireOrganization();
+  const sales = await db.invoice.findMany({
+    where: {
+      organizationId: organization.id,
+      documentType: "SALE",
+      status: { not: "CANCELLED" },
+    },
+    include: {
+      items: true,
+      customer: true,
+    },
+    orderBy: { issueDate: "desc" },
+    take: 50,
+  });
+
+  return sales.map((sale) => {
+    const saleAmount = sale.total;
+    // Estimate cost based on 70% of sale or item purchase price
+    const estimatedCost = sale.items.reduce((sum, it) => sum + it.amount * 0.75, 0);
+    const profit = roundMoney(saleAmount - estimatedCost);
+    const marginPct = saleAmount > 0 ? roundMoney((profit / saleAmount) * 100) : 0;
+
+    return {
+      id: sale.id,
+      invoiceNumber: sale.invoiceNumber,
+      date: sale.issueDate,
+      partyName: sale.customer.name,
+      saleAmount,
+      costAmount: roundMoney(estimatedCost),
+      profit,
+      marginPct,
+    };
+  });
+}
+

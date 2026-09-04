@@ -7,12 +7,14 @@ import { generateUpiUri, getQrCodeSvgUrl } from "@/lib/qr-code";
 type InvoiceTemplateProps = {
   invoice: Invoice & { customer: Customer; items: InvoiceItem[] };
   currency?: string;
+  logoUrl?: string | null;
   className?: string;
 };
 
 export function InvoiceTemplate({
   invoice,
   currency = "INR",
+  logoUrl,
   className = "",
 }: InvoiceTemplateProps) {
   const companyAddress = formatAddress({
@@ -59,7 +61,7 @@ export function InvoiceTemplate({
       <div className="border-2 border-slate-900">
         {/* Header Banner */}
         <header className="border-b-2 border-slate-900 bg-slate-50/50">
-          <div className="flex items-center justify-between border-b border-slate-900 px-4 py-1.5 bg-[#D32F2F] text-white">
+          <div className="flex items-center justify-between border-b border-slate-900 px-4 py-1.5 bg-[#7c3aed] text-white">
             <span className="text-xs font-bold tracking-wider uppercase">
               {docTitle}
             </span>
@@ -70,7 +72,7 @@ export function InvoiceTemplate({
 
           <div className="grid grid-cols-[1fr_auto] p-4 gap-4">
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-[#D32F2F]">
+              <h1 className="text-2xl font-black tracking-tight text-[#7c3aed]">
                 {invoice.companyName || "Your Business Name"}
               </h1>
               <p className="mt-1 font-medium whitespace-pre-line text-slate-700">
@@ -90,13 +92,22 @@ export function InvoiceTemplate({
               </div>
             </div>
 
-            {/* Vyapar Badge / Logo */}
+            {/* Logo / Badge */}
             <div className="hidden sm:flex flex-col items-center justify-center text-center pl-4 border-l border-slate-300">
-              <div className="size-12 rounded-lg bg-[#D32F2F] text-white flex items-center justify-center font-black text-2xl shadow-xs">
-                V
-              </div>
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt={invoice.companyName || "Company Logo"}
+                  className="max-h-12 max-w-28 object-contain rounded"
+                />
+              ) : (
+                <div className="size-12 rounded-lg bg-[#7c3aed] text-white flex items-center justify-center font-black text-2xl shadow-xs">
+                  {invoice.companyName ? invoice.companyName.charAt(0).toUpperCase() : "V"}
+                </div>
+              )}
               <span className="text-[9px] font-bold text-slate-500 uppercase mt-1">
-                Vyapar Bill
+                {isPurchase ? "Purchase Bill" : "Tax Invoice"}
               </span>
             </div>
           </div>
@@ -142,7 +153,7 @@ export function InvoiceTemplate({
             <div className="grid grid-cols-2">
               <div className="p-2 border-r border-slate-900">
                 <span className="text-[10px] font-bold text-slate-500 block">Invoice No:</span>
-                <span className="text-sm font-black text-[#D32F2F] font-mono">
+                <span className="text-sm font-black text-[#7c3aed] font-mono">
                   {invoice.invoiceNumber}
                 </span>
               </div>
@@ -323,9 +334,9 @@ export function InvoiceTemplate({
             )}
 
             {/* Grand Total */}
-            <div className="flex justify-between p-2.5 bg-[#D32F2F]/10 text-slate-950 font-black text-sm">
+            <div className="flex justify-between p-2.5 bg-[#7c3aed]/10 text-slate-950 font-black text-sm">
               <span>Grand Total</span>
-              <span className="font-mono text-base text-[#D32F2F]">
+              <span className="font-mono text-base text-[#7c3aed]">
                 {formatCurrency(invoice.total, currency)}
               </span>
             </div>
@@ -356,7 +367,7 @@ export function InvoiceTemplate({
             </span>
           </div>
           <div className="p-4 pt-12 flex flex-col justify-end">
-            <p className="font-black text-[#D32F2F] text-xs">
+            <p className="font-black text-[#7c3aed] text-xs">
               For {invoice.companyName || "Your Company"}
             </p>
             <span className="border-t border-slate-400 pt-1 font-semibold text-slate-700 mt-8">

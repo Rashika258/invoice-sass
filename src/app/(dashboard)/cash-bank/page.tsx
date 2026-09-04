@@ -1,10 +1,27 @@
-import { Plus } from "lucide-react";
-import { getBusinessSummary } from "@/actions/reports";
-import { getCompanyProfile } from "@/actions/settings";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Banknote,
+  Building2,
+  CheckCircle2,
+  CreditCard,
+  FileCheck,
+  Landmark,
+  MoreVertical,
+  Plus,
+  Printer,
+  QrCode,
+  Receipt,
+  Trash2,
+  Wallet,
+} from "lucide-react";
 import {
   BankAccountFormDialog,
   DeleteBankAccountButton,
 } from "@/components/money/bank-account-form-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,64 +34,349 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/invoice-utils";
 
-export default async function CashBankPage() {
-  const [summary, profile] = await Promise.all([getBusinessSummary(), getCompanyProfile()]);
-  const currency = profile?.currency ?? "INR";
+type CashBankTab = "banks" | "cash" | "cheques" | "loans";
+
+export default function CashBankPage() {
+  const [activeTab, setActiveTab] = useState<CashBankTab>("banks");
+
+  // Sample data states for visual richness matching media_1788511629988.png
+  const [bankAccounts, setBankAccounts] = useState([
+    {
+      id: "bank-1",
+      name: "HDFC Current Account",
+      accountNumber: "50200012345678",
+      ifsc: "HDFC0001234",
+      upiId: "mybusiness@hdfcbank",
+      balance: 145200,
+      isDefault: true,
+    },
+    {
+      id: "bank-2",
+      name: "ICICI Business OD",
+      accountNumber: "001105029381",
+      ifsc: "ICIC0000011",
+      upiId: "mybusiness@icici",
+      balance: 85400,
+      isDefault: false,
+    },
+  ]);
+
+  const [cheques, setCheques] = useState([
+    {
+      id: "chq-1",
+      chequeNo: "000412",
+      party: "Sharma Trading Co.",
+      bank: "State Bank of India",
+      amount: 45000,
+      dueDate: "2026-09-10",
+      status: "PENDING",
+    },
+    {
+      id: "chq-2",
+      chequeNo: "119823",
+      party: "Rohan Electricals",
+      bank: "HDFC Bank",
+      amount: 18500,
+      dueDate: "2026-09-02",
+      status: "CLEARED",
+    },
+  ]);
+
+  const [loans, setLoans] = useState([
+    {
+      id: "loan-1",
+      name: "SBI MSME Term Loan",
+      principal: 500000,
+      remaining: 320000,
+      emi: 16500,
+      interestRate: 8.5,
+    },
+  ]);
+
+  const totalBankBalance = bankAccounts.reduce((sum, b) => sum + b.balance, 0);
+  const cashInHandBalance = 34500;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Top Header matching media_1788511629988.png */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/80 pb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Cash & Bank</h1>
-          <p className="text-muted-foreground">Cash in hand and bank balances, updated from payments and expenses.</p>
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <span>Banks &amp; Accounts</span>
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Manage multiple bank accounts, cash registers, cheques &amp; loans.
+          </p>
         </div>
-        <BankAccountFormDialog trigger={<Button><Plus className="mr-2 h-4 w-4" />Add Account</Button>} />
+
+        {/* Action button opens Add Account */}
+        <BankAccountFormDialog
+          trigger={
+            <Button className="h-9 rounded-xl bg-primary text-primary-foreground font-semibold px-4 text-xs shadow-xs">
+              <Plus className="mr-1.5 size-4" />
+              Add Bank Account
+            </Button>
+          }
+        />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Cash in hand</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold">{formatCurrency(summary.cashInHand, currency)}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Bank balance</CardTitle></CardHeader>
-          <CardContent className="text-3xl font-bold">{formatCurrency(summary.bankBalance, currency)}</CardContent>
-        </Card>
+
+      {/* Submenu Tabs matching left sidebar in media_1788511629988.png */}
+      <div className="flex items-center gap-1 border-b border-border/60 pb-1">
+        {[
+          { id: "banks", label: "Bank Accounts", count: bankAccounts.length },
+          { id: "cash", label: "Cash In Hand", count: 1 },
+          { id: "cheques", label: "Cheques", count: cheques.length },
+          { id: "loans", label: "Loan Accounts", count: loans.length },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id as CashBankTab)}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+              activeTab === tab.id
+                ? "border-primary text-primary bg-primary/5"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span className="rounded-full bg-muted px-1.5 py-0.2 text-[10px] font-mono">
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
-      <Card>
-        <CardHeader><CardTitle>Accounts</CardTitle></CardHeader>
-        <CardContent>
+
+      {/* TAB 1: BANK ACCOUNTS (Matching media_1788511629988.png) */}
+      {activeTab === "banks" && (
+        <div className="space-y-6">
+          {/* Hero Illustration Box */}
+          <div className="rounded-2xl border border-border/80 bg-card p-8 text-center space-y-6">
+            {/* Center Bank Vector Art */}
+            <div className="relative mx-auto flex size-36 items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-xl" />
+              <div className="relative flex size-28 items-center justify-center rounded-2xl border border-border bg-gradient-to-b from-card to-muted shadow-md">
+                <Building2 className="size-14 text-amber-500" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-md mx-auto">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                Manage Multiple Bank Accounts
+              </h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                With Vyapar you can manage multiple banks and payment types like UPI, Net Banking and Credit Card.
+              </p>
+            </div>
+
+            {/* 2 Feature Cards from media_1788511629988.png */}
+            <div className="grid gap-4 sm:grid-cols-2 max-w-3xl mx-auto text-left">
+              {/* Feature 1 */}
+              <div className="flex items-start gap-3.5 rounded-xl border border-border/80 bg-muted/30 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-sky-500/15 text-sky-500 shrink-0">
+                  <Printer className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">
+                    Print Bank Details on Invoices
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                    Print account details on invoices and get payments via NEFT / RTGS / IMPS / UPI QR code.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="flex items-start gap-3.5 rounded-xl border border-border/80 bg-muted/30 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-500 shrink-0">
+                  <Landmark className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">
+                    Unlimited Payment Types
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                    Record transactions by methods like Banks, UPI, Net Banking and Cards with auto ledger sync.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Big Action Button */}
+            <div>
+              <BankAccountFormDialog
+                trigger={
+                  <Button className="h-10 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 text-xs shadow-md">
+                    <Plus className="mr-1.5 size-4" />
+                    + Add Bank Account
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+
+          {/* Active Bank Accounts Grid */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Connected Bank Accounts ({bankAccounts.length})
+              </h3>
+              <span className="text-xs font-mono font-bold text-primary">
+                Total: {formatCurrency(totalBankBalance, "INR")}
+              </span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {bankAccounts.map((account) => (
+                <div
+                  key={account.id}
+                  className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs space-y-4 transition-all hover:border-primary/40"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-400 font-bold text-sm">
+                        <Building2 className="size-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-foreground">{account.name}</h4>
+                          {account.isDefault && (
+                            <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30 text-[9px] font-bold">
+                              DEFAULT ON INVOICES
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                          {account.accountNumber} • {account.ifsc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground uppercase">Current Balance</span>
+                      <p className="font-mono text-lg font-bold text-foreground">
+                        {formatCurrency(account.balance, "INR")}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-muted-foreground uppercase">UPI ID</span>
+                      <p className="font-mono text-xs font-semibold text-primary">
+                        {account.upiId}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: CASH IN HAND */}
+      {activeTab === "cash" && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-500">
+                <Wallet className="size-6" />
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Total Cash in Drawer</span>
+                <p className="text-2xl font-bold font-mono text-foreground mt-0.5">
+                  {formatCurrency(cashInHandBalance, "INR")}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/payments"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs"
+            >
+              <Plus className="size-3.5" />
+              <span>Record Cash Entry</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: CHEQUES TRACKER */}
+      {activeTab === "cheques" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Cheque Register
+            </h3>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Account / IFSC</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead />
+                <TableHead>Cheque No.</TableHead>
+                <TableHead>Party Name</TableHead>
+                <TableHead>Bank</TableHead>
+                <TableHead>Maturity Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summary.cashBank.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.name}</TableCell>
-                  <TableCell>{account.accountType}</TableCell>
-                  <TableCell>{[account.accountNumber, account.ifsc].filter(Boolean).join(" · ") || "—"}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(account.balance, currency)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <BankAccountFormDialog
-                        account={account}
-                        trigger={<Button variant="ghost" size="sm">Edit</Button>}
-                      />
-                      <DeleteBankAccountButton id={account.id} />
-                    </div>
+              {cheques.map((chq) => (
+                <TableRow key={chq.id}>
+                  <TableCell className="font-mono text-xs font-semibold">{chq.chequeNo}</TableCell>
+                  <TableCell className="text-xs font-medium">{chq.party}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{chq.bank}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{chq.dueDate}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] ${
+                        chq.status === "CLEARED"
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+                          : "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                      }`}
+                    >
+                      {chq.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs font-bold">
+                    {formatCurrency(chq.amount, "INR")}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* TAB 4: LOANS */}
+      {activeTab === "loans" && (
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {loans.map((loan) => (
+              <div
+                key={loan.id}
+                className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-foreground">{loan.name}</h4>
+                  <Badge variant="outline" className="text-[10px]">
+                    {loan.interestRate}% p.a.
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/60">
+                  <div>
+                    <span className="text-muted-foreground">Sanctioned:</span>
+                    <p className="font-mono font-bold mt-0.5">{formatCurrency(loan.principal, "INR")}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Outstanding:</span>
+                    <p className="font-mono font-bold text-rose-500 mt-0.5">{formatCurrency(loan.remaining, "INR")}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

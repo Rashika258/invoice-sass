@@ -48,12 +48,14 @@ type VyaparHeaderProps = {
   companyName: string;
   taxId?: string | null;
   phone?: string | null;
+  logoUrl?: string | null;
 };
 
 export function VyaparHeader({
   userName,
   companyName,
   taxId,
+  logoUrl,
 }: VyaparHeaderProps) {
   const router = useRouter();
   const [calcOpen, setCalcOpen] = useState(false);
@@ -89,7 +91,6 @@ export function VyaparHeader({
       setCalcResult(null);
     } else if (val === "=") {
       try {
-        // Safe arithmetic expression parser
         const sanitized = calcInput.replace(/[^0-9+\-*/.]/g, "");
         if (!sanitized) return;
         // eslint-disable-next-line no-new-func
@@ -108,16 +109,15 @@ export function VyaparHeader({
     { title: "New Sale Invoice", href: "/invoices/new", icon: Plus, category: "Sales" },
     { title: "Purchase Bills", href: "/purchases", icon: ShoppingBag, category: "Purchases" },
     { title: "New Purchase Bill", href: "/purchases/new", icon: Plus, category: "Purchases" },
-    { title: "Estimates / Quotation", href: "/estimates", icon: FileSpreadsheet, category: "Sales" },
-    { title: "Delivery Challans", href: "/challans", icon: FileCheck, category: "Sales" },
-    { title: "Credit Notes (Sale Return)", href: "/credit-notes", icon: Receipt, category: "Sales" },
-    { title: "Debit Notes (Purchase Return)", href: "/debit-notes", icon: Receipt, category: "Purchases" },
-    { title: "Parties (Customers/Vendors)", href: "/customers", icon: Users, category: "Masters" },
-    { title: "Items & Inventory", href: "/items", icon: Package, category: "Masters" },
-    { title: "Cash & Bank Accounts", href: "/cash-bank", icon: Wallet, category: "Banking" },
-    { title: "Expenses", href: "/expenses", icon: Banknote, category: "Expenses" },
-    { title: "GSTR & Profit Reports", href: "/reports", icon: FileText, category: "Reports" },
-    { title: "Company Profile & GST", href: "/settings", icon: Settings, category: "Settings" },
+    { title: "Parties Directory", href: "/customers", icon: Users, category: "Parties" },
+    { title: "Items & Inventory", href: "/items", icon: Package, category: "Inventory" },
+    { title: "Payment In / Out", href: "/payments", icon: Wallet, category: "Cash & Bank" },
+    { title: "Cash & Bank Accounts", href: "/cash-bank", icon: Wallet, category: "Cash & Bank" },
+    { title: "Expenses", href: "/expenses", icon: Banknote, category: "Cash & Bank" },
+    { title: "Attendance & Payroll", href: "/attendance", icon: FileText, category: "Payroll" },
+    { title: "Staff Directory", href: "/employees", icon: Users, category: "Staff" },
+    { title: "Reports & GST", href: "/reports", icon: FileText, category: "Reports" },
+    { title: "Settings & Company", href: "/settings", icon: Settings, category: "Settings" },
   ];
 
   const filteredNav = quickNav.filter((item) =>
@@ -126,39 +126,79 @@ export function VyaparHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/60 bg-background/80 backdrop-blur-md px-4 sm:px-6">
-        {/* Left: Company Profile badge */}
+      {/* Vyapar Desktop Topmost Utility Strip */}
+      <div className="flex h-7 w-full items-center justify-between border-b border-border/50 bg-card/70 px-4 text-[11px] text-muted-foreground select-none">
         <div className="flex items-center gap-3">
+          <Link href="/settings" className="font-semibold text-foreground flex items-center gap-1.5 hover:text-primary transition-colors">
+            <span className="size-2 rounded-full bg-primary" />
+            Company
+          </Link>
+          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Help</span>
+          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Versions</span>
+          <span className="hover:text-foreground cursor-pointer hidden sm:inline">Shortcuts</span>
+          <button type="button" onClick={() => router.refresh()} className="hover:text-foreground cursor-pointer" title="Refresh">
+            ↻
+          </button>
+        </div>
+        <div className="hidden lg:flex items-center gap-2 text-[10px]">
+          <span>Customer Support : 📞 +91 77956 87633, +91 63644 44752</span>
+          <span className="text-border">|</span>
+          <span className="text-primary font-semibold flex items-center gap-1">
+            📡 Get Instant Online Support
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-30 flex h-13 w-full items-center justify-between border-b border-border/60 bg-background/90 backdrop-blur-md px-4 sm:px-6">
+        {/* Left: Quick Search button styled like Vyapar desktop search */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 transition-all cursor-pointer w-44 sm:w-52 justify-between shadow-2xs"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="size-3.5 text-primary" />
+              <span className="truncate">Open Anything</span>
+            </div>
+            <kbd className="hidden sm:inline-block rounded bg-background px-1.5 py-0.5 text-[9px] font-mono border text-muted-foreground">
+              Ctrl+K
+            </kbd>
+          </button>
+        </div>
+
+        {/* Center: Vyapar Iconic Red/Purple Dot + Business Name */}
+        <div className="flex items-center gap-2">
           <Link
             href="/settings"
-            className="group flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 transition-all hover:bg-muted/60"
+            className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-muted/40 transition-colors group"
+            title="Click to edit business name & settings"
           >
-            <div className="flex size-6 items-center justify-center rounded-md bg-primary font-bold text-white text-xs shadow-xs">
-              {companyName.slice(0, 1).toUpperCase()}
-            </div>
-            <div className="text-left">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {companyName}
-                </span>
-                <Badge variant="outline" className="h-4 px-1 text-[9px] font-medium text-emerald-600 border-emerald-300 dark:border-emerald-800">
-                  <span className="size-1 rounded-full bg-emerald-500 mr-1 inline-block" />
-                  GST Active
-                </Badge>
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                {taxId ? `GSTIN: ${taxId}` : "Click to setup GSTIN"}
-              </p>
-            </div>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={companyName}
+                className="size-6 rounded-md object-contain bg-white shadow-2xs p-0.5 border"
+              />
+            ) : (
+              <span className="size-2.5 rounded-full bg-primary animate-pulse" />
+            )}
+            <span className="text-sm font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
+              {companyName || "Enter Business Name"}
+            </span>
           </Link>
         </div>
 
-        {/* Center: Vyapar Iconic Action Buttons */}
-        <div className="hidden md:flex items-center gap-2">
-          {/* + Add Sale (Red button, F8) */}
+        {/* Right: Vyapar Iconic Pill Action Buttons */}
+        <div className="flex items-center gap-2">
+          {/* + Add Sale (Purple pill button, F8) */}
           <Link
             href="/invoices/new"
-            className="inline-flex shrink-0 items-center justify-center bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium shadow-xs px-3.5 h-8 gap-1.5 rounded-lg text-xs transition-all active:scale-[0.98] select-none"
+            className="inline-flex shrink-0 items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs px-4 h-8 gap-1.5 rounded-full text-xs transition-all active:scale-[0.98] select-none"
           >
             <Plus className="size-3.5" />
             <span>Add Sale</span>
@@ -167,26 +207,24 @@ export function VyaparHeader({
             </span>
           </Link>
 
-          {/* + Add Purchase (Blue button, F9) */}
+          {/* + Add Purchase (Blue pill button, F9) */}
           <Link
             href="/purchases/new"
-            className="inline-flex shrink-0 items-center justify-center bg-[#1976D2] hover:bg-[#1565c0] text-white font-medium shadow-xs px-3.5 h-8 gap-1.5 rounded-lg text-xs transition-all active:scale-[0.98] select-none"
+            className="inline-flex shrink-0 items-center justify-center bg-[#1976D2] hover:bg-[#1565c0] text-white font-semibold shadow-xs px-4 h-8 gap-1.5 rounded-full text-xs transition-all active:scale-[0.98] select-none"
           >
-            <ShoppingBag className="size-3.5" />
+            <Plus className="size-3.5" />
             <span>Add Purchase</span>
             <span className="hidden xl:inline-block ml-0.5 rounded bg-black/25 px-1 py-0.2 text-[9px] font-mono">
               F9
             </span>
           </Link>
 
-          {/* + Add More (Dropdown) */}
+          {/* + Add More (Circular Button Dropdown) */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="outline" size="sm" className="h-8 gap-1 rounded-lg border-border/70 text-xs font-medium">
-                  <Plus className="size-3.5 text-primary" />
-                  <span>Add More</span>
-                  <ChevronDown className="size-3 opacity-60" />
+                <Button variant="outline" size="icon" className="size-8 rounded-full border-border/80 text-xs" title="Add Other Transaction">
+                  <Plus className="size-4 text-primary" />
                 </Button>
               }
             />
@@ -221,7 +259,7 @@ export function VyaparHeader({
                 <span>Sale Return (Credit Note)</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Purchase & Expenses</DropdownMenuLabel>
+              <DropdownMenuLabel>Purchase &amp; Expenses</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => router.push("/payments")}
                 className="flex items-center gap-2 cursor-pointer"
@@ -252,41 +290,32 @@ export function VyaparHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-
-        {/* Right Tools & Profile */}
-        <div className="flex items-center gap-1.5">
-          {/* Quick Search trigger */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex h-8 items-center gap-2 rounded-lg border-border/60 bg-muted/20 text-muted-foreground hover:text-foreground text-xs"
-          >
-            <Search className="size-3.5" />
-            <span>Search...</span>
-            <kbd className="rounded border border-border/70 bg-muted/60 px-1 py-0.2 font-mono text-[9px] text-muted-foreground">Ctrl+K</kbd>
-          </Button>
 
           {/* Quick Calculator Dialog Trigger */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCalcOpen(true)}
-            title="Vyapar Quick Calculator"
-            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+            title="Quick Calculator"
+            className="size-8 rounded-full text-muted-foreground hover:text-foreground"
           >
             <Calculator className="size-4" />
           </Button>
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          {/* Settings Gear icon */}
+          <Link
+            href="/settings"
+            className="inline-flex size-8 items-center justify-center rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            title="Settings & Profile"
+          >
+            <Settings className="size-4" />
+          </Link>
 
           {/* User Profile dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+                <Button variant="ghost" size="icon" className="size-8 rounded-full">
                   <User className="size-4" />
                 </Button>
               }
@@ -302,7 +331,7 @@ export function VyaparHeader({
                 className="cursor-pointer"
               >
                 <Settings className="mr-2 size-4" />
-                <span>Settings & Profile</span>
+                <span>Settings &amp; Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => router.push("/reports")}
@@ -402,7 +431,7 @@ export function VyaparHeader({
               <Button
                 key={btn}
                 variant={btn === "=" ? "default" : btn === "C" ? "destructive" : "outline"}
-                className={btn === "=" ? "bg-[#D32F2F] hover:bg-[#B71C1C]" : ""}
+                className={btn === "=" ? "bg-primary hover:bg-primary/90 text-primary-foreground font-bold" : ""}
                 onClick={() => handleCalcButton(btn)}
               >
                 {btn}

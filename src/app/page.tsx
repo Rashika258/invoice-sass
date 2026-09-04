@@ -55,7 +55,7 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-[#D32F2F] text-white font-black text-lg shadow-sm">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg shadow-sm">
               V
             </span>
             <div>
@@ -87,7 +87,7 @@ export default async function LandingPage() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-lg px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-bold text-xs shadow-xs transition-colors select-none"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition-colors select-none"
             >
               Get Started Free
             </Link>
@@ -98,11 +98,11 @@ export default async function LandingPage() {
       <main>
         {/* Hero Section */}
         <section className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
-          <div className="absolute left-1/2 top-8 -z-10 size-[34rem] -translate-x-1/2 rounded-full bg-[#D32F2F]/10 blur-3xl" />
+          <div className="absolute left-1/2 top-8 -z-10 size-[34rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr]">
             <div className="max-w-2xl">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/40 px-3 py-1 text-xs font-medium text-foreground">
-                <BadgeIndianRupee className="size-3.5 text-[#D32F2F]" /> India&apos;s Preferred Billing App for MSMEs
+                <BadgeIndianRupee className="size-3.5 text-primary" /> India&apos;s Preferred Billing App for MSMEs
               </div>
               <h1 className="text-4xl font-bold leading-[1.15] tracking-tight sm:text-5xl lg:text-6xl text-foreground">
                 Smart GST Billing &amp; Inventory for Growing Businesses.
@@ -113,7 +113,7 @@ export default async function LandingPage() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium shadow-xs text-sm transition-all active:scale-[0.98]"
+                  className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs text-sm transition-all active:scale-[0.98]"
                 >
                   Create Your First Bill <ArrowRight className="ml-2 size-4" />
                 </Link>
@@ -141,7 +141,7 @@ export default async function LandingPage() {
 
             {/* Live Dashboard Snapshot Mockup */}
             <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card p-5 shadow-lg sm:p-6">
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#D32F2F] via-[#1976D2] to-emerald-500" />
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-[#1976D2] to-emerald-500" />
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export default async function LandingPage() {
                 </div>
                 <Link
                   href="/invoices/new"
-                  className="inline-flex items-center justify-center rounded-md h-7 px-2.5 text-xs bg-[#D32F2F] hover:bg-[#b71c1c] text-white font-medium shadow-xs"
+                  className="inline-flex items-center justify-center rounded-md h-7 px-2.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
                 >
                   + Add Sale
                 </Link>
@@ -162,8 +162,8 @@ export default async function LandingPage() {
 
               {/* Snapshot KPI Grid */}
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-[#D32F2F]/5 border border-[#D32F2F]/20 p-3">
-                  <p className="text-[10px] font-semibold text-[#D32F2F] uppercase tracking-wider">Today&apos;s Sales</p>
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Today&apos;s Sales</p>
                   <p className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-foreground">₹ 48,250</p>
                   <p className="mt-0.5 text-[10px] text-emerald-600 font-medium">↑ 12 bills issued</p>
                 </div>
@@ -209,7 +209,7 @@ export default async function LandingPage() {
         <section className="border-y border-border/60 bg-muted/20 py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-10 max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#D32F2F]">Built for Indian MSMEs</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Built for Indian MSMEs</p>
               <h2 className="mt-2 text-3xl font-bold tracking-tight">
                 Everything you need to manage your business ledger.
               </h2>
@@ -218,7 +218,7 @@ export default async function LandingPage() {
               {highlights.map((feature) => (
                 <Card key={feature.title} className="border-border/60 bg-card transition-all hover:border-border hover:shadow-xs">
                   <CardContent className="p-5">
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-[#D32F2F]/10 text-[#D32F2F]">
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <feature.icon className="size-4" />
                     </span>
                     <h3 className="mt-3.5 font-semibold text-sm tracking-tight">{feature.title}</h3>
@@ -235,7 +235,7 @@ export default async function LandingPage() {
       <footer className="border-t border-border/70 py-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <span className="flex size-5 items-center justify-center rounded bg-[#D32F2F] text-white font-bold text-xs">
+            <span className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-xs">
               V
             </span>
             <p>© {new Date().getFullYear()} Vyapar Cloud Billing &amp; Inventory. All rights reserved.</p>

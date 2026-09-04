@@ -30,7 +30,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/40">
       <header className="flex items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D32F2F] text-white font-black text-lg">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-lg shadow-sm">
             V
           </div>
           <div>
