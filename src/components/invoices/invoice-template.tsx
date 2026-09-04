@@ -45,12 +45,12 @@ export function InvoiceTemplate({ invoice, currency = "INR", className = "" }: I
             <p className="font-bold">To,</p>
             <p className="mt-1 font-bold">M/s. {invoice.customer.name}</p>
             <p className="mt-1 whitespace-pre-line">{customerAddress || "-"}</p>
-            <div className="mt-3 space-y-1"><DetailLine label="Party's GSTIN:" value={invoice.customer.taxId} /><DetailLine label="Phone:" value={invoice.customer.phone} /></div>
+            <div className="mt-3 space-y-1"><DetailLine label="Party&apos;s GSTIN:" value={invoice.customer.taxId} /><DetailLine label="Phone:" value={invoice.customer.phone} /></div>
           </div>
           <div className="divide-y-2 divide-black">
             <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">Invoice No. <span className="ml-2 text-base text-red-900">{invoice.invoiceNumber}</span></p><p className="p-2 font-bold">Date: {format(invoice.issueDate, "dd-MM-yyyy")}</p></div>
             <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">D.C. No.</p><p className="p-2 font-bold">Due Date: {format(invoice.dueDate, "dd-MM-yyyy")}</p></div>
-            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">Party's Order No.</p><p className="p-2 font-bold">Vehicle No.</p></div>
+            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">Party&apos;s Order No.</p><p className="p-2 font-bold">Vehicle No.</p></div>
             <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">E-way Bill</p><p className="p-2 font-bold">Original for Recipient</p></div>
           </div>
         </section>

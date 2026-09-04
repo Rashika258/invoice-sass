@@ -1,16 +1,20 @@
 "use client";
 
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { useEffect } from "react";
+
+const THEME_KEY = "invoiceflow-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      {children}
-    </NextThemesProvider>
-  );
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem(THEME_KEY);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.classList.toggle("dark", savedTheme ? savedTheme === "dark" : prefersDark);
+  }, []);
+
+  return children;
+}
+
+export function setDocumentTheme(theme: "light" | "dark") {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  window.localStorage.setItem(THEME_KEY, theme);
 }

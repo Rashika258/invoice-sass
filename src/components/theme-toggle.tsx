@@ -1,33 +1,27 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { setDocumentTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
+    setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  if (!mounted) {
-    return <Button variant="ghost" size="icon" className="size-9" />;
-  }
+  const toggleTheme = () => {
+    const nextTheme = !isDark;
+    setIsDark(nextTheme);
+    setDocumentTheme(nextTheme ? "dark" : "light");
+  };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="size-9"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      aria-label="Toggle theme"
-    >
-      <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-      <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+    <Button variant="ghost" size="icon" className="size-9" onClick={toggleTheme} aria-label="Toggle theme">
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
 }
