@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { ArrowLeft, Download, FileCode, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getBusinessSummary } from "@/actions/reports";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCompanyProfile } from "@/actions/settings";
+import { TallyExporter } from "@/components/utilities/tally-exporter";
 
 export const dynamic = "force-dynamic";
 
 export default async function ExportTallyPage() {
-  const summary = await getBusinessSummary();
+  const [summary, profile] = await Promise.all([
+    getBusinessSummary(),
+    getCompanyProfile(),
+  ]);
+
+  const companyName = profile?.companyName || "My Business";
 
   return (
     <div className="space-y-6">
@@ -30,61 +35,12 @@ export default async function ExportTallyPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-400 mb-3">
-              <FileCode className="size-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">Sales Vouchers (XML)</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Export {summary.sales.length} sale invoices formatted for Tally XML import. Includes party GSTIN, invoice lines, and CGST/SGST/IGST breakdown.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-border/60">
-            <Button className="w-full text-xs font-semibold rounded-xl bg-purple-600 hover:bg-purple-500 text-white">
-              <Download className="mr-1.5 size-3.5" />
-              Download Sales XML
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-400 mb-3">
-              <FileText className="size-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">Purchase Vouchers (XML)</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Export {summary.purchases.length} purchase vouchers for direct import into your accountant&apos;s Tally company file.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-border/60">
-            <Button variant="outline" className="w-full text-xs font-semibold rounded-xl border-border">
-              <Download className="mr-1.5 size-3.5" />
-              Download Purchases XML
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 mb-3">
-              <CheckCircle2 className="size-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">Master Ledgers (Excel)</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Export {summary.partiesCount} customer and vendor ledger accounts with opening balances, addresses, and GSTINs.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-border/60">
-            <Button variant="outline" className="w-full text-xs font-semibold rounded-xl border-border">
-              <Download className="mr-1.5 size-3.5" />
-              Export Ledgers
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <TallyExporter
+        companyName={companyName}
+        sales={summary.sales}
+        purchases={summary.purchases}
+        partiesCount={summary.partiesCount}
+      />
     </div>
   );
 }

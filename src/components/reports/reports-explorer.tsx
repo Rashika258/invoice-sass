@@ -516,14 +516,204 @@ export function ReportsExplorer({
           </div>
         )}
 
-        {/* Catch-all for other reports (Purchase, All Tx, Cashflow, Trial Balance, Balance Sheet) */}
-        {!["sale", "daybook", "pnl", "bill_profit", "party_statement", "gstr1", "gstr2", "gstr3b"].includes(activeReport) && (
-          <div className="py-12 text-center text-xs text-muted-foreground space-y-2">
-            <FileSpreadsheet className="mx-auto size-8 text-primary opacity-60" />
-            <p className="font-semibold text-foreground capitalize">
-              {activeReport.replace(/_/g, " ")} Loaded
-            </p>
-            <p>Data synchronized with your ledger. Ready for export and tax filing.</p>
+        {/* 7. PURCHASE REPORT */}
+        {activeReport === "purchase" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+                <span className="text-[11px] text-muted-foreground">Total Purchase Bills</span>
+                <p className="text-xl font-bold font-mono mt-0.5">{summary.purchases.length}</p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+                <span className="text-[11px] text-muted-foreground">Net Purchases Total</span>
+                <p className="text-xl font-bold font-mono text-sky-500 mt-0.5">
+                  {formatCurrency(summary.purchaseTotal, currency)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+                <span className="text-[11px] text-muted-foreground">Pending Supplier Dues</span>
+                <p className="text-xl font-bold font-mono text-rose-500 mt-0.5">
+                  {formatCurrency(summary.toPay, currency)}
+                </p>
+              </div>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bill No.</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Taxable</TableHead>
+                  <TableHead className="text-right">Tax</TableHead>
+                  <TableHead className="text-right">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {summary.purchases.map((pur: any) => (
+                  <TableRow key={pur.id}>
+                    <TableCell className="font-mono text-xs font-semibold">{pur.invoiceNumber}</TableCell>
+                    <TableCell className="text-xs font-medium">{pur.customer?.name || "Vendor"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {format(new Date(pur.issueDate), "dd MMM yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px]">{pur.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      {formatCurrency(pur.subtotal - pur.discount, currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      {formatCurrency(pur.cgstAmount + pur.sgstAmount + pur.igstAmount, currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-xs">
+                      {formatCurrency(pur.total, currency)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {/* 8. ALL TRANSACTIONS */}
+        {activeReport === "all_tx" && (
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Ref No.</TableHead>
+                  <TableHead>Party Name</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[
+                  ...summary.sales.map((s: any) => ({ ...s, doc: "SALE" })),
+                  ...summary.purchases.map((p: any) => ({ ...p, doc: "PURCHASE" })),
+                ]
+                  .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
+                  .map((row: any) => (
+                    <TableRow key={row.id}>
+                      <TableCell>
+                        <Badge
+                          className={`text-[10px] font-bold ${
+                            row.doc === "SALE"
+                              ? "bg-emerald-500/15 text-emerald-500 border-emerald-500/30"
+                              : "bg-sky-500/15 text-sky-500 border-sky-500/30"
+                          }`}
+                        >
+                          {row.doc}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-semibold">{row.invoiceNumber}</TableCell>
+                      <TableCell className="text-xs font-medium">{row.customer?.name || "Cash"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {format(new Date(row.issueDate), "dd MMM yyyy")}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs font-bold">
+                        {formatCurrency(row.total, currency)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {/* 9. ALL PARTIES LEDGER */}
+        {activeReport === "all_parties" && (
+          <div className="space-y-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Party Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>GSTIN</TableHead>
+                  <TableHead className="text-right">Receivable</TableHead>
+                  <TableHead className="text-right">Payable</TableHead>
+                  <TableHead className="text-right">Net Balance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {parties.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-bold text-xs">{p.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px]">{p.partyType}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.phone || "-"}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{p.taxId || "-"}</TableCell>
+                    <TableCell className="text-right font-mono text-xs text-emerald-500">
+                      {formatCurrency(p.receivable, currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs text-rose-500">
+                      {formatCurrency(p.payable, currency)}
+                    </TableCell>
+                    <TableCell className={`text-right font-mono font-bold text-xs ${p.balance >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                      {formatCurrency(p.balance, currency)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {/* 10. CASH FLOW */}
+        {activeReport === "cashflow" && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-border/80 bg-muted/20 p-5 space-y-3">
+              <div className="flex justify-between items-center text-sm font-semibold border-b border-border/60 pb-2">
+                <span>Total Cash Inflow (Customer Payments)</span>
+                <span className="font-mono text-emerald-500">+{formatCurrency(summary.paymentIn, currency)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm font-semibold border-b border-border/60 pb-2">
+                <span>Total Cash Outflow (Vendor Payments)</span>
+                <span className="font-mono text-rose-500">-{formatCurrency(summary.paymentOut, currency)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm font-semibold border-b border-border/60 pb-2">
+                <span>Direct Expenses Settled</span>
+                <span className="font-mono text-rose-500">-{formatCurrency(summary.expenseTotal, currency)}</span>
+              </div>
+              <div className="flex justify-between items-center text-base font-bold pt-2">
+                <span>Net Cash In Bank &amp; Drawer</span>
+                <span className="font-mono text-lg text-primary">
+                  {formatCurrency(summary.cashInHand + summary.bankBalance, currency)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 11. TRIAL BALANCE & BALANCE SHEET */}
+        {(activeReport === "trial_balance" || activeReport === "balance_sheet") && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-border/80 bg-muted/20 p-5 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assets &amp; Liabilities Ledger</h3>
+              <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                <span className="font-semibold">Current Assets (Cash In Hand + Bank Accounts)</span>
+                <span className="font-mono text-emerald-500">{formatCurrency(summary.cashInHand + summary.bankBalance, currency)}</span>
+              </div>
+              <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                <span className="font-semibold">Trade Receivables (Debtors / You&apos;ll Get)</span>
+                <span className="font-mono text-emerald-500">{formatCurrency(summary.toCollect, currency)}</span>
+              </div>
+              <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                <span className="font-semibold">Trade Payables (Creditors / You&apos;ll Give)</span>
+                <span className="font-mono text-rose-500">-{formatCurrency(summary.toPay, currency)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold pt-2">
+                <span>Net Business Equity</span>
+                <span className="font-mono text-primary text-base">
+                  {formatCurrency(summary.cashInHand + summary.bankBalance + summary.toCollect - summary.toPay, currency)}
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </div>
