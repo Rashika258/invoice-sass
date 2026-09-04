@@ -53,7 +53,7 @@ export async function registerUser(formData: FormData) {
               paymentTerms: "Net 30",
               invoicePrefix: "INV",
               nextInvoiceNumber: 1,
-              currency: "USD",
+              currency: "INR",
               defaultTaxRate: 0,
             },
           },

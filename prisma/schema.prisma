@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -7,86 +8,176 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  invoices  Invoice[]
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
-model Company {
-  id         String   @id @default(cuid())
-  name       String
-  gstin      String?
-  state      String?
-  code       String?
-  address    String?
-  phone      String?
-  logoUrl    String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model User {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  passwordHash   String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Organization {
+  id        String           @id @default(cuid())
+  name      String
+  users     User[]
+  profile   CompanyProfile?
+  customers Customer[]
+  items     Item[]
+  invoices  Invoice[]
+  employees Employee[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model CompanyProfile {
+  id                String       @id @default(cuid())
+  organizationId    String       @unique
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  companyName       String       @default("")
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  country           String?
+  website           String?
+  taxId             String?
+  logoUrl           String?
+  bankName          String?
+  accountNumber     String?
+  routingNumber     String?
+  paymentTerms      String?
+  invoicePrefix     String       @default("INV")
+  nextInvoiceNumber Int          @default(1)
+  currency          String       @default("INR")
+  defaultTaxRate    Float        @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  address   String?
-  gstin     String?
-  state     String?
-  phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  invoices  Invoice[]
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  country        String?
+  taxId          String?
+  notes          String?
+  invoices       Invoice[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, name])
 }
 
 model Item {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  hsn         String?
-  unit        String?
-  rate        Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  hsn            String?
+  unitPrice      Float
+  unit           String?
+  isPublic       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, name])
+  @@index([isPublic])
 }
 
 model Invoice {
-  id            String       @id @default(cuid())
-  invoiceNumber Int?         @unique
-  userId        String?
-  user          User?        @relation(fields: [userId], references: [id])
-  companyId     String?
-  company       Company?     @relation(fields: [companyId], references: [id])
-  customerId    String?
-  customer      Customer?    @relation(fields: [customerId], references: [id])
-  issueDate     DateTime     @default(now())
-  dueDate       DateTime?
-  taxPercent    Float        @default(0)
-  subtotal      Float        @default(0)
-  cgstAmount    Float        @default(0)
-  sgstAmount    Float        @default(0)
-  igstAmount    Float        @default(0)
-  total         Float        @default(0)
-  status        String       @default("draft")
-  notes         String?
-  lines         InvoiceLine[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  invoiceNumber  String
+  issueDate      DateTime
+  dueDate        DateTime
+  status         InvoiceStatus @default(DRAFT)
+  companyName    String
+  companyEmail   String?
+  companyPhone   String?
+  companyAddress String?
+  companyCity    String?
+  companyState   String?
+  companyZip     String?
+  companyCountry String?
+  companyTaxId   String?
+  notes          String?
+  terms          String?
+  subtotal       Float         @default(0)
+  taxRate        Float         @default(0)
+  taxAmount      Float         @default(0)
+  discount       Float         @default(0)
+  total          Float         @default(0)
+  items          InvoiceItem[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([organizationId, invoiceNumber])
+  @@index([organizationId, status])
+  @@index([customerId])
 }
 
-model InvoiceLine {
-  id         String   @id @default(cuid())
-  invoiceId  String
-  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
-  itemId     String?
-  item       Item?    @relation(fields: [itemId], references: [id])
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   description String
   hsn         String?
-  quantity    Float   @default(1)
-  rate        Float
+  quantity    Float
+  unitPrice   Float
   amount      Float
+  sortOrder   Int     @default(0)
+}
+
+model Employee {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  position       String?
+  hourlyRate     Float
+  overtimeRate   Float
+  attendance     AttendanceRecord[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, name])
+}
+
+model AttendanceRecord {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date        DateTime
+  hoursWorked Float
+  notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([date])
 }

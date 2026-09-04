@@ -52,6 +52,7 @@ export default async function EditInvoicePage({
           terms: invoice.terms,
           items: invoice.items.map((item) => ({
             description: item.description,
+            hsn: item.hsn ?? "",
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),

@@ -1,181 +1,74 @@
 import { format } from "date-fns";
 import type { Customer, Invoice, InvoiceItem } from "@/generated/prisma/client";
-import {
-  formatAddress,
-  formatCurrency,
-} from "@/lib/invoice-utils";
-import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
+import { formatAddress, formatCurrency } from "@/lib/invoice-utils";
 
 type InvoiceTemplateProps = {
-  invoice: Invoice & {
-    customer: Customer;
-    items: InvoiceItem[];
-  };
+  invoice: Invoice & { customer: Customer; items: InvoiceItem[] };
   currency?: string;
   className?: string;
 };
 
-export function InvoiceTemplate({
-  invoice,
-  currency = "USD",
-  className = "",
-}: InvoiceTemplateProps) {
-  const companyAddress = formatAddress({
-    address: invoice.companyAddress,
-    city: invoice.companyCity,
-    state: invoice.companyState,
-    zipCode: invoice.companyZip,
-    country: invoice.companyCountry,
-  });
+function DetailLine({ label, value }: { label: string; value?: string | null }) {
+  return <p><span className="font-bold">{label}</span> {value || "-"}</p>;
+}
 
-  const customerAddress = formatAddress({
-    address: invoice.customer.address,
-    city: invoice.customer.city,
-    state: invoice.customer.state,
-    zipCode: invoice.customer.zipCode,
-    country: invoice.customer.country,
-  });
+export function InvoiceTemplate({ invoice, currency = "INR", className = "" }: InvoiceTemplateProps) {
+  const companyAddress = formatAddress({ address: invoice.companyAddress, city: invoice.companyCity, state: invoice.companyState, zipCode: invoice.companyZip, country: invoice.companyCountry });
+  const customerAddress = formatAddress({ address: invoice.customer.address, city: invoice.customer.city, state: invoice.customer.state, zipCode: invoice.customer.zipCode, country: invoice.customer.country });
+  const cgst = invoice.taxAmount / 2;
+  const sgst = invoice.taxAmount / 2;
 
   return (
-    <div
-      className={`mx-auto w-full max-w-[800px] bg-white text-slate-900 shadow-sm print:shadow-none ${className}`}
-    >
-      <div className="border-b-4 border-slate-900 px-10 py-8">
-        <div className="flex items-start justify-between gap-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {invoice.companyName}
-            </h1>
-            <div className="mt-3 space-y-1 text-sm text-slate-600">
-              {companyAddress && (
-                <p className="whitespace-pre-line">{companyAddress}</p>
-              )}
-              {invoice.companyEmail && <p>{invoice.companyEmail}</p>}
-              {invoice.companyPhone && <p>{invoice.companyPhone}</p>}
-              {invoice.companyTaxId && <p>Tax ID: {invoice.companyTaxId}</p>}
+    <article className={`mx-auto w-full max-w-[210mm] bg-white p-2 text-[11px] leading-tight text-black shadow print:max-w-none print:p-0 print:shadow-none ${className}`}>
+      <div className="overflow-hidden border-2 border-black">
+        <header className="border-b-2 border-black">
+          <p className="py-1 text-center text-base font-black tracking-wide">TAX INVOICE</p>
+          <div className="grid grid-cols-[88px_1fr] border-t border-black">
+            <div className="flex min-h-24 items-center justify-center border-r-2 border-black text-center">
+              <div className="text-3xl font-black text-red-900">ॐ</div>
+            </div>
+            <div className="px-3 py-1 text-center">
+              <h1 className="text-2xl font-black tracking-wide text-red-950">{invoice.companyName}</h1>
+              <p className="mt-1 font-bold">{companyAddress || "Business address"}</p>
+              <p className="mt-1">Phone: {invoice.companyPhone || "-"} &nbsp; Email: {invoice.companyEmail || "-"}</p>
             </div>
           </div>
+          <div className="grid grid-cols-[1fr_1fr_1.2fr] border-t border-black font-bold">
+            <p className="border-r border-black px-2 py-1">State: {invoice.companyState || "-"}</p>
+            <p className="border-r border-black px-2 py-1">Code: {invoice.companyState ? "-" : "-"}</p>
+            <p className="px-2 py-1">GSTIN: {invoice.companyTaxId || "-"}</p>
+          </div>
+        </header>
 
-          <div className="text-right">
-            <p className="text-4xl font-black tracking-wider text-slate-900">
-              INVOICE
-            </p>
-            <p className="mt-2 text-lg font-semibold">{invoice.invoiceNumber}</p>
-            <div className="mt-3 flex justify-end">
-              <InvoiceStatusBadge status={invoice.status} />
-            </div>
+        <section className="grid grid-cols-[1fr_1.05fr] border-b-2 border-black">
+          <div className="min-h-36 border-r-2 border-black p-2">
+            <p className="font-bold">To,</p>
+            <p className="mt-1 font-bold">M/s. {invoice.customer.name}</p>
+            <p className="mt-1 whitespace-pre-line">{customerAddress || "-"}</p>
+            <div className="mt-3 space-y-1"><DetailLine label="Party's GSTIN:" value={invoice.customer.taxId} /><DetailLine label="Phone:" value={invoice.customer.phone} /></div>
           </div>
-        </div>
-      </div>
+          <div className="divide-y-2 divide-black">
+            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">Invoice No. <span className="ml-2 text-base text-red-900">{invoice.invoiceNumber}</span></p><p className="p-2 font-bold">Date: {format(invoice.issueDate, "dd-MM-yyyy")}</p></div>
+            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">D.C. No.</p><p className="p-2 font-bold">Due Date: {format(invoice.dueDate, "dd-MM-yyyy")}</p></div>
+            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">Party's Order No.</p><p className="p-2 font-bold">Vehicle No.</p></div>
+            <div className="grid grid-cols-2"><p className="border-r border-black p-2 font-bold">E-way Bill</p><p className="p-2 font-bold">Original for Recipient</p></div>
+          </div>
+        </section>
 
-      <div className="grid grid-cols-2 gap-8 px-10 py-8">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Bill To
-          </p>
-          <p className="text-lg font-semibold">{invoice.customer.name}</p>
-          <div className="mt-2 space-y-1 text-sm text-slate-600">
-            {customerAddress && (
-              <p className="whitespace-pre-line">{customerAddress}</p>
-            )}
-            {invoice.customer.email && <p>{invoice.customer.email}</p>}
-            {invoice.customer.phone && <p>{invoice.customer.phone}</p>}
-            {invoice.customer.taxId && (
-              <p>Tax ID: {invoice.customer.taxId}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between border-b border-slate-200 pb-2">
-            <span className="font-medium text-slate-500">Issue Date</span>
-            <span>{format(invoice.issueDate, "MMM dd, yyyy")}</span>
-          </div>
-          <div className="flex justify-between border-b border-slate-200 pb-2">
-            <span className="font-medium text-slate-500">Due Date</span>
-            <span>{format(invoice.dueDate, "MMM dd, yyyy")}</span>
-          </div>
-          <div className="flex justify-between border-b border-slate-200 pb-2">
-            <span className="font-medium text-slate-500">Amount Due</span>
-            <span className="text-lg font-bold">
-              {formatCurrency(invoice.total, currency)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-10 pb-8">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b-2 border-slate-900 bg-slate-50">
-              <th className="px-3 py-3 text-left font-semibold">Description</th>
-              <th className="px-3 py-3 text-right font-semibold">Qty</th>
-              <th className="px-3 py-3 text-right font-semibold">Rate</th>
-              <th className="px-3 py-3 text-right font-semibold">Amount</th>
-            </tr>
-          </thead>
+        <table className="w-full table-fixed border-collapse">
+          <thead className="border-b-2 border-black"><tr className="font-black"><th className="w-9 border-r border-black p-1">Sl.<br />No.</th><th className="border-r border-black p-1">DESCRIPTION</th><th className="w-16 border-r border-black p-1">HSN<br />Code</th><th className="w-12 border-r border-black p-1">Qty</th><th className="w-16 border-r border-black p-1">Rate</th><th className="w-20 p-1">Amount<br />(Rs.)</th></tr></thead>
           <tbody>
-            {invoice.items.map((item) => (
-              <tr key={item.id} className="border-b border-slate-200">
-                <td className="px-3 py-4 align-top">{item.description}</td>
-                <td className="px-3 py-4 text-right align-top">{item.quantity}</td>
-                <td className="px-3 py-4 text-right align-top">
-                  {formatCurrency(item.unitPrice, currency)}
-                </td>
-                <td className="px-3 py-4 text-right align-top font-medium">
-                  {formatCurrency(item.amount, currency)}
-                </td>
-              </tr>
-            ))}
+            {invoice.items.map((item, index) => <tr key={item.id} className="border-b border-black"><td className="border-r border-black px-1 py-2 text-center align-top">{index + 1}</td><td className="border-r border-black px-2 py-2 align-top">{item.description}</td><td className="border-r border-black px-1 py-2 text-center align-top">{item.hsn || "-"}</td><td className="border-r border-black px-1 py-2 text-right align-top">{item.quantity}</td><td className="border-r border-black px-1 py-2 text-right align-top">{formatCurrency(item.unitPrice, currency)}</td><td className="px-1 py-2 text-right align-top">{formatCurrency(item.amount, currency)}</td></tr>)}
+            {Array.from({ length: Math.max(0, 8 - invoice.items.length) }).map((_, index) => <tr key={`blank-${index}`} className="h-7 border-b border-black"><td className="border-r border-black" /><td className="border-r border-black" /><td className="border-r border-black" /><td className="border-r border-black" /><td className="border-r border-black" /><td /></tr>)}
           </tbody>
         </table>
 
-        <div className="mt-6 flex justify-end">
-          <div className="w-full max-w-xs space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Subtotal</span>
-              <span>{formatCurrency(invoice.subtotal, currency)}</span>
-            </div>
-            {invoice.discount > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-500">Discount</span>
-                <span>-{formatCurrency(invoice.discount, currency)}</span>
-              </div>
-            )}
-            {invoice.taxRate > 0 && (
-              <div className="flex justify-between">
-                <span className="text-slate-500">Tax ({invoice.taxRate}%)</span>
-                <span>{formatCurrency(invoice.taxAmount, currency)}</span>
-              </div>
-            )}
-            <div className="flex justify-between border-t-2 border-slate-900 pt-3 text-base font-bold">
-              <span>Total</span>
-              <span>{formatCurrency(invoice.total, currency)}</span>
-            </div>
-          </div>
-        </div>
+        <section className="grid grid-cols-[1fr_270px] border-t-2 border-black">
+          <div className="min-h-40 border-r-2 border-black p-3"><p className="font-bold">Rupees in words:</p><p className="mt-3 border-b border-dotted border-black pb-1">{formatCurrency(invoice.total, currency)} only</p><div className="mt-10 text-[10px]">{invoice.terms || "Interest may be charged on invoices not paid within the due date."}</div></div>
+          <div className="text-sm"><div className="grid grid-cols-[1fr_100px] border-b border-black"><p className="border-r border-black p-2 font-bold">Total Amount</p><p className="p-2 text-right">{formatCurrency(invoice.subtotal, currency)}</p></div><div className="grid grid-cols-[1fr_100px] border-b border-black"><p className="border-r border-black p-2 font-bold">CGST @ {invoice.taxRate / 2}%</p><p className="p-2 text-right">{formatCurrency(cgst, currency)}</p></div><div className="grid grid-cols-[1fr_100px] border-b border-black"><p className="border-r border-black p-2 font-bold">SGST @ {invoice.taxRate / 2}%</p><p className="p-2 text-right">{formatCurrency(sgst, currency)}</p></div><div className="grid grid-cols-[1fr_100px] border-b border-black"><p className="border-r border-black p-2 font-bold">IGST @ 0%</p><p className="p-2 text-right">-</p></div><div className="grid grid-cols-[1fr_100px] font-black"><p className="border-r border-black p-2">Grand Total</p><p className="p-2 text-right">{formatCurrency(invoice.total, currency)}</p></div></div>
+        </section>
+        <footer className="grid grid-cols-2 border-t-2 border-black text-center"><p className="p-3 pt-10">Receiver Signature</p><p className="border-l-2 border-black p-3"><span className="font-bold text-red-900">For {invoice.companyName}</span><br /><span className="inline-block pt-8">Authorised Signatory</span></p></footer>
       </div>
-
-      {(invoice.notes || invoice.terms) && (
-        <div className="grid grid-cols-2 gap-8 border-t border-slate-200 bg-slate-50 px-10 py-8 text-sm">
-          {invoice.notes && (
-            <div>
-              <p className="mb-2 font-semibold uppercase tracking-wider text-slate-500">
-                Notes
-              </p>
-              <p className="whitespace-pre-line text-slate-700">{invoice.notes}</p>
-            </div>
-          )}
-          {invoice.terms && (
-            <div>
-              <p className="mb-2 font-semibold uppercase tracking-wider text-slate-500">
-                Terms
-              </p>
-              <p className="whitespace-pre-line text-slate-700">{invoice.terms}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    </article>
   );
 }

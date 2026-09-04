@@ -34,6 +34,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
     const data = {
       name: String(formData.get("name") ?? ""),
       description: String(formData.get("description") ?? ""),
+      hsn: String(formData.get("hsn") ?? ""),
       unitPrice: Number(formData.get("unitPrice") ?? 0),
       unit: String(formData.get("unit") ?? "unit"),
       isPublic: formData.get("isPublic") === "on",
@@ -83,6 +84,11 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
               defaultValue={item?.description ?? ""}
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="hsn">HSN / SAC code</Label>
+            <Input id="hsn" name="hsn" defaultValue={item?.hsn ?? ""} />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

@@ -1,22 +1,35 @@
-import { prisma } from './prisma';
-import type { Customer } from '@prisma/client';
+"use server";
 
-export async function listCustomers(): Promise<Customer[]> {
-  return prisma.customer.findMany({ orderBy: { name: 'asc' } });
+import { revalidatePath } from "next/cache";
+import { db } from "@/lib/db";
+import { requireOrganization } from "@/lib/organization";
+import { customerSchema, type CustomerInput } from "@/lib/validations";
+
+export async function getCustomers() {
+  const organization = await requireOrganization();
+  return db.customer.findMany({ where: { organizationId: organization.id }, orderBy: { name: "asc" } });
 }
 
-export async function getCustomer(id: string) {
-  return prisma.customer.findUnique({ where: { id } });
+export async function createCustomer(data: CustomerInput) {
+  const parsed = customerSchema.parse(data);
+  const organization = await requireOrganization();
+  const customer = await db.customer.create({ data: { organizationId: organization.id, ...parsed, email: parsed.email || null } });
+  revalidatePath("/customers"); revalidatePath("/invoices/new"); revalidatePath("/dashboard");
+  return customer;
 }
 
-export async function createCustomer(data: Partial<Customer>) {
-  return prisma.customer.create({ data: data as any });
-}
-
-export async function updateCustomer(id: string, data: Partial<Customer>) {
-  return prisma.customer.update({ where: { id }, data: data as any });
+export async function updateCustomer(id: string, data: CustomerInput) {
+  const parsed = customerSchema.parse(data);
+  const organization = await requireOrganization();
+  const result = await db.customer.updateMany({ where: { id, organizationId: organization.id }, data: { ...parsed, email: parsed.email || null } });
+  if (!result.count) throw new Error("Customer not found");
+  revalidatePath("/customers"); revalidatePath("/invoices");
 }
 
 export async function deleteCustomer(id: string) {
-  return prisma.customer.delete({ where: { id } });
+  const organization = await requireOrganization();
+  if (await db.invoice.count({ where: { customerId: id, organizationId: organization.id } })) throw new Error("Customers with invoices cannot be deleted");
+  const result = await db.customer.deleteMany({ where: { id, organizationId: organization.id } });
+  if (!result.count) throw new Error("Customer not found");
+  revalidatePath("/customers"); revalidatePath("/dashboard");
 }

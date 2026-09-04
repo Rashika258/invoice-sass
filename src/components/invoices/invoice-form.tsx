@@ -27,6 +27,7 @@ import {
 
 type LineItem = {
   description: string;
+  hsn: string;
   quantity: number;
   unitPrice: number;
 };
@@ -53,6 +54,7 @@ type InvoiceFormProps = {
 
 const emptyLineItem = (): LineItem => ({
   description: "",
+  hsn: "",
   quantity: 1,
   unitPrice: 0,
 });
@@ -72,9 +74,9 @@ export function InvoiceForm({
   const [issueDate, setIssueDate] = useState(
     initialData?.issueDate ?? format(new Date(), "yyyy-MM-dd"),
   );
-  const [dueDate, setDueDate] = useState(
+  const [dueDate, setDueDate] = useState(() =>
     initialData?.dueDate ??
-      format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
+    format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
   );
   const [status, setStatus] = useState<
     "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED"
@@ -96,7 +98,9 @@ export function InvoiceForm({
     setItems((current) =>
       current.map((item, i) => {
         if (i !== index) return item;
-        if (field === "description") return { ...item, description: value };
+        if (field === "description" || field === "hsn") {
+          return { ...item, [field]: value };
+        }
         return {
           ...item,
           [field]: value === "" ? 0 : Number(value),
@@ -129,6 +133,7 @@ export function InvoiceForm({
         description: catalogItem.description
           ? `${catalogItem.name} - ${catalogItem.description}`
           : catalogItem.name,
+        hsn: catalogItem.hsn ?? "",
         quantity: 1,
         unitPrice: catalogItem.unitPrice,
       };
@@ -354,7 +359,7 @@ export function InvoiceForm({
           {items.map((item, index) => (
             <div
               key={index}
-              className="grid gap-3 rounded-lg border p-4 md:grid-cols-[2fr_1fr_1fr_1fr_auto]"
+              className="grid gap-3 rounded-lg border p-4 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
             >
               <div className="space-y-2">
                 <Label>Description</Label>
@@ -363,6 +368,14 @@ export function InvoiceForm({
                   onChange={(e) => updateItem(index, "description", e.target.value)}
                   placeholder="Service or product description"
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>HSN / SAC</Label>
+                <Input
+                  value={item.hsn}
+                  onChange={(e) => updateItem(index, "hsn", e.target.value)}
+                  placeholder="HSN"
                 />
               </div>
               <div className="space-y-2">

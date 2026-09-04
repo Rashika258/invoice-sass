@@ -16,6 +16,7 @@ export const customerSchema = z.object({
 export const itemSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  hsn: z.string().optional(),
   unitPrice: z.coerce.number().min(0, "Price must be positive"),
   unit: z.string().optional(),
   isPublic: z.coerce.boolean().optional().default(false),
@@ -41,6 +42,7 @@ export const attendanceSchema = z.object({
 
 export const lineItemSchema = z.object({
   description: z.string().min(1, "Description is required"),
+  hsn: z.string().optional(),
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0"),
   unitPrice: z.coerce.number().min(0, "Price must be positive"),
 });

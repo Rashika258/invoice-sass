@@ -28,7 +28,7 @@ export function calculateInvoiceTotals(
   };
 }
 
-export function formatCurrency(amount: number, currency = "USD") {
+export function formatCurrency(amount: number, currency = "INR") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
