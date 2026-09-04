@@ -184,7 +184,7 @@ export function PosView({
       <div className="flex items-center justify-between pb-2 border-b">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span>Vyapar POS Billing</span>
+            <span>Billora POS Billing</span>
             <Badge className="bg-rose-600 text-white font-semibold text-[10px]">
               Fast Counter
             </Badge>

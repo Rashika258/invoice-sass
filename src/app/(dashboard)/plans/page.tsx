@@ -139,13 +139,13 @@ export default function PlansPricingPage() {
               </p>
             </div>
 
-            {/* Get Vyapar Silver Button */}
+            {/* Get Billora Silver Button */}
             <Button
               variant="outline"
               onClick={() => setCheckoutPlan("Silver")}
-              className="w-full h-10 rounded-full border-2 border-[#ef4444] text-[#ef4444] hover:bg-[#ef4444]/10 font-bold text-xs shadow-xs cursor-pointer"
+              className="w-full h-10 rounded-full border-2 border-brand text-brand hover:bg-brand-light font-bold text-xs shadow-xs cursor-pointer"
             >
-              Get Vyapar Silver
+              Get Billora Silver
             </Button>
 
             {/* Features Checklist */}
@@ -169,7 +169,7 @@ export default function PlansPricingPage() {
         {/* GOLD CARD (With "Most Popular" Ribbon) */}
         <div className="relative rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-500/[0.04] to-card p-6 shadow-md flex flex-col justify-between space-y-6">
           {/* Most Popular Ribbon */}
-          <div className="absolute -top-3.5 right-6 bg-[#ef4444] text-white px-3 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shadow-xs">
+          <div className="absolute -top-3.5 right-6 bg-brand text-white px-3 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shadow-xs">
             Most Popular
           </div>
 
@@ -197,12 +197,12 @@ export default function PlansPricingPage() {
               </p>
             </div>
 
-            {/* Get Vyapar Gold Button */}
+            {/* Get Billora Gold Button */}
             <Button
               onClick={() => setCheckoutPlan("Gold")}
-              className="w-full h-10 rounded-full bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full h-10 rounded-full bg-brand hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
             >
-              Get Vyapar Gold
+              Get Billora Gold
             </Button>
 
             {/* Features Checklist */}
@@ -264,7 +264,7 @@ export default function PlansPricingPage() {
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Crown className="size-4 text-amber-500" />
-              Upgrade to Vyapar {checkoutPlan}
+              Upgrade to Billora {checkoutPlan}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2 text-xs">
@@ -282,7 +282,7 @@ export default function PlansPricingPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    toast.success(`License activated for Vyapar ${checkoutPlan}! Thank you.`);
+                    toast.success(`License activated for Billora ${checkoutPlan}! Thank you.`);
                     setCheckoutPlan(null);
                   }}
                   className="p-3 rounded-xl border border-border hover:border-primary text-left cursor-pointer transition-colors bg-card"
@@ -293,7 +293,7 @@ export default function PlansPricingPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    toast.success(`License activated for Vyapar ${checkoutPlan}! Thank you.`);
+                    toast.success(`License activated for Billora ${checkoutPlan}! Thank you.`);
                     setCheckoutPlan(null);
                   }}
                   className="p-3 rounded-xl border border-border hover:border-primary text-left cursor-pointer transition-colors bg-card"

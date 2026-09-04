@@ -1,5 +1,6 @@
 import { AppSidebar, MobileHeader } from "@/components/layout/app-sidebar";
-import { VyaparHeader } from "@/components/layout/vyapar-header";
+import { AppTopHeader } from "@/components/layout/app-top-header";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { requireUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function DashboardLayout({
 
         {/* Desktop Fixed Header */}
         <div className="hidden lg:block shrink-0 z-20 border-b border-border bg-background/95 backdrop-blur-xs">
-          <VyaparHeader
+          <AppTopHeader
             userName={user.name}
             companyName={companyName}
             taxId={taxId}
@@ -48,9 +49,12 @@ export default async function DashboardLayout({
         </div>
 
         {/* Only the main content area scrolls */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-20 lg:pb-7">
           <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-7">{children}</div>
         </main>
+
+        {/* Native Mobile Bottom Navigation Bar */}
+        <MobileBottomNav />
       </div>
     </div>
   );

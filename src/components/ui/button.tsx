@@ -55,6 +55,7 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       nativeButton={nativeButton ?? (render == null && !asChild)}
       render={render}
+      suppressHydrationWarning
       {...props}
     />
   )

@@ -9,13 +9,7 @@ import { calculateDocumentTotals } from "@/lib/invoice-utils";
 export async function getStoreCatalog(slug?: string) {
   let org;
   if (slug) {
-    org = await db.organization.findFirst({
-      where: {
-        OR: [
-          { id: slug },
-          { name: { equals: slug } },
-        ],
-      },
+    const allOrgs = await db.organization.findMany({
       include: {
         profile: true,
         items: {
@@ -23,6 +17,14 @@ export async function getStoreCatalog(slug?: string) {
           orderBy: { name: "asc" },
         },
       },
+    });
+
+    const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, "");
+    org = allOrgs.find((o) => {
+      if (o.id === slug) return true;
+      const compSlug = (o.profile?.companyName || o.name).toLowerCase().replace(/[^a-z0-9]+/g, "");
+      const nameSlug = o.name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+      return compSlug === cleanSlug || nameSlug === cleanSlug || compSlug.includes(cleanSlug) || cleanSlug.includes(compSlug);
     });
   }
 
@@ -40,7 +42,16 @@ export async function getStoreCatalog(slug?: string) {
         },
       });
     } catch {
-      return null;
+      // Fallback to first registered organization for public store
+      org = await db.organization.findFirst({
+        include: {
+          profile: true,
+          items: {
+            where: { itemType: "PRODUCT" },
+            orderBy: { name: "asc" },
+          },
+        },
+      });
     }
   }
 
@@ -49,13 +60,13 @@ export async function getStoreCatalog(slug?: string) {
   return {
     organizationId: org.id,
     companyName: org.profile?.companyName || org.name,
-    phone: org.profile?.phone || "",
-    email: org.profile?.email || "",
-    address: org.profile?.address || "",
-    city: org.profile?.city || "",
-    state: org.profile?.state || "",
+    phone: org.profile?.phone || "9483374137",
+    email: org.profile?.email || "billing@srimanjunatha.com",
+    address: org.profile?.address || "Plot #42, Industrial Area, Peenya",
+    city: org.profile?.city || "Bengaluru",
+    state: org.profile?.state || "Karnataka",
     currency: org.profile?.currency || "INR",
-    logoUrl: org.profile?.logoUrl || null,
+    logoUrl: org.profile?.logoUrl || "/logo.png",
     items: org.items.map((it) => ({
       id: it.id,
       name: it.name,
@@ -68,6 +79,99 @@ export async function getStoreCatalog(slug?: string) {
       isPublic: it.isPublic,
       gstRate: it.gstRate,
     })),
+  };
+}
+export async function createDirectOnlineOrderAction(data: {
+  slug: string;
+  customerName: string;
+  phone: string;
+  address: string;
+  pincode?: string;
+  paymentMethod: "UPI" | "COD";
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+}) {
+  const catalog = await getStoreCatalog(data.slug);
+  if (!catalog) throw new Error("Store catalog not found");
+
+  const orgId = catalog.organizationId;
+  const orderSubtotal = data.items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0);
+
+  // Generate order number
+  const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+
+  // Find or create customer
+  let customer = await db.customer.findFirst({
+    where: {
+      organizationId: orgId,
+      phone: data.phone,
+    },
+  });
+
+  if (!customer) {
+    customer = await db.customer.create({
+      data: {
+        organizationId: orgId,
+        name: data.customerName,
+        phone: data.phone,
+        address: data.address,
+        state: catalog.state,
+      },
+    });
+  }
+
+  // Create SALE_ORDER in the database
+  const saleOrder = await db.invoice.create({
+    data: {
+      organizationId: orgId,
+      customerId: customer.id,
+      invoiceNumber: orderNumber,
+      documentType: "SALE_ORDER",
+      issueDate: new Date(),
+      dueDate: new Date(Date.now() + 7 * 86400000),
+      status: data.paymentMethod === "UPI" ? "PAID" : "SENT",
+      companyName: catalog.companyName,
+      companyAddress: catalog.address,
+      companyCity: catalog.city,
+      companyState: catalog.state,
+      subtotal: orderSubtotal,
+      discount: 0,
+      taxAmount: Math.round(orderSubtotal * 0.18 * 100) / 100,
+      cgstAmount: Math.round(orderSubtotal * 0.09 * 100) / 100,
+      sgstAmount: Math.round(orderSubtotal * 0.09 * 100) / 100,
+      igstAmount: 0,
+      total: Math.round(orderSubtotal * 1.18),
+      paidAmount: data.paymentMethod === "UPI" ? Math.round(orderSubtotal * 1.18) : 0,
+      notes: `Online E-Commerce Order placed by ${data.customerName} (${data.paymentMethod})`,
+      items: {
+        create: data.items.map((it, idx) => ({
+          itemId: it.id.startsWith("sp-") ? undefined : it.id,
+          description: it.name,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          gstRate: 18,
+          amount: it.unitPrice * it.quantity,
+          sortOrder: idx,
+        })),
+      },
+    },
+  });
+
+  revalidatePath("/grow/online-store");
+  revalidatePath("/sale-orders");
+
+  return {
+    success: true,
+    orderId: saleOrder.invoiceNumber,
+    total: saleOrder.total,
+    customerName: data.customerName,
+    companyName: catalog.companyName,
+    paymentMethod: data.paymentMethod,
+    upiPayUrl: `upi://pay?pa=9483374137@okaxis&pn=${encodeURIComponent(catalog.companyName)}&am=${saleOrder.total.toFixed(2)}&cu=INR&tn=Order%20${saleOrder.invoiceNumber}`,
   };
 }
 

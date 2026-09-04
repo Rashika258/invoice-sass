@@ -21,7 +21,8 @@ import { getBusinessSummary } from "@/actions/reports";
 import { getCompanyProfile } from "@/actions/settings";
 import { QuickCreateDropdown } from "@/components/dashboard/quick-create-dropdown";
 import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactions-tabs";
-import { VyaparSalesChart } from "@/components/dashboard/vyapar-sales-chart";
+import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
+import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -163,8 +164,11 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {/* AI Business Assistant: "Ask Your Business" NLP Layer */}
+      <AiBusinessAssistant />
+
       {/* Main Revenue & Purchase Overview Chart */}
-      <VyaparSalesChart
+      <SalesAnalyticsChart
         sales={summary.sales as any}
         purchases={summary.purchases as any}
         currency={currency}

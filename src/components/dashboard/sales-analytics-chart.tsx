@@ -36,7 +36,7 @@ function getCatmullRomSplinePath(points: { x: number; y: number }[]): string {
   return path;
 }
 
-export function VyaparSalesChart({
+export function SalesAnalyticsChart({
   sales = [],
   purchases = [],
   currency = "INR",
@@ -424,3 +424,6 @@ export function VyaparSalesChart({
     </div>
   );
 }
+
+// Alias for compatibility
+export { SalesAnalyticsChart as VyaparSalesChart };

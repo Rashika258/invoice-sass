@@ -112,7 +112,7 @@ export function CashBankHub({
 
           <BankAccountFormDialog
             trigger={
-              <Button className="h-8 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold px-3 text-xs shadow-xs cursor-pointer">
+              <Button className="h-8 rounded-xl bg-brand hover:opacity-90 text-white font-bold px-3 text-xs shadow-xs cursor-pointer">
                 <Plus className="mr-1.5 size-3.5" />
                 Add Bank Account
               </Button>
@@ -128,7 +128,7 @@ export function CashBankHub({
         </div>
       </div>
 
-      {/* Navigation Submenu Tabs matching left sidebar in Vyapar */}
+      {/* Navigation Submenu Tabs */}
       <div className="flex items-center gap-1 border-b border-border/60 pb-1 text-xs">
         {[
           { id: "banks", label: "Bank Accounts", count: bankOnlyAccounts.length, href: "/cash-bank/banks" },
@@ -142,7 +142,7 @@ export function CashBankHub({
             onClick={() => setActiveTab(tab.id as CashBankTab)}
             className={`flex items-center gap-1.5 px-4 py-2 font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
               activeTab === tab.id
-                ? "border-[#ef4444] text-[#ef4444] bg-[#ef4444]/5"
+                ? "border-brand text-brand bg-brand-light font-bold"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -188,9 +188,9 @@ export function CashBankHub({
               <div className="relative flex flex-col items-center justify-end size-36 rounded-2xl bg-gradient-to-b from-muted/30 to-muted/80 p-2 border border-border/80 shadow-lg">
                 {/* Triangular Pediment / Roof */}
                 <div className="w-0 h-0 border-l-[45px] border-l-transparent border-r-[45px] border-r-transparent border-b-[26px] border-b-zinc-400 dark:border-b-zinc-600 mb-1 relative">
-                  {/* Vyapar Red Emblem on roof */}
-                  <div className="absolute -bottom-5 -left-2 size-4 rounded-full bg-[#ef4444] text-white flex items-center justify-center text-[8px] font-black">
-                    V
+                  {/* Billora Brand Emblem on roof */}
+                  <div className="absolute -bottom-5 -left-2 size-4 rounded-full bg-brand text-white flex items-center justify-center text-[8px] font-black">
+                    B
                   </div>
                 </div>
 
@@ -211,7 +211,7 @@ export function CashBankHub({
               </div>
             </div>
 
-            {/* 3 Feature Cards matching media_1788527453801.png */}
+            {/* 3 Feature Cards */}
             <div className="grid gap-4 md:grid-cols-3 max-w-4xl mx-auto text-left">
               {/* Feature 1: Print Bank Details on Invoices */}
               <div className="flex items-start gap-3 rounded-xl border border-border/80 bg-card p-4 shadow-2xs">
@@ -259,11 +259,11 @@ export function CashBankHub({
               </div>
             </div>
 
-            {/* Big Red Button matching media_1788527453801.png */}
+            {/* Big Brand Button */}
             <div className="pt-2">
               <BankAccountFormDialog
                 trigger={
-                  <Button className="h-10 rounded-full bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold px-8 text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer">
+                  <Button className="h-10 rounded-full bg-brand hover:opacity-90 text-white font-bold px-8 text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer">
                     <Plus className="mr-1.5 size-4" />
                     + Add Bank Account
                   </Button>
@@ -360,7 +360,7 @@ export function CashBankHub({
             </div>
             <Link
               href="/payment-in"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#ef4444] text-white px-4 py-2 text-xs font-semibold shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand hover:opacity-90 text-white px-4 py-2 text-xs font-semibold shadow-xs"
             >
               <Plus className="size-3.5" />
               <span>Record Cash Receipt</span>
@@ -446,7 +446,7 @@ export function CashBankHub({
               <h3 className="text-sm font-bold text-foreground">Loan &amp; Overdraft Accounts</h3>
               <p className="text-xs text-muted-foreground">Track business loans, OD/CC limits, and EMI interest deductions.</p>
             </div>
-            <Button size="sm" onClick={() => toast.info("Opening Loan Account setup...")} className="h-8 text-xs font-bold bg-[#ef4444] text-white">
+            <Button size="sm" onClick={() => toast.info("Opening Loan Account setup...")} className="h-8 text-xs font-bold bg-brand hover:opacity-90 text-white rounded-xl shadow-xs">
               <Plus className="mr-1.5 size-3.5" />
               Add Loan Account
             </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { applyBrandTheme, getStoredBrandTheme } from "@/lib/brand-theme";
 
 const THEME_KEY = "invoiceflow-theme";
 
@@ -9,6 +10,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const savedTheme = window.localStorage.getItem(THEME_KEY);
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     document.documentElement.classList.toggle("dark", savedTheme ? savedTheme === "dark" : prefersDark);
+
+    // Dynamic Brand Accent Color
+    const storedBrand = getStoredBrandTheme();
+    if (storedBrand?.primary) {
+      applyBrandTheme(storedBrand.primary, storedBrand.name);
+    }
   }, []);
 
   return children;

@@ -190,7 +190,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
       <DialogTrigger
         render={
           (trigger ?? (
-            <Button className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-xs h-8 px-3 rounded-lg shadow-xs">
+            <Button className="bg-brand hover:opacity-90 text-white font-bold text-xs h-8 px-3 rounded-lg shadow-xs">
               <Plus className="mr-1.5 size-3.5" />
               {item ? "Edit Item" : "Add Item"}
             </Button>

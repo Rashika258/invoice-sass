@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "enablePayDayAlert": true,
+    "payDayOfMonth": 1,
+    "enableLowStockAlert": true,
+    "enableOverduePaymentAlert": true,
+    "enableGstDeadlineAlert": true,
+    "enableIrpRuleAlert": true
+  },
+  "customAlerts": [
+    {
+      "id": "alert-1",
+      "title": "Order Raw Steel Plates & Channels",
+      "description": "Review factory fabrication sheet stock and place bulk procurement order with Jindal Steel distributor.",
+      "category": "STOCK",
+      "priority": "HIGH",
+      "triggerDate": "2026-09-04",
+      "recurrence": "MONTHLY",
+      "monthlyDay": 5,
+      "actionHref": "/items",
+      "actionLabel": "View Raw Materials",
+      "isDismissed": true,
+      "createdAt": "2026-09-04T14:54:32.543Z",
+      "notifyWhatsApp": true
+    },
+    {
+      "id": "alert-2",
+      "title": "Factory Electricity & Compressor Utility Bill",
+      "description": "Pay BESCOM high-tension electricity bill to avoid surcharge or power cut.",
+      "category": "CUSTOM",
+      "priority": "HIGH",
+      "triggerDate": "2026-09-04",
+      "recurrence": "MONTHLY",
+      "monthlyDay": 15,
+      "actionHref": "/expenses",
+      "actionLabel": "Record Utility Expense",
+      "isDismissed": false,
+      "createdAt": "2026-09-04T14:54:32.543Z",
+      "notifyWhatsApp": true
+    }
+  ],
+  "dismissedSystemAlertIds": [
+    "sys-overdue-2026-09-04"
+  ]
+}

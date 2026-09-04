@@ -27,6 +27,9 @@ import {
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CompanySwitcher } from "@/components/layout/company-switcher";
+import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
+import { AlertsNotificationBell } from "@/components/layout/alerts-notification-bell";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,7 +49,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
-type VyaparHeaderProps = {
+type AppTopHeaderProps = {
   userName: string;
   companyName: string;
   taxId?: string | null;
@@ -54,12 +57,12 @@ type VyaparHeaderProps = {
   logoUrl?: string | null;
 };
 
-export function VyaparHeader({
+export function AppTopHeader({
   userName,
   companyName,
   taxId,
   logoUrl,
-}: VyaparHeaderProps) {
+}: AppTopHeaderProps) {
   const router = useRouter();
   const [calcOpen, setCalcOpen] = useState(false);
   const [calcInput, setCalcInput] = useState("");
@@ -130,20 +133,16 @@ export function VyaparHeader({
   return (
     <>
       <header className="flex h-14 w-full items-center justify-between px-6 border-b border-border bg-background">
-        {/* Left: Organization / Workspace badge */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/settings"
-            className="flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium text-foreground hover:bg-accent transition-colors"
-          >
-            <span className="size-2 rounded-full bg-emerald-500" />
-            <span className="font-semibold">{companyName || "My Business"}</span>
-            {taxId && (
-              <span className="text-[11px] font-mono text-muted-foreground hidden xl:inline">
-                ({taxId})
-              </span>
-            )}
+        {/* Left: Multi-Company Switcher in Billora */}
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0" title="Billora ERP">
+            <img
+              src="/icon.png"
+              alt="Billora"
+              className="size-7 rounded-lg object-contain border border-border/60 shadow-2xs"
+            />
           </Link>
+          <CompanySwitcher currentCompanyName={companyName} />
         </div>
 
         {/* Center: Command Search Bar */}
@@ -262,6 +261,12 @@ export function VyaparHeader({
           >
             <Calculator className="size-4" />
           </Button>
+
+          {/* Alerts & Reminders Notification Bell */}
+          <AlertsNotificationBell />
+
+          {/* Brand & Theme Color Customizer */}
+          <BrandThemePicker />
 
           {/* User Profile Dropdown */}
           <DropdownMenu>
@@ -426,3 +431,6 @@ export function VyaparHeader({
     </>
   );
 }
+
+// Alias for compatibility
+export { AppTopHeader as VyaparHeader };

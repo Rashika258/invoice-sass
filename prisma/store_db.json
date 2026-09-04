@@ -1,0 +1,115 @@
+{
+  "products": [
+    {
+      "id": "sp-1",
+      "name": "M10 SS Hex Bolt 50mm (Grade 304)",
+      "sku": "BLT-M10-SS",
+      "hsn": "7318",
+      "category": "Hardware & Fasteners",
+      "onlinePrice": 18,
+      "withoutTaxPrice": 15.25,
+      "gstRate": 18,
+      "discountPercent": 5,
+      "onlineStock": 150,
+      "unit": "PCS",
+      "isPublic": true
+    },
+    {
+      "id": "sp-2",
+      "name": "MS Heavy Flange 2 Inch (Class 150)",
+      "sku": "FLG-MS-2IN",
+      "hsn": "7307",
+      "category": "Pipes & Fittings",
+      "onlinePrice": 420,
+      "withoutTaxPrice": 355.93,
+      "gstRate": 18,
+      "discountPercent": 10,
+      "onlineStock": 45,
+      "unit": "PCS",
+      "isPublic": true
+    },
+    {
+      "id": "sp-3",
+      "name": "Teflon Thread Seal Tape 12mm x 10m",
+      "sku": "TAPE-TEF-12",
+      "hsn": "3920",
+      "category": "Plumbing Supplies",
+      "onlinePrice": 25,
+      "withoutTaxPrice": 21.19,
+      "gstRate": 18,
+      "discountPercent": 0,
+      "onlineStock": 300,
+      "unit": "PCS",
+      "isPublic": true
+    },
+    {
+      "id": "sp-4",
+      "name": "Industrial Ball Valve 1 Inch SS 316",
+      "sku": "VLV-BL-1IN",
+      "hsn": "8481",
+      "category": "Valves & Controls",
+      "onlinePrice": 850,
+      "withoutTaxPrice": 720.34,
+      "gstRate": 18,
+      "discountPercent": 8,
+      "onlineStock": 25,
+      "unit": "PCS",
+      "isPublic": true
+    },
+    {
+      "id": "sp-5",
+      "name": "Carbon Steel Seamless Pipe 1.5 Inch (Sch 40)",
+      "sku": "PIP-CS-15",
+      "hsn": "7304",
+      "category": "Pipes & Fittings",
+      "onlinePrice": 650,
+      "withoutTaxPrice": 550.85,
+      "gstRate": 18,
+      "discountPercent": 5,
+      "onlineStock": 60,
+      "unit": "MTR",
+      "isPublic": true
+    }
+  ],
+  "bills": [
+    {
+      "id": "sb-1001",
+      "billNumber": "OS-1001",
+      "date": "2026-09-03T14:35:05.085Z",
+      "customerName": "Karthik Builders & Co",
+      "customerPhone": "9845123456",
+      "customerAddress": "Plot 14, Peenya Industrial Area, Bengaluru",
+      "items": [
+        {
+          "id": "sbi-1",
+          "name": "M10 SS Hex Bolt 50mm (Grade 304)",
+          "hsn": "7318",
+          "quantity": 20,
+          "unitPrice": 18,
+          "gstRate": 18,
+          "amount": 360,
+          "taxAmount": 54.92
+        },
+        {
+          "id": "sbi-2",
+          "name": "Teflon Thread Seal Tape 12mm x 10m",
+          "hsn": "3920",
+          "quantity": 4,
+          "unitPrice": 25,
+          "gstRate": 18,
+          "amount": 100,
+          "taxAmount": 15.25
+        }
+      ],
+      "subtotal": 389.83,
+      "cgst": 35.08,
+      "sgst": 35.08,
+      "igst": 0,
+      "total": 460,
+      "paymentMode": "UPI",
+      "paymentStatus": "PAID",
+      "fulfillmentStatus": "DELIVERED"
+    }
+  ],
+  "nextBillSeq": 1002
+}

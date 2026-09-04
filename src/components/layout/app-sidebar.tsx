@@ -7,6 +7,7 @@ import {
   Banknote,
   BarChart3,
   Barcode,
+  Bell,
   Building2,
   CalendarClock,
   CheckCircle2,
@@ -45,6 +46,7 @@ import {
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -73,7 +75,17 @@ const navConfig: NavGroup[] = [
     title: "Home",
     icon: LayoutDashboard,
     collapsible: false,
-    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/alerts", label: "Alerts & Reminders", icon: Bell, badge: "LIVE" },
+    ],
+  },
+  {
+    id: "companies",
+    title: "Companies & Firms",
+    icon: Building2,
+    collapsible: false,
+    items: [{ href: "/companies", label: "Multi-Firm Directory", icon: Building2, badge: "MULTI" }],
   },
   {
     id: "parties",
@@ -106,7 +118,7 @@ const navConfig: NavGroup[] = [
       { href: "/sale-orders", label: "Sale Order", icon: ShoppingBag, plusHref: "/sale-orders/new" },
       { href: "/challans", label: "Delivery Challan", icon: FileCheck, plusHref: "/challans/new" },
       { href: "/credit-notes", label: "Sale Return/ Credit Note", icon: Receipt, plusHref: "/credit-notes/new" },
-      { href: "/pos", label: "Vyapar POS", icon: Zap, badge: "FAST" },
+      { href: "/pos", label: "Billora POS", icon: Zap, badge: "FAST" },
     ],
   },
   {
@@ -124,17 +136,26 @@ const navConfig: NavGroup[] = [
     ],
   },
   {
-    id: "grow",
-    title: "Grow Your Business",
-    icon: TrendingUp,
+    id: "ecommerce",
+    title: "E-Commerce Store",
+    icon: Store,
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { href: "/grow/online-store", label: "Online Store Manager", icon: Store, badge: "STORE" },
+      { href: "/grow/whatsapp-marketing", label: "WhatsApp Catalog", icon: MessageCircle },
+      { href: "/grow/marketing-tools", label: "Marketing Campaigns", icon: Sparkles },
+    ],
+  },
+  {
+    id: "staff",
+    title: "Staff & Attendance",
+    icon: CalendarClock,
     collapsible: true,
     defaultOpen: false,
     items: [
-      { href: "/grow/google-profile", label: "Google Profile Manager", icon: Globe },
-      { href: "/grow/marketing-tools", label: "Marketing Tools", icon: Sparkles },
-      { href: "/grow/whatsapp-marketing", label: "WhatsApp Marketing", icon: MessageCircle },
-      { href: "/grow/online-store", label: "Online Store", icon: Store, badge: "NEW" },
-      { href: "/grow/smart-ads", label: "Smart Ads", icon: Zap },
+      { href: "/attendance", label: "Attendance & OT", icon: CalendarClock, badge: "8H OT" },
+      { href: "/attendance/kiosk", label: "Biometric Kiosk", icon: UserCheck, badge: "SCAN" },
     ],
   },
   {
@@ -152,10 +173,15 @@ const navConfig: NavGroup[] = [
   },
   {
     id: "reports",
-    title: "Reports",
+    title: "Reports & Compliance",
     icon: BarChart3,
-    collapsible: false,
-    items: [{ href: "/reports", label: "Reports Directory", icon: BarChart3 }],
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { href: "/reports", label: "Reports Directory", icon: BarChart3 },
+      { href: "/ca-portal", label: "CA & Tax Portal", icon: FileSpreadsheet, badge: "AUDIT" },
+      { href: "/compliance", label: "GST & DPDP Compliance", icon: CheckCircle2, badge: "GOVT" },
+    ],
   },
   {
     id: "sync-backup",
@@ -183,14 +209,19 @@ const navConfig: NavGroup[] = [
       { href: "/utilities/accountant-access", label: "Accountant Access", icon: UserCheck },
       { href: "/utilities/barcode-generator", label: "Barcode Generator", icon: Barcode },
       { href: "/utilities/bulk-update", label: "Update Items In Bulk", icon: Database },
-      { href: "/utilities/import-tally", label: "Import From Tally", icon: FileUp },
       { href: "/utilities/import-parties", label: "Import Parties", icon: Users },
       { href: "/utilities/track-salesmen", label: "Track Your Salesmen", icon: UserCircle },
-      { href: "/utilities/export-tally", label: "Exports To Tally", icon: FileSpreadsheet },
       { href: "/utilities/export-items", label: "Export Items", icon: Download },
       { href: "/utilities/verify-data", label: "Verify My Data", icon: CheckCircle2 },
       { href: "/utilities/close-fy", label: "Close Financial Year", icon: CalendarClock },
     ],
+  },
+  {
+    id: "tally",
+    title: "Tally Integration",
+    icon: FileSpreadsheet,
+    collapsible: false,
+    items: [{ href: "/tally", label: "Tally Integration Hub", icon: FileSpreadsheet, badge: "NEW" }],
   },
   {
     id: "settings",
@@ -255,7 +286,7 @@ function NavLinks({
               className={cn(
                 "group relative flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all",
                 isActive
-                  ? "bg-[#ef4444]/15 text-[#ef4444] font-bold border-l-3 border-[#ef4444] rounded-l-none"
+                  ? "bg-brand-light text-brand font-bold border-l-3 border-brand rounded-l-none"
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
@@ -267,12 +298,12 @@ function NavLinks({
                 <GroupIcon
                   className={cn(
                     "size-4 shrink-0 transition-colors",
-                    isActive ? "text-[#ef4444]" : "text-muted-foreground group-hover:text-foreground"
+                    isActive ? "text-brand" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 />
                 <span className="truncate">{group.title}</span>
                 {singleItem.badge && (
-                  <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-emerald-500/15 text-emerald-500 border-none">
+                  <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-brand-light text-brand border-none font-bold">
                     {singleItem.badge}
                   </Badge>
                 )}
@@ -301,12 +332,12 @@ function NavLinks({
               className={cn(
                 "flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold cursor-pointer transition-colors",
                 isGroupActive && !isOpen
-                  ? "text-[#ef4444] bg-[#ef4444]/10 border-l-3 border-[#ef4444] rounded-l-none"
+                  ? "text-brand bg-brand-light border-l-3 border-brand rounded-l-none font-bold"
                   : "text-foreground/90 hover:bg-muted/50"
               )}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <GroupIcon className={cn("size-4 shrink-0", isGroupActive ? "text-[#ef4444]" : "text-muted-foreground")} />
+                <GroupIcon className={cn("size-4 shrink-0", isGroupActive ? "text-brand" : "text-muted-foreground")} />
                 <span className="truncate">{group.title}</span>
               </div>
               <ChevronDown
@@ -332,7 +363,7 @@ function NavLinks({
                       className={cn(
                         "group flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all",
                         isActive
-                          ? "bg-[#ef4444]/15 text-[#ef4444] font-bold border-l-3 border-[#ef4444] rounded-l-none"
+                          ? "bg-brand-light text-brand font-bold border-l-3 border-brand rounded-l-none"
                           : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                       )}
                     >
@@ -345,13 +376,13 @@ function NavLinks({
                           <SubIcon
                             className={cn(
                               "size-3.5 shrink-0 transition-colors",
-                              isActive ? "text-[#ef4444]" : "text-muted-foreground/80 group-hover:text-foreground"
+                              isActive ? "text-brand" : "text-muted-foreground/80 group-hover:text-foreground"
                             )}
                           />
                         )}
                         <span className="truncate">{item.label}</span>
                         {item.badge && (
-                          <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-[#ef4444]/15 text-[#ef4444] border-none font-bold">
+                          <Badge className="ml-auto text-[9px] px-1 py-0 h-4 bg-brand-light text-brand border-none font-bold">
                             {item.badge}
                           </Badge>
                         )}
@@ -397,6 +428,28 @@ export function AppSidebar({
 
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-[#0f1117] text-white lg:flex sticky top-0 z-30 select-none">
+      {/* Billora Brand Header with Logo */}
+      <div className="p-3 border-b border-border/40 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/logo.png"
+            alt="Billora Logo"
+            className="size-8 rounded-lg object-contain shadow-xs border border-white/10 shrink-0"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black tracking-tight text-white">Billora</span>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[8px] font-bold px-1 py-0">
+                ERP
+              </Badge>
+            </div>
+            <p className="text-[10px] text-zinc-400 truncate max-w-[140px]" title={companyName}>
+              {companyName || "Sri Manjunatha Engineering Works"}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Top Search: Open Anything (Ctrl+F) matching media_1788527179966.png */}
       <div className="p-3 border-b border-border/40">
         <div className="relative">
@@ -428,11 +481,11 @@ export function AppSidebar({
           </div>
           <Link
             href="/plans"
-            className="flex items-center justify-between rounded-lg bg-[#ef4444] hover:bg-[#dc2626] text-white px-2.5 py-1.5 text-xs font-bold transition-colors shadow-xs"
+            className="flex items-center justify-between rounded-lg bg-brand hover:opacity-90 text-white px-2.5 py-1.5 text-xs font-bold transition-colors shadow-xs"
           >
             <div className="flex items-center gap-1.5">
               <Crown className="size-3.5" />
-              <span>Get Vyapar Premium</span>
+              <span>Get Billora Premium</span>
             </div>
             <ChevronRight className="size-3.5" />
           </Link>
@@ -452,6 +505,7 @@ export function AppSidebar({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <BrandThemePicker />
             <ThemeToggle />
             <Button
               type="button"
@@ -498,11 +552,13 @@ export function MobileHeader({
             {/* Drawer Header */}
             <div className="border-b border-border p-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background font-black text-sm">
-                  B
-                </div>
+                <img
+                  src="/icon.png"
+                  alt="Billora"
+                  className="size-8 rounded-lg object-contain border border-border shrink-0"
+                />
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Billora</h3>
+                  <h3 className="text-sm font-bold text-foreground">Billora ERP</h3>
                   <p className="text-[11px] text-muted-foreground truncate max-w-[140px]">{companyName}</p>
                 </div>
               </div>
@@ -527,7 +583,10 @@ export function MobileHeader({
             <div className="border-t border-border p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-muted-foreground">{userName}</span>
-                <ThemeToggle />
+                <div className="flex items-center gap-1">
+                  <BrandThemePicker />
+                  <ThemeToggle />
+                </div>
               </div>
               <Button
                 type="button"
@@ -545,9 +604,11 @@ export function MobileHeader({
         </Sheet>
 
         <div className="flex items-center gap-2">
-          <div className="flex size-6 items-center justify-center rounded-md bg-foreground text-background font-bold text-xs">
-            B
-          </div>
+          <img
+            src="/icon.png"
+            alt="Billora"
+            className="size-6 rounded-md object-contain shrink-0"
+          />
           <span className="text-sm font-bold text-foreground">Billora</span>
         </div>
       </div>

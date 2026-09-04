@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, FileText, Phone, Plus, Search, Users } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, BookOpen, FileText, Phone, Plus, Search, Users } from "lucide-react";
 import { CustomerFormDialog, DeleteCustomerButton } from "@/components/customers/customer-form-dialog";
+import { CustomerKhataModal } from "@/components/customers/customer-khata-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +47,7 @@ export function PartiesView({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ALL" | "CUSTOMER" | "SUPPLIER">("ALL");
+  const [selectedKhataParty, setSelectedKhataParty] = useState<PartyItem | null>(null);
 
   const totalReceivable = parties.reduce((sum, p) => sum + p.receivable, 0);
   const totalPayable = parties.reduce((sum, p) => sum + p.payable, 0);
@@ -286,6 +288,15 @@ export function PartiesView({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedKhataParty(party)}
+                          className="h-7 px-2 text-xs font-semibold text-emerald-600 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 cursor-pointer"
+                        >
+                          <BookOpen className="size-3 mr-1" />
+                          Khata
+                        </Button>
                         <Link
                           href={`/invoices/new?customerId=${party.id}`}
                           className="inline-flex items-center justify-center rounded-md border border-border h-7 px-2 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
@@ -311,6 +322,16 @@ export function PartiesView({
           )}
         </CardContent>
       </Card>
+
+      {/* Digital Khata & Loyalty Modal */}
+      <CustomerKhataModal
+        party={selectedKhataParty}
+        currency={currency}
+        open={Boolean(selectedKhataParty)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedKhataParty(null);
+        }}
+      />
     </div>
   );
 }

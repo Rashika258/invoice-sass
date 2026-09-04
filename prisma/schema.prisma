@@ -87,6 +87,8 @@ model Organization {
   payments      Payment[]
   expenses      Expense[]
   numberSeries  NumberSeries[]
+  ledgers       Ledger[]
+  vouchers      JournalVoucher[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -330,4 +332,101 @@ model AttendanceRecord {
 
   @@unique([employeeId, date])
   @@index([date])
+}
+
+// ─── Tally-Style Accounting Module ───────────────────────────────────────────
+
+enum LedgerGroup {
+  // Assets
+  CASH_IN_HAND
+  BANK_ACCOUNTS
+  FIXED_ASSETS
+  CURRENT_ASSETS
+  LOANS_ADVANCES_ASSET
+  // Liabilities
+  SUNDRY_CREDITORS
+  CURRENT_LIABILITIES
+  LOANS_LIABILITY
+  CAPITAL_ACCOUNT
+  RESERVES_SURPLUS
+  // Income
+  SALES_ACCOUNTS
+  DIRECT_INCOME
+  INDIRECT_INCOME
+  // Expenses
+  PURCHASE_ACCOUNTS
+  DIRECT_EXPENSES
+  INDIRECT_EXPENSES
+  // Tax
+  DUTIES_TAXES
+  // Other
+  SUNDRY_DEBTORS
+  BRANCH_DIVISIONS
+}
+
+enum BalanceType {
+  DR
+  CR
+}
+
+enum VoucherType {
+  PAYMENT    // F5
+  RECEIPT    // F6
+  JOURNAL    // F7
+  CONTRA     // F4
+  SALES      // F8
+  PURCHASE   // F9
+  DEBIT_NOTE
+  CREDIT_NOTE
+}
+
+model Ledger {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name            String
+  group           LedgerGroup
+  openingBalance  Float         @default(0)
+  openingType     BalanceType   @default(DR)
+  isSystem        Boolean       @default(false)  // system-seeded ledgers (Cash, Sales, etc.)
+  notes           String?
+  entries         JournalEntry[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId, group])
+}
+
+model JournalVoucher {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voucherNumber  String
+  voucherType    VoucherType    @default(JOURNAL)
+  date           DateTime
+  narration      String?
+  reference      String?
+  isAltered      Boolean        @default(false)
+  entries        JournalEntry[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([organizationId, voucherNumber])
+  @@index([organizationId, date])
+  @@index([organizationId, voucherType])
+}
+
+model JournalEntry {
+  id        String         @id @default(cuid())
+  voucherId String
+  voucher   JournalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  ledgerId  String
+  ledger    Ledger         @relation(fields: [ledgerId], references: [id], onDelete: Restrict)
+  type      BalanceType    // DR or CR
+  amount    Float
+  createdAt DateTime       @default(now())
+
+  @@index([voucherId])
+  @@index([ledgerId])
 }
