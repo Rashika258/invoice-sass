@@ -118,7 +118,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="taxId">Tax ID</Label>
+            <Label htmlFor="taxId">GSTIN</Label>
             <Input id="taxId" name="taxId" defaultValue={profile?.taxId ?? ""} />
           </div>
         </CardContent>
@@ -142,7 +142,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
             <Input
               id="currency"
               name="currency"
-              defaultValue={profile?.currency ?? "USD"}
+              defaultValue={profile?.currency ?? "INR"}
             />
           </div>
           <div className="space-y-2">
@@ -153,7 +153,7 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
               type="number"
               min="0"
               step="0.01"
-              defaultValue={profile?.defaultTaxRate ?? 0}
+              defaultValue={profile?.defaultTaxRate ?? 18}
             />
           </div>
           <div className="space-y-2 md:col-span-2">

@@ -27,7 +27,7 @@ export default async function ItemsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Items</h1>
           <p className="text-muted-foreground">
-            Build a catalog of products and services for quick invoice creation.
+            Build a catalog of products and services with GST, HSN, and stock.
           </p>
         </div>
         <ItemFormDialog
@@ -54,9 +54,11 @@ export default async function ItemsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>HSN</TableHead>
+                  <TableHead>GST</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Sale price</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -64,8 +66,12 @@ export default async function ItemsPage() {
                 {items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.description || "—"}</TableCell>
-                    <TableCell>{item.unit}</TableCell>
+                    <TableCell>{item.itemType}</TableCell>
+                    <TableCell>{item.hsn || "—"}</TableCell>
+                    <TableCell>{item.gstRate}%</TableCell>
+                    <TableCell className="text-right">
+                      {item.itemType === "SERVICE" ? "—" : item.stockQty}
+                    </TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(item.unitPrice, currency)}
                     </TableCell>

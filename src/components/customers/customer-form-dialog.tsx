@@ -50,15 +50,20 @@ export function CustomerFormDialog({
       country: String(formData.get("country") ?? ""),
       taxId: String(formData.get("taxId") ?? ""),
       notes: String(formData.get("notes") ?? ""),
+      partyType: String(formData.get("partyType") ?? "CUSTOMER") as
+        | "CUSTOMER"
+        | "SUPPLIER"
+        | "BOTH",
+      openingBalance: Number(formData.get("openingBalance") ?? 0),
     };
 
     try {
       if (customer) {
         await updateCustomer(customer.id, data);
-        toast.success("Customer updated");
+        toast.success("Party updated");
       } else {
         await createCustomer(data);
-        toast.success("Customer created");
+        toast.success("Party created");
       }
 
       setOpen(false);
@@ -75,14 +80,14 @@ export function CustomerFormDialog({
       <DialogTrigger
         render={
           (trigger ?? (
-            <Button>{customer ? "Edit Customer" : "Add Customer"}</Button>
+            <Button>{customer ? "Edit Party" : "Add Party"}</Button>
           )) as React.ReactElement
         }
       />
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {customer ? "Edit Customer" : "Add Customer"}
+            {customer ? "Edit Party" : "Add Party"}
           </DialogTitle>
         </DialogHeader>
 
@@ -95,6 +100,32 @@ export function CustomerFormDialog({
               defaultValue={customer?.name}
               required
             />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="partyType">Party type</Label>
+              <select
+                id="partyType"
+                name="partyType"
+                defaultValue={customer?.partyType ?? "CUSTOMER"}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="CUSTOMER">Customer</option>
+                <option value="SUPPLIER">Supplier</option>
+                <option value="BOTH">Customer & Supplier</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="openingBalance">Opening balance</Label>
+              <Input
+                id="openingBalance"
+                name="openingBalance"
+                type="number"
+                step="0.01"
+                defaultValue={customer?.openingBalance ?? 0}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -161,7 +192,7 @@ export function CustomerFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="taxId">Tax ID</Label>
+            <Label htmlFor="taxId">GSTIN</Label>
             <Input id="taxId" name="taxId" defaultValue={customer?.taxId ?? ""} />
           </div>
 
@@ -180,7 +211,7 @@ export function CustomerFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Customer"}
+              {isSubmitting ? "Saving..." : "Save Party"}
             </Button>
           </div>
         </form>
@@ -199,12 +230,12 @@ export function DeleteCustomerButton({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("Delete this customer?")) return;
+    if (!confirm("Delete this party?")) return;
 
     setIsDeleting(true);
     try {
       await deleteCustomer(customerId);
-      toast.success("Customer deleted");
+      toast.success("Party deleted");
       onSuccess?.();
     } catch {
       toast.error("Failed to delete customer");

@@ -13,7 +13,13 @@ export async function getCustomers() {
 export async function createCustomer(data: CustomerInput) {
   const parsed = customerSchema.parse(data);
   const organization = await requireOrganization();
-  const customer = await db.customer.create({ data: { organizationId: organization.id, ...parsed, email: parsed.email || null } });
+  const customer = await db.customer.create({
+    data: {
+      organizationId: organization.id,
+      ...parsed,
+      email: parsed.email || null,
+    },
+  });
   revalidatePath("/customers"); revalidatePath("/invoices/new"); revalidatePath("/dashboard");
   return customer;
 }
@@ -28,7 +34,12 @@ export async function updateCustomer(id: string, data: CustomerInput) {
 
 export async function deleteCustomer(id: string) {
   const organization = await requireOrganization();
-  if (await db.invoice.count({ where: { customerId: id, organizationId: organization.id } })) throw new Error("Customers with invoices cannot be deleted");
+  if (await db.invoice.count({ where: { customerId: id, organizationId: organization.id } })) {
+    throw new Error("Parties with bills cannot be deleted");
+  }
+  if (await db.payment.count({ where: { partyId: id, organizationId: organization.id } })) {
+    throw new Error("Parties with payments cannot be deleted");
+  }
   const result = await db.customer.deleteMany({ where: { id, organizationId: organization.id } });
   if (!result.count) throw new Error("Customer not found");
   revalidatePath("/customers"); revalidatePath("/dashboard");

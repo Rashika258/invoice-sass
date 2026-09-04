@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Banknote,
+  BarChart3,
   CalendarClock,
   FileText,
   LayoutDashboard,
   LogOut,
   Menu,
   Package,
+  Receipt,
   Settings,
+  ShoppingBag,
   UserCircle,
   Users,
+  Wallet,
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -19,14 +24,58 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/invoices", label: "Invoices", icon: FileText },
-  { href: "/customers", label: "Customers", icon: Users },
-  { href: "/items", label: "Items", icon: Package },
-  { href: "/employees", label: "Employees", icon: UserCircle },
-  { href: "/attendance", label: "Attendance", icon: CalendarClock },
-  { href: "/settings", label: "Settings", icon: Settings },
+const navGroups = [
+  {
+    title: "Home",
+    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    title: "Sale",
+    items: [
+      { href: "/invoices", label: "Sale Invoices", icon: FileText },
+      { href: "/estimates", label: "Estimates", icon: FileText },
+      { href: "/payments", label: "Payments", icon: Wallet },
+      { href: "/credit-notes", label: "Sale Returns", icon: Receipt },
+      { href: "/challans", label: "Delivery Challan", icon: FileText },
+    ],
+  },
+  {
+    title: "Purchase",
+    items: [
+      { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag },
+      { href: "/debit-notes", label: "Purchase Returns", icon: Receipt },
+      { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingBag },
+    ],
+  },
+  {
+    title: "Cash",
+    items: [
+      { href: "/expenses", label: "Expenses", icon: Banknote },
+      { href: "/cash-bank", label: "Cash & Bank", icon: Wallet },
+    ],
+  },
+  {
+    title: "Masters",
+    items: [
+      { href: "/customers", label: "Parties", icon: Users },
+      { href: "/items", label: "Items", icon: Package },
+    ],
+  },
+  {
+    title: "Reports",
+    items: [{ href: "/reports", label: "Reports", icon: BarChart3 }],
+  },
+  {
+    title: "Staff",
+    items: [
+      { href: "/employees", label: "Employees", icon: UserCircle },
+      { href: "/attendance", label: "Attendance", icon: CalendarClock },
+    ],
+  },
+  {
+    title: "Setup",
+    items: [{ href: "/settings", label: "Settings", icon: Settings }],
+  },
 ];
 
 function NavLinks({
@@ -37,29 +86,37 @@ function NavLinks({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-1 flex-col gap-1 p-4">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      {navGroups.map((group) => (
+        <div key={group.title}>
+          <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {group.title}
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 }

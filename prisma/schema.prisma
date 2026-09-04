@@ -16,6 +16,45 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+enum DocumentType {
+  SALE
+  ESTIMATE
+  CREDIT_NOTE
+  DELIVERY_CHALLAN
+  PURCHASE
+  DEBIT_NOTE
+  PURCHASE_ORDER
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+enum ItemType {
+  PRODUCT
+  SERVICE
+}
+
+enum PaymentDirection {
+  IN
+  OUT
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  BANK
+  CHEQUE
+  CARD
+}
+
+enum AccountType {
+  CASH
+  BANK
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String
@@ -28,16 +67,20 @@ model User {
 }
 
 model Organization {
-  id        String           @id @default(cuid())
-  name      String
-  users     User[]
-  profile   CompanyProfile?
-  customers Customer[]
-  items     Item[]
-  invoices  Invoice[]
-  employees Employee[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  name          String
+  users         User[]
+  profile       CompanyProfile?
+  customers     Customer[]
+  items         Item[]
+  invoices      Invoice[]
+  employees     Employee[]
+  bankAccounts  BankAccount[]
+  payments      Payment[]
+  expenses      Expense[]
+  numberSeries  NumberSeries[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model CompanyProfile {
@@ -51,7 +94,7 @@ model CompanyProfile {
   city              String?
   state             String?
   zipCode           String?
-  country           String?
+  country           String?      @default("India")
   website           String?
   taxId             String?
   logoUrl           String?
@@ -62,28 +105,44 @@ model CompanyProfile {
   invoicePrefix     String       @default("INV")
   nextInvoiceNumber Int          @default(1)
   currency          String       @default("INR")
-  defaultTaxRate    Float        @default(0)
+  defaultTaxRate    Float        @default(18)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 }
 
-model Customer {
+model NumberSeries {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  email          String?
-  phone          String?
-  address        String?
-  city           String?
-  state          String?
-  zipCode        String?
-  country        String?
-  taxId          String?
-  notes          String?
-  invoices       Invoice[]
+  key            String
+  prefix         String
+  nextNumber     Int          @default(1)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, key])
+}
+
+model Customer {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name            String
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  taxId           String?
+  notes           String?
+  partyType       PartyType    @default(CUSTOMER)
+  openingBalance  Float        @default(0)
+  invoices        Invoice[]
+  payments        Payment[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([organizationId, name])
 }
@@ -96,7 +155,12 @@ model Item {
   description    String?
   hsn            String?
   unitPrice      Float
+  purchasePrice  Float        @default(0)
   unit           String?
+  gstRate        Float        @default(18)
+  itemType       ItemType     @default(PRODUCT)
+  stockQty       Float        @default(0)
+  minStock       Float        @default(0)
   isPublic       Boolean      @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -112,6 +176,7 @@ model Invoice {
   customerId     String
   customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
   invoiceNumber  String
+  documentType   DocumentType  @default(SALE)
   issueDate      DateTime
   dueDate        DateTime
   status         InvoiceStatus @default(DRAFT)
@@ -126,17 +191,28 @@ model Invoice {
   companyTaxId   String?
   notes          String?
   terms          String?
+  placeOfSupply  String?
+  isInterState   Boolean       @default(false)
+  vehicleNumber  String?
+  ewayBill       String?
+  orderNumber    String?
   subtotal       Float         @default(0)
   taxRate        Float         @default(0)
   taxAmount      Float         @default(0)
+  cgstAmount     Float         @default(0)
+  sgstAmount     Float         @default(0)
+  igstAmount     Float         @default(0)
   discount       Float         @default(0)
   total          Float         @default(0)
+  paidAmount     Float         @default(0)
   items          InvoiceItem[]
+  payments       Payment[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   @@unique([organizationId, invoiceNumber])
   @@index([organizationId, status])
+  @@index([organizationId, documentType])
   @@index([customerId])
 }
 
@@ -144,26 +220,91 @@ model InvoiceItem {
   id          String  @id @default(cuid())
   invoiceId   String
   invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  itemId      String?
   description String
   hsn         String?
+  unit        String?
   quantity    Float
   unitPrice   Float
+  gstRate     Float   @default(0)
   amount      Float
   sortOrder   Int     @default(0)
 }
 
-model Employee {
+model BankAccount {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  accountType    AccountType  @default(CASH)
+  accountNumber  String?
+  ifsc           String?
+  openingBalance Float        @default(0)
+  payments       Payment[]
+  expenses       Expense[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, name])
+}
+
+model Payment {
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  number         String
+  direction      PaymentDirection
+  partyId        String?
+  party          Customer?         @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  invoiceId      String?
+  invoice        Invoice?          @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  bankAccountId  String
+  bankAccount    BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  amount         Float
+  date           DateTime
+  mode           PaymentMode       @default(CASH)
+  reference      String?
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([organizationId, number])
+  @@index([organizationId, direction, date])
+}
+
+model Expense {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  number         String
+  category       String
+  description    String?
+  amount         Float
+  gstRate        Float        @default(0)
+  taxAmount      Float        @default(0)
+  date           DateTime
+  bankAccountId  String
+  bankAccount    BankAccount  @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, number])
+  @@index([organizationId, date])
+}
+
+model Employee {
+  id             String             @id @default(cuid())
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   email          String?
   position       String?
   hourlyRate     Float
   overtimeRate   Float
   attendance     AttendanceRecord[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@index([organizationId, name])
 }

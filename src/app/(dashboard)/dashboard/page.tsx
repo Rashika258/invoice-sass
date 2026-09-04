@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { FileText, Plus, Users } from "lucide-react";
-import { getCustomers } from "@/actions/customers";
-import { getInvoices } from "@/actions/invoices";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Banknote,
+  Package,
+  Plus,
+  Wallet,
+} from "lucide-react";
+import { getBusinessSummary } from "@/actions/reports";
 import { getCompanyProfile } from "@/actions/settings";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { Button } from "@/components/ui/button";
@@ -18,19 +24,22 @@ import {
 import { formatCurrency } from "@/lib/invoice-utils";
 
 export default async function DashboardPage() {
-  const [invoices, customers, profile] = await Promise.all([
-    getInvoices(),
-    getCustomers(),
+  const [summary, profile] = await Promise.all([
+    getBusinessSummary(),
     getCompanyProfile(),
   ]);
+  const currency = profile?.currency ?? "INR";
 
-  const currency = profile?.currency ?? "USD";
-  const totalRevenue = invoices
-    .filter((invoice) => invoice.status === "PAID")
-    .reduce((sum, invoice) => sum + invoice.total, 0);
-  const pendingAmount = invoices
-    .filter((invoice) => ["SENT", "OVERDUE"].includes(invoice.status))
-    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const stats = [
+    { label: "Sale", value: summary.saleTotal, href: "/invoices" },
+    { label: "Purchase", value: summary.purchaseTotal, href: "/purchases" },
+    { label: "To collect", value: summary.toCollect, href: "/customers" },
+    { label: "To pay", value: summary.toPay, href: "/purchases" },
+    { label: "Expense", value: summary.expenseTotal, href: "/expenses" },
+    { label: "Cash in hand", value: summary.cashInHand, href: "/cash-bank" },
+    { label: "Bank", value: summary.bankBalance, href: "/cash-bank" },
+    { label: "Profit", value: summary.profit, href: "/reports" },
+  ];
 
   return (
     <div className="space-y-8">
@@ -38,110 +47,118 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Overview of your invoices, customers, and revenue.
+            Sale, purchase, stock, GST, and cash — the same daily view as Vyapar.
           </p>
         </div>
-        <Button render={<Link href="/invoices/new" />}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Invoice
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link href="/invoices/new" />}>
+            <Plus className="mr-2 h-4 w-4" />
+            Sale Invoice
+          </Button>
+          <Button variant="outline" render={<Link href="/purchases/new" />}>
+            Purchase
+          </Button>
+          <Button variant="outline" render={<Link href="/payments" />}>
+            Payment
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <Link key={stat.label} href={stat.href}>
+            <Card className="transition-colors hover:border-primary/40">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{formatCurrency(stat.value, currency)}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      {summary.lowStock.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Invoices
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Low stock alerts
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{invoices.length}</p>
+          <CardContent className="flex flex-wrap gap-2">
+            {summary.lowStock.map((item) => (
+              <span key={item.id} className="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-900">
+                {item.name}: {item.stockQty} {item.unit || ""}
+              </span>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-3 py-6">
+            <Wallet className="h-8 w-8 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Payment in</p>
+              <p className="text-xl font-semibold">{formatCurrency(summary.paymentIn, currency)}</p>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Customers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{customers.length}</p>
+          <CardContent className="flex items-center gap-3 py-6">
+            <Banknote className="h-8 w-8 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Payment out</p>
+              <p className="text-xl font-semibold">{formatCurrency(summary.paymentOut, currency)}</p>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Revenue Collected
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {formatCurrency(totalRevenue, currency)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Amount
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {formatCurrency(pendingAmount, currency)}
-            </p>
+          <CardContent className="flex items-center gap-3 py-6">
+            <ArrowUpRight className="h-8 w-8 text-emerald-600" />
+            <ArrowDownLeft className="h-8 w-8 text-red-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Net GST</p>
+              <p className="text-xl font-semibold">
+                {formatCurrency(summary.gstOutward.totalTax - summary.gstInward.totalTax, currency)}
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Invoices</CardTitle>
-          <Button variant="outline" size="sm" render={<Link href="/invoices" />}>
-            View all
-          </Button>
+          <CardTitle>Recent sales</CardTitle>
+          <Button variant="outline" size="sm" render={<Link href="/invoices" />}>View all</Button>
         </CardHeader>
         <CardContent>
-          {invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-              <FileText className="h-10 w-10 text-muted-foreground" />
-              <p className="text-muted-foreground">No invoices yet</p>
-              <Button render={<Link href="/invoices/new" />}>
-                Create your first invoice
-              </Button>
-            </div>
+          {summary.recentSales.length === 0 ? (
+            <div className="py-10 text-center text-muted-foreground">Create your first sale invoice to see activity here.</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Invoice</TableHead>
-                  <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.slice(0, 5).map((invoice) => (
+                {summary.recentSales.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell>
-                      <Link
-                        href={`/invoices/${invoice.id}`}
-                        className="font-medium hover:underline"
-                      >
+                      <Link href={`/invoices/${invoice.id}`} className="font-medium hover:underline">
                         {invoice.invoiceNumber}
                       </Link>
                     </TableCell>
-                    <TableCell>{invoice.customer.name}</TableCell>
-                    <TableCell>
-                      {format(invoice.issueDate, "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      <InvoiceStatusBadge status={invoice.status} />
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(invoice.total, currency)}
-                    </TableCell>
+                    <TableCell>{format(invoice.issueDate, "dd MMM yyyy")}</TableCell>
+                    <TableCell><InvoiceStatusBadge status={invoice.status} /></TableCell>
+                    <TableCell className="text-right">{formatCurrency(invoice.total, currency)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -149,23 +166,6 @@ export default async function DashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      {customers.length === 0 && (
-        <Card>
-          <CardContent className="flex items-center justify-between gap-4 py-6">
-            <div className="flex items-center gap-3">
-              <Users className="h-8 w-8 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Add your first customer</p>
-                <p className="text-sm text-muted-foreground">
-                  Customers are required before creating invoices.
-                </p>
-              </div>
-            </div>
-            <Button render={<Link href="/customers" />}>Add Customer</Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

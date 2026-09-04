@@ -36,7 +36,14 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
       description: String(formData.get("description") ?? ""),
       hsn: String(formData.get("hsn") ?? ""),
       unitPrice: Number(formData.get("unitPrice") ?? 0),
+      purchasePrice: Number(formData.get("purchasePrice") ?? 0),
       unit: String(formData.get("unit") ?? "unit"),
+      gstRate: Number(formData.get("gstRate") ?? 18),
+      itemType: (formData.get("itemType") === "SERVICE" ? "SERVICE" : "PRODUCT") as
+        | "PRODUCT"
+        | "SERVICE",
+      stockQty: Number(formData.get("stockQty") ?? 0),
+      minStock: Number(formData.get("minStock") ?? 0),
       isPublic: formData.get("isPublic") === "on",
     };
 
@@ -93,7 +100,33 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="unitPrice">Unit Price *</Label>
+              <Label htmlFor="itemType">Type</Label>
+              <select
+                id="itemType"
+                name="itemType"
+                defaultValue={item?.itemType ?? "PRODUCT"}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="PRODUCT">Product</option>
+                <option value="SERVICE">Service</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gstRate">GST %</Label>
+              <Input
+                id="gstRate"
+                name="gstRate"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={item?.gstRate ?? 18}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="unitPrice">Sale Price *</Label>
               <Input
                 id="unitPrice"
                 name="unitPrice"
@@ -105,11 +138,45 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="purchasePrice">Purchase Price</Label>
+              <Input
+                id="purchasePrice"
+                name="purchasePrice"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={item?.purchasePrice ?? 0}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
               <Label htmlFor="unit">Unit</Label>
               <Input
                 id="unit"
                 name="unit"
-                defaultValue={item?.unit ?? "unit"}
+                defaultValue={item?.unit ?? "pcs"}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stockQty">Opening stock</Label>
+              <Input
+                id="stockQty"
+                name="stockQty"
+                type="number"
+                step="0.01"
+                defaultValue={item?.stockQty ?? 0}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="minStock">Min stock</Label>
+              <Input
+                id="minStock"
+                name="minStock"
+                type="number"
+                step="0.01"
+                defaultValue={item?.minStock ?? 0}
               />
             </div>
           </div>
