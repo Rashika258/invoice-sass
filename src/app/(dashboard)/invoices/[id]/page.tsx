@@ -21,7 +21,7 @@ export default async function InvoiceDetailPage({
   return (
     <InvoiceViewActions
       invoice={invoice}
-      currency={profile?.currency ?? "USD"}
+      currency={profile?.currency ?? "INR"}
     />
   );
 }

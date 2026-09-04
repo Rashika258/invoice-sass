@@ -15,7 +15,7 @@ export async function getBusinessSummary() {
         status: { not: "CANCELLED" },
         documentType: { in: [...COUNTED] },
       },
-      include: { items: true },
+      include: { items: true, customer: true },
       orderBy: { createdAt: "desc" },
     }),
     db.payment.findMany({ where: { organizationId: organization.id } }),

@@ -4,20 +4,20 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fontSans = Geist({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fontMono = Geist_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "InvoiceFlow - Business Management SaaS",
+  title: "Vyapar - GST Billing, Inventory & Accounting Software",
   description:
-    "Invoices, employee attendance, payroll, and public product catalog in one platform",
+    "India's best GST billing, invoicing, inventory management, receivables & payables tracking software for MSMEs.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -25,9 +25,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontMono.variable} font-sans h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body suppressHydrationWarning className="flex min-h-full flex-col">
         <ThemeProvider>
           {children}
           <Toaster richColors position="top-right" />

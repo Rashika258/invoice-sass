@@ -1,12 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Plus,
+  Receipt,
+  ShoppingBag,
+  Trash2,
+  Truck,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Customer, DocumentType, Item } from "@/generated/prisma/client";
 import { createInvoice, updateInvoice } from "@/actions/invoices";
+import { CustomerFormDialog } from "@/components/customers/customer-form-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { DOCUMENT_META, GST_RATES } from "@/lib/documents";
 import {
@@ -68,7 +88,7 @@ const emptyLineItem = (gstRate: number): LineItem => ({
   itemId: "",
   description: "",
   hsn: "",
-  unit: "",
+  unit: "PCS",
   quantity: 1,
   unitPrice: 0,
   gstRate,
@@ -87,6 +107,8 @@ export function InvoiceForm({
 }: InvoiceFormProps) {
   const router = useRouter();
   const meta = DOCUMENT_META[documentType];
+  const isPurchase = meta.isPurchase;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerId, setCustomerId] = useState(initialData?.customerId ?? "");
   const [issueDate, setIssueDate] = useState(
@@ -102,19 +124,23 @@ export function InvoiceForm({
   >(initialData?.status ?? "SENT");
   const [discount, setDiscount] = useState(initialData?.discount ?? 0);
   const [notes, setNotes] = useState(initialData?.notes ?? "");
-  const [terms, setTerms] = useState(initialData?.terms ?? defaultTerms ?? "");
+  const [terms, setTerms] = useState(initialData?.terms ?? defaultTerms ?? "Payment is due within credit period. Goods once sold will not be returned.");
   const [placeOfSupply, setPlaceOfSupply] = useState(
     initialData?.placeOfSupply ?? "",
   );
   const [vehicleNumber, setVehicleNumber] = useState(initialData?.vehicleNumber ?? "");
   const [ewayBill, setEwayBill] = useState(initialData?.ewayBill ?? "");
   const [orderNumber, setOrderNumber] = useState(initialData?.orderNumber ?? "");
+  const [showTransport, setShowTransport] = useState(
+    Boolean(initialData?.vehicleNumber || initialData?.ewayBill || initialData?.orderNumber),
+  );
+
   const [items, setItems] = useState<LineItem[]>(
     initialData?.items?.length ? initialData.items : [emptyLineItem(defaultTaxRate)],
   );
 
   const selectedParty = customers.find((party) => party.id === customerId);
-  const supplyState = placeOfSupply || selectedParty?.state || "";
+  const supplyState = placeOfSupply || selectedParty?.state || companyState || "";
   const isInterState = !statesMatch(companyState, supplyState);
 
   const totals = useMemo(
@@ -144,13 +170,11 @@ export function InvoiceForm({
     if (!catalogItem) return;
     const lineItem: LineItem = {
       itemId: catalogItem.id,
-      description: catalogItem.description
-        ? `${catalogItem.name} - ${catalogItem.description}`
-        : catalogItem.name,
+      description: catalogItem.name + (catalogItem.description ? ` - ${catalogItem.description}` : ""),
       hsn: catalogItem.hsn ?? "",
-      unit: catalogItem.unit ?? "",
+      unit: catalogItem.unit ?? "PCS",
       quantity: 1,
-      unitPrice: meta.isPurchase ? catalogItem.purchasePrice || catalogItem.unitPrice : catalogItem.unitPrice,
+      unitPrice: isPurchase ? catalogItem.purchasePrice || catalogItem.unitPrice : catalogItem.unitPrice,
       gstRate: catalogItem.gstRate,
     };
     setItems((current) => {
@@ -196,11 +220,11 @@ export function InvoiceForm({
       };
       if (invoiceId) {
         await updateInvoice(invoiceId, payload);
-        toast.success(`${meta.label} updated`);
+        toast.success(`${meta.label} updated successfully`);
         router.push(`/invoices/${invoiceId}`);
       } else {
         const invoice = await createInvoice(payload);
-        toast.success(`${meta.label} created`);
+        toast.success(`${meta.label} created successfully`);
         router.push(`/invoices/${invoice.id}`);
       }
       router.refresh();
@@ -212,218 +236,523 @@ export function InvoiceForm({
   };
 
   const parties = customers.filter((party) =>
-    meta.isPurchase
+    isPurchase
       ? party.partyType === "SUPPLIER" || party.partyType === "BOTH"
       : party.partyType === "CUSTOMER" || party.partyType === "BOTH",
   );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{meta.label} details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>{meta.partyLabel}</Label>
-              <Select value={customerId} onValueChange={(value) => value && setCustomerId(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={`Select ${meta.partyLabel.toLowerCase()}`} />
+      {/* Top Banner / Document Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border bg-card p-4 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <Button variant="ghost" size="icon" type="button" onClick={() => router.back()} className="size-8">
+            <ArrowLeft className="size-4" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold tracking-tight">
+                {invoiceId ? `Edit ${meta.label}` : `New ${meta.label}`}
+              </h1>
+              <Badge
+                className={
+                  isPurchase
+                    ? "bg-[#1976D2] hover:bg-[#1976D2] text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
+                    : "bg-[#D32F2F] hover:bg-[#D32F2F] text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
+                }
+              >
+                {meta.label.toUpperCase()}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Vyapar GST Billing Desk · Auto tax calculation &amp; inventory update
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => router.back()} className="h-8 text-xs font-medium rounded-lg">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className={
+              isPurchase
+                ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
+                : "bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
+            }
+          >
+            {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
+          </Button>
+        </div>
+      </div>
+
+      {/* Bill Header Grid: Party, Dates, Tax state */}
+      <Card className="rounded-xl shadow-xs">
+        <CardContent className="p-4 sm:p-5 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Party Selector with Balance Preview */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {meta.partyLabel} *
+                </Label>
+                {selectedParty && (
+                  <span className="text-xs font-semibold">
+                    Balance:{" "}
+                    <span className="text-emerald-600 font-bold">
+                      {formatCurrency(selectedParty.openingBalance, currency)}
+                    </span>
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Select
+                  value={customerId}
+                  onValueChange={(val) => {
+                    if (val) setCustomerId(val);
+                  }}
+                >
+                  <SelectTrigger className="w-full h-9 font-medium text-sm">
+                    <SelectValue placeholder={`Select ${meta.partyLabel}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {parties.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} {p.phone ? `(${p.phone})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <CustomerFormDialog
+                  trigger={
+                    <Button type="button" variant="outline" size="icon" className="size-9 shrink-0" title="Add New Party">
+                      <UserPlus className="size-4" />
+                    </Button>
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Bill Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="issueDate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Bill Date *
+              </Label>
+              <Input
+                id="issueDate"
+                type="date"
+                value={issueDate}
+                onChange={(e) => setIssueDate(e.target.value)}
+                required
+                className="h-9 text-xs"
+              />
+            </div>
+
+            {/* Due Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="dueDate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Payment Due Date
+              </Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+                className="h-9 text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 pt-2 border-t text-xs">
+            {/* Place of Supply */}
+            <div className="space-y-1.5">
+              <Label htmlFor="placeOfSupply" className="text-xs text-muted-foreground">
+                Place of Supply (State)
+              </Label>
+              <Input
+                id="placeOfSupply"
+                value={placeOfSupply}
+                onChange={(e) => setPlaceOfSupply(e.target.value)}
+                placeholder={selectedParty?.state || companyState || "E.g. Maharashtra"}
+                className="h-8 text-xs"
+              />
+            </div>
+
+            {/* Status (Credit vs Paid) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Payment Status</Label>
+              <Select
+                value={status}
+                onValueChange={(value) => {
+                  if (value === "DRAFT" || value === "SENT" || value === "PAID" || value === "OVERDUE" || value === "CANCELLED") {
+                    setStatus(value);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {parties.map((party) => (
-                    <SelectItem key={party.id} value={party.id}>
-                      {party.name}
+                  <SelectItem value="SENT">Credit / Open (Unpaid)</SelectItem>
+                  <SelectItem value="PAID">Cash / Fully Paid</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="OVERDUE">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tax Regime Indicator */}
+            <div className="space-y-1.5 flex flex-col justify-center">
+              <span className="text-[11px] text-muted-foreground font-medium">GST Tax Type</span>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="outline" className={isInterState ? "text-blue-700 bg-blue-500/10" : "text-emerald-700 bg-emerald-500/10"}>
+                  {isInterState ? "Inter-State (IGST)" : "Intra-State (CGST + SGST)"}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Items Table styled like Vyapar Desktop Bill Table */}
+      <Card className="rounded-xl shadow-xs overflow-hidden">
+        <div className="flex items-center justify-between p-4 bg-muted/30 border-b">
+          <div>
+            <CardTitle className="text-sm font-black uppercase tracking-wider">Item Details</CardTitle>
+            <p className="text-[11px] text-muted-foreground">
+              Add products or services from catalog or type custom line items
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {catalogItems.length > 0 && (
+              <Select onValueChange={(value) => { if (typeof value === "string") addFromCatalog(value); }}>
+                <SelectTrigger className="h-8 text-xs w-44 bg-card">
+                  <SelectValue placeholder="+ Pick from Catalog" />
+                </SelectTrigger>
+                <SelectContent>
+                  {catalogItems.map((item) => (
+                    <SelectItem key={item.id} value={item.id} className="text-xs">
+                      {item.name} ({formatCurrency(item.unitPrice, currency)})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="issueDate">Date</Label>
-                <Input id="issueDate" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input id="dueDate" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="placeOfSupply">Place of supply</Label>
-                <Input
-                  id="placeOfSupply"
-                  value={placeOfSupply}
-                  onChange={(e) => setPlaceOfSupply(e.target.value)}
-                  placeholder={selectedParty?.state || companyState || "State"}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(value) => {
-                    if (value === "DRAFT" || value === "SENT" || value === "PAID" || value === "OVERDUE" || value === "CANCELLED") {
-                      setStatus(value);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DRAFT">Draft</SelectItem>
-                    <SelectItem value="SENT">Open</SelectItem>
-                    <SelectItem value="PAID">Paid</SelectItem>
-                    <SelectItem value="OVERDUE">Overdue</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="orderNumber">Order no.</Label>
-                <Input id="orderNumber" value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleNumber">Vehicle no.</Label>
-                <Input id="vehicleNumber" value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ewayBill">E-way bill</Label>
-                <Input id="ewayBill" value={ewayBill} onChange={(e) => setEwayBill(e.target.value)} />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tax split: {isInterState ? "IGST (inter-state)" : "CGST + SGST (intra-state)"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Totals</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="discount">Discount</Label>
-              <Input
-                id="discount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
-              />
-            </div>
-            <div className="rounded-lg bg-muted p-4 text-sm">
-              <div className="flex justify-between py-1"><span>Subtotal</span><span>{formatCurrency(totals.subtotal, currency)}</span></div>
-              {isInterState ? (
-                <div className="flex justify-between py-1"><span>IGST</span><span>{formatCurrency(totals.igstAmount, currency)}</span></div>
-              ) : (
-                <>
-                  <div className="flex justify-between py-1"><span>CGST</span><span>{formatCurrency(totals.cgstAmount, currency)}</span></div>
-                  <div className="flex justify-between py-1"><span>SGST</span><span>{formatCurrency(totals.sgstAmount, currency)}</span></div>
-                </>
-              )}
-              <div className="flex justify-between border-t pt-2 text-base font-semibold">
-                <span>Total</span>
-                <span>{formatCurrency(totals.total, currency)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Items</CardTitle>
-          <div className="flex gap-2">
-            {catalogItems.length > 0 && (
-              <Select onValueChange={(value) => { if (typeof value === "string") addFromCatalog(value); }}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Add from items" />
-                </SelectTrigger>
-                <SelectContent>
-                  {catalogItems.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             )}
-            <Button type="button" variant="outline" onClick={() => setItems((current) => [...current, emptyLineItem(defaultTaxRate)])}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Item
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setItems((current) => [...current, emptyLineItem(defaultTaxRate)])}
+              className="h-8 text-xs font-semibold gap-1"
+            >
+              <Plus className="size-3.5" />
+              <span>Add Row</span>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {items.map((item, index) => (
-            <div key={index} className="grid gap-3 rounded-lg border p-4 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]">
-              <div className="space-y-2">
-                <Label>Item</Label>
-                <Input value={item.description} onChange={(e) => updateItem(index, "description", e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>HSN</Label>
-                <Input value={item.hsn} onChange={(e) => updateItem(index, "hsn", e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Qty</Label>
-                <Input type="number" min="0.01" step="0.01" value={item.quantity} onChange={(e) => updateItem(index, "quantity", e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Rate</Label>
-                <Input type="number" min="0" step="0.01" value={item.unitPrice} onChange={(e) => updateItem(index, "unitPrice", e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>GST %</Label>
-                <Select value={String(item.gstRate)} onValueChange={(value) => value && updateItem(index, "gstRate", value)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {GST_RATES.map((rate) => (
-                      <SelectItem key={rate} value={String(rate)}>{rate}%</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Amount</Label>
-                <Input value={formatCurrency(calculateLineAmount(item.quantity, item.unitPrice), currency)} readOnly />
-              </div>
-              <div className="flex items-end">
-                <Button type="button" variant="ghost" size="icon" onClick={() => setItems((current) => current.length === 1 ? current : current.filter((_, i) => i !== index))} disabled={items.length === 1}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </CardContent>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 text-center">#</TableHead>
+                <TableHead className="min-w-64">Item Description *</TableHead>
+                <TableHead className="w-24">HSN/SAC</TableHead>
+                <TableHead className="w-20">Qty *</TableHead>
+                <TableHead className="w-20">Unit</TableHead>
+                <TableHead className="w-28">Rate (₹) *</TableHead>
+                <TableHead className="w-24">GST %</TableHead>
+                <TableHead className="w-32 text-right">Amount (₹)</TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item, index) => {
+                const lineAmount = calculateLineAmount(item.quantity, item.unitPrice);
+
+                return (
+                  <TableRow key={index} className="hover:bg-transparent">
+                    <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={item.description}
+                        onChange={(e) => updateItem(index, "description", e.target.value)}
+                        placeholder="Item name / description"
+                        required
+                        className="h-8 text-xs"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={item.hsn}
+                        onChange={(e) => updateItem(index, "hsn", e.target.value)}
+                        placeholder="HSN"
+                        className="h-8 text-xs font-mono"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="any"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                        required
+                        className="h-8 text-xs text-right font-mono"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={item.unit}
+                        onChange={(e) => updateItem(index, "unit", e.target.value)}
+                        placeholder="PCS"
+                        className="h-8 text-xs font-mono"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.unitPrice}
+                        onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
+                        required
+                        className="h-8 text-xs text-right font-mono font-bold"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={String(item.gstRate)}
+                        onValueChange={(val) => val && updateItem(index, "gstRate", val)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GST_RATES.map((rate) => (
+                            <SelectItem key={rate} value={String(rate)} className="text-xs">
+                              {rate}%
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs font-black">
+                      {formatCurrency(lineAmount, currency)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setItems((curr) =>
+                            curr.length === 1 ? curr : curr.filter((_, i) => i !== index),
+                          )
+                        }
+                        disabled={items.length === 1}
+                        className="size-7 text-muted-foreground hover:text-rose-600"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
-          <CardContent>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Terms</CardTitle></CardHeader>
-          <CardContent>
-            <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={4} />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Bottom Section: Notes & Transport (Left) vs Vyapar Totals (Right) */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Left Column: Terms, Notes, Transport */}
+        <div className="space-y-4 lg:col-span-7">
+          <Card className="rounded-xl shadow-xs">
+            <CardContent className="p-4 space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Terms & Conditions
+                </Label>
+                <Textarea
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value)}
+                  rows={2}
+                  className="text-xs resize-none"
+                  placeholder="Payment terms, warranty, interest clause..."
+                />
+              </div>
 
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save ${meta.label}`}
-        </Button>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Notes & Remarks (Private or for Customer)
+                </Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="text-xs resize-none"
+                  placeholder="Bank details reminder, delivery instructions..."
+                />
+              </div>
+
+              {/* Collapsible Transport details */}
+              <div className="pt-2 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowTransport((prev) => !prev)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                >
+                  <Truck className="size-3.5" />
+                  <span>{showTransport ? "Hide E-Way Bill & Transport Details" : "+ Add E-Way Bill & Transport Details"}</span>
+                  <ChevronDown className={`size-3 transition-transform ${showTransport ? "rotate-180" : ""}`} />
+                </button>
+
+                {showTransport && (
+                  <div className="grid gap-3 sm:grid-cols-3 pt-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="vehicleNumber" className="text-[11px] text-muted-foreground">
+                        Vehicle No.
+                      </Label>
+                      <Input
+                        id="vehicleNumber"
+                        value={vehicleNumber}
+                        onChange={(e) => setVehicleNumber(e.target.value)}
+                        placeholder="MH 12 AB 1234"
+                        className="h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="ewayBill" className="text-[11px] text-muted-foreground">
+                        E-Way Bill No.
+                      </Label>
+                      <Input
+                        id="ewayBill"
+                        value={ewayBill}
+                        onChange={(e) => setEwayBill(e.target.value)}
+                        placeholder="12-digit number"
+                        className="h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="orderNumber" className="text-[11px] text-muted-foreground">
+                        Purchase Order No.
+                      </Label>
+                      <Input
+                        id="orderNumber"
+                        value={orderNumber}
+                        onChange={(e) => setOrderNumber(e.target.value)}
+                        placeholder="PO-001"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Totals Calculation Summary */}
+        <div className="lg:col-span-5">
+          <Card className="rounded-xl shadow-xs border-t-4 border-t-[#D32F2F]">
+            <CardHeader className="p-4 pb-2 border-b bg-muted/20">
+              <CardTitle className="text-sm font-black uppercase tracking-wider">
+                Bill Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              {/* Subtotal */}
+              <div className="flex justify-between text-xs py-1">
+                <span className="text-muted-foreground">Subtotal (Taxable Base)</span>
+                <span className="font-mono font-semibold">{formatCurrency(totals.subtotal, currency)}</span>
+              </div>
+
+              {/* Discount Input */}
+              <div className="flex items-center justify-between text-xs py-1">
+                <span className="text-muted-foreground">Discount (₹)</span>
+                <div className="w-28">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={discount}
+                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    className="h-7 text-xs text-right font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* GST Tax Breakdown */}
+              <div className="border-t pt-2 space-y-1.5 text-xs">
+                {isInterState ? (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted-foreground">Integrated GST (IGST)</span>
+                    <span className="font-mono font-medium text-blue-600">
+                      {formatCurrency(totals.igstAmount, currency)}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-muted-foreground">Central GST (CGST)</span>
+                      <span className="font-mono font-medium text-emerald-600">
+                        {formatCurrency(totals.cgstAmount, currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-0.5">
+                      <span className="text-muted-foreground">State GST (SGST)</span>
+                      <span className="font-mono font-medium text-emerald-600">
+                        {formatCurrency(totals.sgstAmount, currency)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between py-0.5 font-medium">
+                  <span className="text-muted-foreground">Total Tax Amount</span>
+                  <span className="font-mono">{formatCurrency(totals.taxAmount, currency)}</span>
+                </div>
+              </div>
+
+              {/* Grand Total */}
+              <div className="border-t-2 border-foreground/20 pt-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-base font-black tracking-tight">Grand Total</span>
+                    <p className="text-[10px] text-muted-foreground">Inclusive of all taxes</p>
+                  </div>
+                  <span className="text-2xl font-black font-mono text-[#D32F2F]">
+                    {formatCurrency(totals.total, currency)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 flex items-center justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="h-10">
+                  Discard
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={
+                    isPurchase
+                      ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-bold h-10 px-6 shadow-sm"
+                      : "bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-bold h-10 px-6 shadow-sm"
+                  }
+                >
+                  {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </form>
   );

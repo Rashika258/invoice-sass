@@ -30,10 +30,13 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/40">
       <header className="flex items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <FileText className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D32F2F] text-white font-black text-lg">
+            V
           </div>
-          <span className="font-bold">InvoiceFlow</span>
+          <div>
+            <span className="font-black text-base">Vyapar</span>
+            <span className="text-[10px] text-muted-foreground block -mt-1 font-medium">GST Billing</span>
+          </div>
         </Link>
         <ThemeToggle />
       </header>

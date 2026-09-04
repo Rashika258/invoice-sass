@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Pencil, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Customer, Invoice, InvoiceItem } from "@/generated/prisma/client";
 import { deleteInvoice } from "@/actions/invoices";
 import { InvoiceTemplate } from "@/components/invoices/invoice-template";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/invoice-utils";
 
 type InvoiceViewProps = {
   invoice: Invoice & {
@@ -21,16 +22,25 @@ export function InvoiceViewActions({ invoice, currency }: InvoiceViewProps) {
   const router = useRouter();
 
   const handleDelete = async () => {
-    if (!confirm("Delete this invoice permanently?")) return;
+    if (!confirm("Are you sure you want to delete this bill permanently?")) return;
 
     try {
       await deleteInvoice(invoice.id);
-      toast.success("Invoice deleted");
+      toast.success("Bill deleted successfully");
       router.push("/invoices");
       router.refresh();
     } catch {
-      toast.error("Failed to delete invoice");
+      toast.error("Failed to delete bill");
     }
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = `Dear ${invoice.customer.name},\nYour invoice ${invoice.invoiceNumber} for ${formatCurrency(invoice.total, currency)} from ${invoice.companyName} is ready.\nBalance due: ${formatCurrency(Math.max(invoice.total - invoice.paidAmount, 0), currency)}.\nThank you for your business!`;
+    const cleanPhone = invoice.customer.phone?.replace(/[^0-9]/g, "") || "";
+    const waUrl = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+      : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
   };
 
   return (
@@ -41,18 +51,28 @@ export function InvoiceViewActions({ invoice, currency }: InvoiceViewProps) {
           Back to Invoices
         </Button>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleShareWhatsApp}
+            className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+          >
+            <MessageCircle className="mr-2 h-4 w-4 text-emerald-600" />
+            Share WhatsApp
+          </Button>
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
-            Print / PDF
+            Print / Save PDF
           </Button>
-          <Button render={<Link href={`/invoices/${invoice.id}/edit`} />}>
+          <Link
+            href={`/invoices/${invoice.id}/edit`}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-3 py-1.5 text-sm font-semibold shadow-xs"
+          >
             <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            Edit Bill
+          </Link>
+          <Button variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={handleDelete}>
+            <Trash2 className="size-4" />
           </Button>
         </div>
       </div>

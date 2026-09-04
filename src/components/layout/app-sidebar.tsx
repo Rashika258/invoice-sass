@@ -6,6 +6,8 @@ import {
   Banknote,
   BarChart3,
   CalendarClock,
+  FileCheck,
+  FileSpreadsheet,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -26,55 +28,55 @@ import { cn } from "@/lib/utils";
 
 const navGroups = [
   {
-    title: "Home",
+    title: "General",
     items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
   },
   {
-    title: "Sale",
-    items: [
-      { href: "/invoices", label: "Sale Invoices", icon: FileText },
-      { href: "/estimates", label: "Estimates", icon: FileText },
-      { href: "/payments", label: "Payments", icon: Wallet },
-      { href: "/credit-notes", label: "Sale Returns", icon: Receipt },
-      { href: "/challans", label: "Delivery Challan", icon: FileText },
-    ],
-  },
-  {
-    title: "Purchase",
-    items: [
-      { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag },
-      { href: "/debit-notes", label: "Purchase Returns", icon: Receipt },
-      { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingBag },
-    ],
-  },
-  {
-    title: "Cash",
-    items: [
-      { href: "/expenses", label: "Expenses", icon: Banknote },
-      { href: "/cash-bank", label: "Cash & Bank", icon: Wallet },
-    ],
-  },
-  {
-    title: "Masters",
+    title: "Parties & Inventory",
     items: [
       { href: "/customers", label: "Parties", icon: Users },
       { href: "/items", label: "Items", icon: Package },
     ],
   },
   {
-    title: "Reports",
-    items: [{ href: "/reports", label: "Reports", icon: BarChart3 }],
+    title: "Sales",
+    items: [
+      { href: "/invoices", label: "Sale Invoices", icon: FileText },
+      { href: "/estimates", label: "Estimates / Quotations", icon: FileSpreadsheet },
+      { href: "/payments", label: "Payment In / Out", icon: Wallet },
+      { href: "/challans", label: "Delivery Challan", icon: FileCheck },
+      { href: "/credit-notes", label: "Sale Return (Cr Note)", icon: Receipt },
+    ],
   },
   {
-    title: "Staff",
+    title: "Purchases",
+    items: [
+      { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag },
+      { href: "/purchase-orders", label: "Purchase Orders", icon: ShoppingBag },
+      { href: "/debit-notes", label: "Purchase Return (Dr Note)", icon: Receipt },
+    ],
+  },
+  {
+    title: "Cash & Expenses",
+    items: [
+      { href: "/cash-bank", label: "Cash & Bank", icon: Wallet },
+      { href: "/expenses", label: "Expenses", icon: Banknote },
+    ],
+  },
+  {
+    title: "Business Reports",
+    items: [{ href: "/reports", label: "Reports & GST", icon: BarChart3 }],
+  },
+  {
+    title: "Staff & Payroll",
     items: [
       { href: "/employees", label: "Employees", icon: UserCircle },
       { href: "/attendance", label: "Attendance", icon: CalendarClock },
     ],
   },
   {
-    title: "Setup",
-    items: [{ href: "/settings", label: "Settings", icon: Settings }],
+    title: "Settings",
+    items: [{ href: "/settings", label: "Company Profile & GST", icon: Settings }],
   },
 ];
 
@@ -86,31 +88,33 @@ function NavLinks({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+    <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-2.5 py-3">
       {navGroups.map((group) => (
         <div key={group.title}>
-          <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
             {group.title}
           </p>
           <div className="flex flex-col gap-0.5">
             {group.items.map((item) => {
               const Icon = item.icon;
               const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={onNavigate}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-[#D32F2F] text-white font-medium shadow-xs"
+                      : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-white",
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {item.label}
+                  <Icon className="h-4 w-4 shrink-0 opacity-90" />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -131,29 +135,44 @@ export function AppSidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-      <div className="border-b border-sidebar-border px-5 py-5">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-            <FileText className="h-5 w-5" />
+    <aside className="hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+      {/* Vyapar Logo & Header */}
+      <div className="border-b border-sidebar-border px-4 py-3">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#D32F2F] text-white shadow-xs font-bold text-sm tracking-wider">
+            V
           </div>
           <div>
-            <p className="text-sm font-bold tracking-tight">InvoiceFlow</p>
-            <p className="truncate text-xs text-sidebar-foreground/55">{companyName}</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold tracking-tight text-white">Vyapar</span>
+              <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-medium text-emerald-400">
+                PRO
+              </span>
+            </div>
+            <p className="truncate text-[10px] text-sidebar-foreground/60 font-normal">
+              GST Billing & Inventory
+            </p>
           </div>
         </Link>
       </div>
 
       <NavLinks pathname={pathname} />
 
-      <div className="mt-auto border-t border-sidebar-border p-4">
-        <div className="mb-3 rounded-xl bg-sidebar-accent px-3 py-2.5">
-          <p className="text-xs text-sidebar-foreground/55">Signed in as</p>
-          <p className="truncate text-sm font-medium">{userName}</p>
+      {/* Footer / User card */}
+      <div className="mt-auto border-t border-sidebar-border p-2.5">
+        <div className="mb-2 rounded-lg border border-sidebar-border/60 bg-sidebar-accent/50 px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-sidebar-foreground/40 font-medium">Business</p>
+          <p className="truncate text-xs font-medium text-white">{companyName}</p>
+          <p className="truncate text-[10px] text-sidebar-foreground/60">{userName}</p>
         </div>
         <form action={logoutUser}>
-          <Button type="submit" variant="outline" className="w-full justify-start">
-            <LogOut className="mr-2 h-4 w-4" />
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white h-8 text-xs rounded-lg font-normal"
+          >
+            <LogOut className="mr-2 h-3.5 w-3.5" />
             Sign out
           </Button>
         </form>
@@ -172,20 +191,27 @@ export function MobileHeader({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur lg:hidden">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-2.5 lg:hidden shadow-xs">
+      <div className="flex items-center gap-2.5">
         <Sheet>
           <SheetTrigger
             render={
-              <Button variant="outline" size="icon" className="size-9">
+              <Button variant="outline" size="icon" className="size-8">
                 <Menu className="h-4 w-4" />
               </Button>
             }
           />
-          <SheetContent side="left" className="w-72 p-0">
-            <div className="border-b px-6 py-5">
-              <p className="text-sm font-semibold">InvoiceFlow</p>
-              <p className="truncate text-xs text-muted-foreground">{companyName}</p>
+          <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground">
+            <div className="border-b border-sidebar-border px-4 py-3.5">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D32F2F] text-white font-black">
+                  V
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white">Vyapar</p>
+                  <p className="truncate text-[10px] text-sidebar-foreground/60">{companyName}</p>
+                </div>
+              </div>
             </div>
             <NavLinks
               pathname={pathname}
@@ -195,30 +221,32 @@ export function MobileHeader({
                 );
               }}
             />
-            <div className="mt-auto border-t p-4">
-              <p className="mb-2 truncate text-sm font-medium">{userName}</p>
+            <div className="mt-auto border-t border-sidebar-border p-3">
+              <p className="mb-1.5 truncate text-xs font-medium text-white">{userName}</p>
               <form action={logoutUser}>
-                <Button type="submit" variant="outline" className="w-full">
+                <Button type="submit" variant="outline" size="sm" className="w-full h-8 text-xs">
                   Sign out
                 </Button>
               </form>
             </div>
           </SheetContent>
         </Sheet>
-        <div>
-          <p className="text-sm font-semibold">InvoiceFlow</p>
-          <p className="text-xs text-muted-foreground">{companyName}</p>
+        <div className="flex items-center gap-1.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#D32F2F] text-white font-black text-xs">
+            V
+          </div>
+          <div>
+            <p className="text-xs font-bold leading-tight">Vyapar</p>
+            <p className="text-[10px] text-muted-foreground truncate max-w-[140px]">{companyName}</p>
+          </div>
         </div>
       </div>
-      <ThemeToggle />
-    </header>
-  );
-}
-
-export function DesktopHeader() {
-  return (
-    <header className="hidden items-center justify-end border-b bg-background/80 px-6 py-3 backdrop-blur lg:flex">
-      <ThemeToggle />
+      <div className="flex items-center gap-1.5">
+        <Link href="/invoices/new" className="inline-flex items-center justify-center h-7 px-2.5 text-xs bg-[#D32F2F] hover:bg-[#B71C1C] text-white font-semibold rounded-md">
+          + Sale
+        </Link>
+        <ThemeToggle />
+      </div>
     </header>
   );
 }
