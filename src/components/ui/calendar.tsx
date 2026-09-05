@@ -17,37 +17,37 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 select-none", className)}
+      className={cn("p-1 select-none", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
+        month: "space-y-3",
         month_caption: "flex justify-between pt-1 relative items-center px-1 mb-2",
-        caption_label: "text-sm font-bold text-foreground",
-        nav: "space-x-1 flex items-center",
+        caption_label: "text-sm font-semibold text-foreground dark:text-zinc-100",
+        nav: "space-x-1 flex items-center justify-between w-full absolute inset-x-0 px-1",
         button_previous: cn(
-          buttonVariants({ variant: "outline", size: "icon-sm" }),
-          "size-7 bg-transparent p-0 opacity-70 hover:opacity-100 cursor-pointer"
+          buttonVariants({ variant: "ghost", size: "icon-sm" }),
+          "size-7 bg-transparent p-0 text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-zinc-100 cursor-pointer rounded-lg"
         ),
         button_next: cn(
-          buttonVariants({ variant: "outline", size: "icon-sm" }),
-          "size-7 bg-transparent p-0 opacity-70 hover:opacity-100 cursor-pointer"
+          buttonVariants({ variant: "ghost", size: "icon-sm" }),
+          "size-7 bg-transparent p-0 text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-zinc-100 cursor-pointer rounded-lg"
         ),
         month_grid: "w-full border-collapse space-y-1",
-        weekdays: "flex",
+        weekdays: "flex justify-between",
         weekday:
-          "text-muted-foreground rounded-md w-8 font-medium text-[0.8rem] text-center",
-        week: "flex w-full mt-1",
+          "text-muted-foreground dark:text-zinc-400 rounded-md w-9 font-normal text-xs text-center pb-1",
+        week: "flex w-full mt-1 justify-between",
         day: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "size-8 p-0 font-normal hover:bg-accent rounded-md cursor-pointer transition-colors"
+          "size-9 p-0 font-medium text-sm text-foreground dark:text-zinc-200 hover:bg-muted dark:hover:bg-zinc-800/80 rounded-xl cursor-pointer transition-colors"
         ),
-        selected: "bg-primary text-primary-foreground font-bold hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
-        range_start: "bg-primary text-primary-foreground font-bold rounded-l-md",
-        range_end: "bg-primary text-primary-foreground font-bold rounded-r-md",
+        selected: "bg-muted dark:bg-zinc-800 text-foreground dark:text-white font-semibold hover:bg-muted dark:hover:bg-zinc-800 focus:bg-muted dark:focus:bg-zinc-800 rounded-xl shadow-2xs",
+        range_start: "bg-primary text-primary-foreground font-bold rounded-l-xl",
+        range_end: "bg-primary text-primary-foreground font-bold rounded-r-xl",
         range_middle: "bg-primary/20 text-foreground font-medium rounded-none",
-        today: "font-bold text-primary border border-primary/50",
-        outside: "text-muted-foreground opacity-30",
+        today: "font-bold text-primary border border-primary/40 rounded-xl",
+        outside: "text-muted-foreground dark:text-zinc-600 opacity-40",
         disabled: "text-muted-foreground opacity-30 pointer-events-none",
         hidden: "invisible",
         ...classNames,

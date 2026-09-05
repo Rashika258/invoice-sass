@@ -28,8 +28,8 @@
   "enableFaceCaptureSnapshot": true,
   "standardShiftHours": 8,
   "overtimeMultiplier": 1.5,
-  "printTemplate": "MODERN",
-  "printerType": "A4",
+  "printTemplate": "GST_TAX",
+  "printerType": "THERMAL_3INCH",
   "showCompanyLogo": true,
   "printUpiQrOnBill": true,
   "showBankDetails": true,
@@ -57,7 +57,25 @@
   "enableBarcodeScanner": true,
   "enableBatchTracking": true,
   "enableSerialNumberTracking": true,
-  "lowStockBufferQty": 10,
+  "lowStockBufferQty": 110,
   "currentFinancialYear": "2025-2026",
-  "autoJournalEntries": true
+  "autoJournalEntries": false,
+  "exchangeRates": {
+    "USD": 83.92,
+    "EUR": 91.2,
+    "AED": 22.85,
+    "GBP": 106.4,
+    "SGD": 62.8,
+    "SAR": 22.38,
+    "AUD": 55.4,
+    "CAD": 61.9
+  },
+  "enabledExportCurrencies": [
+    "USD",
+    "EUR",
+    "AED",
+    "GBP",
+    "SGD",
+    "SAR"
+  ]
 }

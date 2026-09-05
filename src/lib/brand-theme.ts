@@ -215,6 +215,20 @@ export function loadGoogleFont(fontOption?: BrandFontOption) {
   }
 }
 
+export function getContrastTextColor(hexColor: string): string {
+  let hex = hexColor.replace("#", "");
+  if (hex.length === 3) {
+    hex = hex.split("").map((c) => c + c).join("");
+  }
+  const num = parseInt(hex, 16);
+  if (isNaN(num)) return "#ffffff";
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 165 ? "#09090b" : "#ffffff";
+}
+
 export function applyBrandTheme(primaryHex: string, presetName?: string, secondaryHex?: string, fontFamily?: string) {
   if (typeof document === "undefined") return;
 
@@ -222,6 +236,7 @@ export function applyBrandTheme(primaryHex: string, presetName?: string, seconda
   const lightRgba = hexToRgba(primaryHex, 0.12);
   const mediumRgba = hexToRgba(primaryHex, 0.2);
   const secHex = secondaryHex || adjustBrightness(primaryHex, -35);
+  const contrastText = getContrastTextColor(primaryHex);
 
   const root = document.documentElement;
   root.style.setProperty("--brand-primary", primaryHex);
@@ -229,10 +244,13 @@ export function applyBrandTheme(primaryHex: string, presetName?: string, seconda
   root.style.setProperty("--brand-light", lightRgba);
   root.style.setProperty("--brand-medium", mediumRgba);
   root.style.setProperty("--brand-secondary", secHex);
+  root.style.setProperty("--brand-foreground", contrastText);
 
-  // Sync shadcn / base variables
+  // Sync shadcn / base variables with dynamic high-contrast text
   root.style.setProperty("--primary", primaryHex);
+  root.style.setProperty("--primary-foreground", contrastText);
   root.style.setProperty("--sidebar-primary", primaryHex);
+  root.style.setProperty("--sidebar-primary-foreground", contrastText);
   root.style.setProperty("--ring", primaryHex);
 
   // Apply Font if provided

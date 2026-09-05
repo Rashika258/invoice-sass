@@ -44,6 +44,12 @@ import {
 } from "@/lib/brand-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -139,6 +145,20 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
   const [enableFaceCaptureSnapshot, setEnableFaceCaptureSnapshot] = useState(true);
   const [standardShiftHours, setStandardShiftHours] = useState(8);
   const [overtimeMultiplier, setOvertimeMultiplier] = useState(1.5);
+
+  // Multi Currency editing state
+  const [editingCurrency, setEditingCurrency] = useState<{
+    code: string;
+    name: string;
+    symbol: string;
+    rate: number;
+    enabled: boolean;
+  } | null>(null);
+  const [addCurrencyModalOpen, setAddCurrencyModalOpen] = useState(false);
+  const [newCurrCode, setNewCurrCode] = useState("");
+  const [newCurrName, setNewCurrName] = useState("");
+  const [newCurrSymbol, setNewCurrSymbol] = useState("");
+  const [newCurrRate, setNewCurrRate] = useState(1);
 
   useEffect(() => {
     const stored = getStoredBrandTheme();
@@ -237,7 +257,7 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] rounded-2xl border border-border bg-card overflow-hidden shadow-sm select-none">
+    <div className="flex h-[calc(100dvh-7.5rem)] min-h-[500px] rounded-2xl border border-border bg-card overflow-hidden shadow-sm select-none">
       {/* Left Sidebar Menu */}
       <div className="w-56 shrink-0 bg-muted/40 text-foreground flex flex-col border-r border-border">
         <div className="p-3 border-b border-border flex items-center justify-between">
@@ -1098,7 +1118,7 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                       <button
                         key={days}
                         type="button"
-                        className="px-3 py-1.5 rounded-lg border border-border text-xs font-bold hover:bg-brand hover:text-white hover:border-brand transition-all cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl border border-border bg-card text-foreground text-xs font-bold hover:bg-brand-light hover:text-brand hover:border-brand/50 transition-all cursor-pointer active:scale-95 shadow-2xs"
                         onClick={() => toast.success(`Service reminder advance set to ${days} days`)}
                       >
                         {days} days
@@ -1161,7 +1181,7 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
           <div className="max-w-3xl space-y-6 text-xs">
             <div className="rounded-2xl border border-border bg-card p-5 flex items-start gap-4">
               <div className="p-2.5 rounded-xl bg-brand-light text-brand">
-                <Monitor className="size-5" />
+                <Globe className="size-5" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-foreground">Multi-Currency &amp; International Billing</h3>
@@ -1181,29 +1201,254 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                 <p className="text-[10px] text-muted-foreground">Base currency cannot be changed after transactions are posted.</p>
               </div>
 
-              <div className="pt-2 border-t border-border/50 space-y-2">
-                <Label className="text-xs font-semibold text-foreground">Export / Secondary Currencies</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { code: "USD", name: "US Dollar", symbol: "$", rate: "83.92" },
-                    { code: "EUR", name: "Euro", symbol: "€", rate: "91.20" },
-                    { code: "AED", name: "UAE Dirham", symbol: "د.إ", rate: "22.85" },
-                    { code: "GBP", name: "British Pound", symbol: "£", rate: "106.40" },
-                    { code: "SGD", name: "Singapore Dollar", symbol: "S$", rate: "62.80" },
-                    { code: "SAR", name: "Saudi Riyal", symbol: "﷼", rate: "22.38" },
-                  ].map((cur) => (
-                    <div key={cur.code} className="p-3 rounded-xl border border-border bg-card/60 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-foreground text-xs">{cur.symbol} {cur.code}</span>
-                        <Badge variant="secondary" className="text-[9px] font-mono">1 {cur.code} = ₹{cur.rate}</Badge>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">{cur.name}</p>
-                    </div>
-                  ))}
+              <div className="pt-2 border-t border-border/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-foreground">Export / Secondary Currencies</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddCurrencyModalOpen(true)}
+                    className="h-7 text-[11px] font-semibold text-brand border-brand/30 hover:bg-brand-light cursor-pointer"
+                  >
+                    + Add Custom Currency
+                  </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground pt-1">Exchange rates are updated manually. Click any rate to edit.</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { code: "USD", name: "US Dollar", symbol: "$", defaultRate: 83.92 },
+                    { code: "EUR", name: "Euro", symbol: "€", defaultRate: 91.20 },
+                    { code: "AED", name: "UAE Dirham", symbol: "د.إ", defaultRate: 22.85 },
+                    { code: "GBP", name: "British Pound", symbol: "£", defaultRate: 106.40 },
+                    { code: "SGD", name: "Singapore Dollar", symbol: "S$", defaultRate: 62.80 },
+                    { code: "SAR", name: "Saudi Riyal", symbol: "﷼", defaultRate: 22.38 },
+                    { code: "AUD", name: "Australian Dollar", symbol: "A$", defaultRate: 55.40 },
+                    { code: "CAD", name: "Canadian Dollar", symbol: "C$", defaultRate: 61.90 },
+                  ].map((cur) => {
+                    const currentRates = settings.exchangeRates || {};
+                    const rate = currentRates[cur.code] ?? cur.defaultRate;
+                    const enabledList = settings.enabledExportCurrencies || ["USD", "EUR", "AED", "GBP", "SGD", "SAR"];
+                    const isEnabled = enabledList.includes(cur.code);
+
+                    return (
+                      <div
+                        key={cur.code}
+                        onClick={() =>
+                          setEditingCurrency({
+                            code: cur.code,
+                            name: cur.name,
+                            symbol: cur.symbol,
+                            rate,
+                            enabled: isEnabled,
+                          })
+                        }
+                        className={`p-3 rounded-xl border transition-all cursor-pointer select-none group ${
+                          isEnabled
+                            ? "border-brand/40 bg-card hover:border-brand hover:shadow-2xs"
+                            : "border-border/60 bg-muted/20 opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-foreground text-xs flex items-center gap-1">
+                            <span>{cur.symbol}</span>
+                            <span>{cur.code}</span>
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className="text-[9px] font-mono group-hover:bg-brand-light group-hover:text-brand transition-colors"
+                          >
+                            1 {cur.code} = ₹{rate}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <p className="text-[10px] text-muted-foreground">{cur.name}</p>
+                          {isEnabled && (
+                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">● Active</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-muted-foreground pt-1">
+                  Exchange rates are updated manually. Click any currency card or rate to edit exchange rate.
+                </p>
               </div>
             </div>
+
+            {/* Dialog: Edit Exchange Rate Modal */}
+            <Dialog open={!!editingCurrency} onOpenChange={(open) => !open && setEditingCurrency(null)}>
+              <DialogContent className="sm:max-w-md rounded-2xl p-6 select-none">
+                <DialogHeader>
+                  <DialogTitle className="text-base font-bold flex items-center gap-2">
+                    <Globe className="size-4 text-brand" />
+                    <span>Edit {editingCurrency?.name} ({editingCurrency?.code}) Exchange Rate</span>
+                  </DialogTitle>
+                </DialogHeader>
+
+                {editingCurrency && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const currentRates = { ...(settings.exchangeRates || {}), [editingCurrency.code]: editingCurrency.rate };
+                      let enabledList = [...(settings.enabledExportCurrencies || ["USD", "EUR", "AED", "GBP", "SGD", "SAR"])];
+
+                      if (editingCurrency.enabled && !enabledList.includes(editingCurrency.code)) {
+                        enabledList.push(editingCurrency.code);
+                      } else if (!editingCurrency.enabled && enabledList.includes(editingCurrency.code)) {
+                        enabledList = enabledList.filter((c) => c !== editingCurrency.code);
+                      }
+
+                      updateSetting("exchangeRates", currentRates);
+                      updateSetting("enabledExportCurrencies", enabledList);
+                      toast.success(`Updated ${editingCurrency.code} rate: 1 ${editingCurrency.code} = ₹${editingCurrency.rate}`);
+                      setEditingCurrency(null);
+                    }}
+                    className="space-y-4 pt-2 text-xs"
+                  >
+                    <div className="rounded-xl border border-brand/20 bg-brand-light/30 p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-bold text-xs text-brand">
+                        <span className="text-sm font-black">{editingCurrency.symbol}</span>
+                        <span>{editingCurrency.code} — {editingCurrency.name}</span>
+                      </div>
+                      <Badge className="bg-brand text-white border-none text-[9px]">FOREIGN CURRENCY</Badge>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="currRate">Exchange Rate (1 {editingCurrency.code} in ₹ INR) *</Label>
+                      <Input
+                        id="currRate"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={editingCurrency.rate}
+                        onChange={(e) =>
+                          setEditingCurrency({ ...editingCurrency, rate: Number(e.target.value) || 0 })
+                        }
+                        required
+                        className="h-9 font-mono font-bold text-xs"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Live Preview: 100 {editingCurrency.code} = ₹{(100 * editingCurrency.rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="currEnable" className="font-semibold text-xs cursor-pointer block">Enable for Foreign Invoicing</Label>
+                        <p className="text-[10px] text-muted-foreground">Allow selecting {editingCurrency.code} when creating invoices.</p>
+                      </div>
+                      <Switch
+                        id="currEnable"
+                        checked={editingCurrency.enabled}
+                        onCheckedChange={(val) => setEditingCurrency({ ...editingCurrency, enabled: val })}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-3">
+                      <Button type="button" variant="outline" onClick={() => setEditingCurrency(null)} className="h-8 text-xs">
+                        Cancel
+                      </Button>
+                      <Button type="submit" className="h-8 text-xs font-bold bg-brand hover:opacity-90 text-white">
+                        Save Exchange Rate
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Dialog: Add Custom Currency */}
+            <Dialog open={addCurrencyModalOpen} onOpenChange={setAddCurrencyModalOpen}>
+              <DialogContent className="sm:max-w-md rounded-2xl p-6 select-none">
+                <DialogHeader>
+                  <DialogTitle className="text-base font-bold flex items-center gap-2">
+                    <Globe className="size-4 text-brand" />
+                    <span>Add Custom Foreign Currency</span>
+                  </DialogTitle>
+                </DialogHeader>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newCurrCode || !newCurrName) return;
+                    const code = newCurrCode.toUpperCase().trim();
+                    const currentRates = { ...(settings.exchangeRates || {}), [code]: newCurrRate };
+                    const enabledList = [...(settings.enabledExportCurrencies || ["USD", "EUR", "AED", "GBP", "SGD", "SAR"]), code];
+
+                    updateSetting("exchangeRates", currentRates);
+                    updateSetting("enabledExportCurrencies", enabledList);
+                    toast.success(`Added currency ${code} (${newCurrName}) at 1 ${code} = ₹${newCurrRate}`);
+                    setAddCurrencyModalOpen(false);
+                    setNewCurrCode("");
+                    setNewCurrName("");
+                    setNewCurrSymbol("");
+                    setNewCurrRate(1);
+                  }}
+                  className="space-y-3 pt-2 text-xs"
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="newCode">Currency Code *</Label>
+                      <Input
+                        id="newCode"
+                        placeholder="e.g. AUD"
+                        value={newCurrCode}
+                        onChange={(e) => setNewCurrCode(e.target.value)}
+                        required
+                        className="h-9 font-mono font-bold text-xs uppercase"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="newSymbol">Symbol</Label>
+                      <Input
+                        id="newSymbol"
+                        placeholder="e.g. A$"
+                        value={newCurrSymbol}
+                        onChange={(e) => setNewCurrSymbol(e.target.value)}
+                        className="h-9 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="newName">Currency Name *</Label>
+                    <Input
+                      id="newName"
+                      placeholder="e.g. Australian Dollar"
+                      value={newCurrName}
+                      onChange={(e) => setNewCurrName(e.target.value)}
+                      required
+                      className="h-9 text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="newRate">Exchange Rate (in ₹ INR) *</Label>
+                    <Input
+                      id="newRate"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={newCurrRate}
+                      onChange={(e) => setNewCurrRate(Number(e.target.value) || 1)}
+                      required
+                      className="h-9 font-mono font-bold text-xs"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button type="button" variant="outline" onClick={() => setAddCurrencyModalOpen(false)} className="h-8 text-xs">
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="h-8 text-xs font-bold bg-brand hover:opacity-90 text-white">
+                      Add Currency
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>

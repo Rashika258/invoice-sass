@@ -709,48 +709,46 @@ export function SaleTransactionsView({
         )}
 
         {/* Interactive Transactions Table */}
-        <Card className="rounded-xl border border-border/70 shadow-xs overflow-hidden">
+        <Card className="rounded-xl border border-border/80 shadow-sm overflow-hidden">
           <Table>
-            <TableHeader className="bg-muted/40 select-none">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-28 text-xs font-semibold text-muted-foreground">
+                <TableHead className="w-28">
                   <span className="inline-flex items-center gap-1">
-                    Date <Filter className="size-2.5 opacity-60" />
+                    Date <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-28 text-xs font-semibold text-muted-foreground">
+                <TableHead className="w-28">
                   <span className="inline-flex items-center gap-1">
-                    Invoice no <Filter className="size-2.5 opacity-60" />
+                    Invoice no <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground">
+                <TableHead>
                   <span className="inline-flex items-center gap-1">
-                    Party Name <Filter className="size-2.5 opacity-60" />
+                    Party Name <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-28 text-xs font-semibold text-muted-foreground">
+                <TableHead className="w-32">
                   <span className="inline-flex items-center gap-1">
-                    Transaction <Filter className="size-2.5 opacity-60" />
+                    Transaction <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-28 text-xs font-semibold text-muted-foreground">
+                <TableHead className="w-32">
                   <span className="inline-flex items-center gap-1">
-                    Payment Type <Filter className="size-2.5 opacity-60" />
+                    Payment Type <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-32 text-right text-xs font-semibold text-muted-foreground">
-                  <span className="inline-flex items-center justify-end gap-1">
-                    Amount <Filter className="size-2.5 opacity-60" />
+                <TableHead className="w-28 text-right">
+                  <span className="inline-flex items-center justify-end gap-1 w-full">
+                    Amount <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-32 text-right text-xs font-semibold text-muted-foreground">
-                  <span className="inline-flex items-center justify-end gap-1">
-                    Balance <Filter className="size-2.5 opacity-60" />
+                <TableHead className="w-28 text-right">
+                  <span className="inline-flex items-center justify-end gap-1 w-full">
+                    Balance <Filter className="size-2.5 opacity-50" />
                   </span>
                 </TableHead>
-                <TableHead className="w-24 text-right text-xs font-semibold text-muted-foreground">
-                  Actions
-                </TableHead>
+                <TableHead className="w-20 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

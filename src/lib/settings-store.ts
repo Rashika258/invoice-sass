@@ -88,6 +88,10 @@ export interface AppSettings {
   // Accounting & Financial Year
   currentFinancialYear: string;
   autoJournalEntries: boolean;
+
+  // Multi Currency Configuration
+  exchangeRates: Record<string, number>;
+  enabledExportCurrencies: string[];
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -171,6 +175,19 @@ const DEFAULT_SETTINGS: AppSettings = {
   // Accounting defaults
   currentFinancialYear: "2026-2027",
   autoJournalEntries: true,
+
+  // Multi Currency defaults
+  exchangeRates: {
+    USD: 83.92,
+    EUR: 91.20,
+    AED: 22.85,
+    GBP: 106.40,
+    SGD: 62.80,
+    SAR: 22.38,
+    AUD: 55.40,
+    CAD: 61.90,
+  },
+  enabledExportCurrencies: ["USD", "EUR", "AED", "GBP", "SGD", "SAR"],
 };
 
 const SETTINGS_FILE = path.join(process.cwd(), "prisma", "app_settings.json");

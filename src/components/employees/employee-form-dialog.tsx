@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -76,6 +78,11 @@ export function EmployeeFormDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{employee ? "Edit Employee" : "Add Employee"}</DialogTitle>
+          <DialogDescription>
+            {employee
+              ? "Update staff rates and position information."
+              : "Add a staff member to track attendance and generate payslips."}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,14 +138,14 @@ export function EmployeeFormDialog({
           <p className="text-xs text-muted-foreground">
             Standard day is 8 hours. Hours beyond 8 are paid at the overtime rate.
           </p>
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save changes"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

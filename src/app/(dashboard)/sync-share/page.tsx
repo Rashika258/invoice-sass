@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -278,12 +280,15 @@ export default function SyncSharePage() {
       <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2">
               <UserCheck className="size-4 text-primary" />
               Invite New Staff Member
             </DialogTitle>
+            <DialogDescription>
+              Assign role permissions and invite staff members to collaborate on sales &amp; billing.
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddStaff} className="space-y-4 pt-2 text-xs">
+          <form onSubmit={handleAddStaff} className="space-y-4 text-xs">
             <div className="space-y-1">
               <Label>Staff Full Name *</Label>
               <Input
@@ -320,14 +325,14 @@ export default function SyncSharePage() {
               </Select>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={() => setInviteModalOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                 Send Invite
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

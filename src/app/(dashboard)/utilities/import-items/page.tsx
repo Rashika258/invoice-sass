@@ -348,7 +348,7 @@ export default function ImportItemsPage() {
 
       {/* Modal 1: Barcode Entry & Scanner */}
       <Dialog open={barcodeOpen} onOpenChange={setBarcodeOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl select-none">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Barcode className="size-5 text-primary" />
@@ -413,65 +413,65 @@ export default function ImportItemsPage() {
             )}
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-300">Barcode / EAN Number</Label>
+              <Label className="text-xs font-semibold text-foreground">Barcode / EAN Number</Label>
               <div className="relative">
                 <Input
                   value={barcodeVal}
                   onChange={(e) => setBarcodeVal(e.target.value)}
                   placeholder="e.g. 8901030382710"
-                  className="font-mono text-sm bg-zinc-900 border-zinc-800 text-white pl-9"
+                  className="font-mono text-sm pl-9 bg-card text-foreground border-border"
                   required
                 />
-                <Barcode className="absolute left-3 top-2.5 size-4 text-zinc-500" />
+                <Barcode className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-300">Item / Product Name</Label>
+              <Label className="text-xs font-semibold text-foreground">Item / Product Name</Label>
               <Input
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
                 placeholder="Product name"
-                className="text-xs bg-zinc-900 border-zinc-800 text-white"
+                className="text-xs bg-card text-foreground border-border"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-300">Sale Price (₹)</Label>
+                <Label className="text-xs font-semibold text-foreground">Sale Price (₹)</Label>
                 <Input
                   type="number"
                   value={salePrice}
                   onChange={(e) => setSalePrice(e.target.value)}
-                  className="font-mono text-xs bg-zinc-900 border-zinc-800 text-white"
+                  className="font-mono text-xs bg-card text-foreground border-border"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-300">Purchase Cost (₹)</Label>
+                <Label className="text-xs font-semibold text-foreground">Purchase Cost (₹)</Label>
                 <Input
                   type="number"
                   value={purchasePrice}
                   onChange={(e) => setPurchasePrice(e.target.value)}
-                  className="font-mono text-xs bg-zinc-900 border-zinc-800 text-white"
+                  className="font-mono text-xs bg-card text-foreground border-border"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-border">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => setBarcodeOpen(false)}
-                className="text-xs text-zinc-400 hover:text-white"
+                className="text-xs cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-primary text-primary-foreground text-xs font-semibold px-5"
+                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : "Add to Inventory"}
               </Button>
@@ -482,27 +482,27 @@ export default function ImportItemsPage() {
 
       {/* Modal 2: Excel / CSV File Upload */}
       <Dialog open={excelOpen} onOpenChange={setExcelOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl border-zinc-800 bg-zinc-950 text-white">
+        <DialogContent className="sm:max-w-lg rounded-2xl select-none">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <FileSpreadsheet className="size-5 text-emerald-400" />
+              <FileSpreadsheet className="size-5 text-emerald-500" />
               Import Items from Excel / CSV
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-400">
+            <DialogDescription className="text-xs text-muted-foreground">
               Upload your spreadsheet with columns for Item Name, Sale Price, Purchase Price, GST, HSN, and Stock.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 pt-2 text-xs">
             {/* Download Template Strip */}
-            <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-3 text-xs">
-              <span className="text-zinc-300">Don&apos;t have a sheet ready?</span>
+            <div className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-3">
+              <span className="text-muted-foreground">Don&apos;t have a sheet ready?</span>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={downloadSampleCsv}
-                className="h-7 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:text-white"
+                className="h-7 text-xs border-border bg-card text-foreground hover:bg-accent cursor-pointer"
               >
                 <Download className="mr-1.5 size-3" />
                 Sample Template
@@ -510,12 +510,12 @@ export default function ImportItemsPage() {
             </div>
 
             {/* Drag and Drop or File Picker */}
-            <div className="rounded-xl border-2 border-dashed border-zinc-800 p-6 text-center hover:border-zinc-700 transition-colors">
-              <FileUp className="mx-auto size-8 text-zinc-500 mb-2" />
-              <p className="text-xs font-semibold text-zinc-200">
+            <div className="rounded-xl border-2 border-dashed border-border p-6 text-center hover:border-primary/50 transition-colors bg-card/40">
+              <FileUp className="mx-auto size-8 text-muted-foreground mb-2" />
+              <p className="text-xs font-semibold text-foreground">
                 Choose a .CSV file from your computer
               </p>
-              <p className="text-[11px] text-zinc-500 mt-1">UTF-8 encoded spreadsheet</p>
+              <p className="text-[11px] text-muted-foreground mt-1">UTF-8 encoded spreadsheet</p>
               <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground cursor-pointer shadow-xs hover:bg-primary/90">
                 <span>Select File</span>
                 <input
@@ -530,18 +530,18 @@ export default function ImportItemsPage() {
             {/* CSV Preview table if uploaded */}
             {csvPreview.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-emerald-400">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   ✓ Ready to import {csvPreview.length} items:
                 </p>
-                <div className="max-h-36 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/80 p-2 text-xs font-mono space-y-1">
+                <div className="max-h-36 overflow-y-auto rounded-lg border border-border bg-muted/30 p-2 text-xs font-mono space-y-1">
                   {csvPreview.slice(0, 5).map((it, i) => (
-                    <div key={i} className="flex justify-between text-zinc-300">
+                    <div key={i} className="flex justify-between text-foreground">
                       <span className="truncate">{it.name}</span>
-                      <span className="text-zinc-400">₹{it.unitPrice}</span>
+                      <span className="text-muted-foreground">₹{it.unitPrice}</span>
                     </div>
                   ))}
                   {csvPreview.length > 5 && (
-                    <p className="text-[10px] text-zinc-500 pt-1 text-center">
+                    <p className="text-[10px] text-muted-foreground pt-1 text-center">
                       + {csvPreview.length - 5} more items
                     </p>
                   )}
@@ -549,12 +549,12 @@ export default function ImportItemsPage() {
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-border">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => setExcelOpen(false)}
-                className="text-xs text-zinc-400 hover:text-white"
+                className="text-xs cursor-pointer"
               >
                 Cancel
               </Button>
@@ -562,7 +562,7 @@ export default function ImportItemsPage() {
                 type="button"
                 disabled={csvPreview.length === 0 || loading}
                 onClick={handleCsvImportSubmit}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5"
+                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-5 cursor-pointer"
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />

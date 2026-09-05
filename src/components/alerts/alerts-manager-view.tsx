@@ -242,7 +242,7 @@ export function AlertsManagerView({
               render={
                 <Button size="sm" className="h-8 text-xs font-bold gap-1.5 bg-brand text-white shadow-xs">
                   <Plus className="size-3.5" />
-                  <span>+ Set Custom Alert</span>
+                  <span>Set Custom Alert</span>
                 </Button>
               }
             />
@@ -740,7 +740,7 @@ export function AlertsManagerView({
             <CardContent className="space-y-3">
               {customAlerts.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-6">
-                  No custom reminders scheduled. Click &quot;+ Set Custom Alert&quot; to add one.
+                  No custom reminders scheduled. Click &quot;Set Custom Alert&quot; to add one.
                 </p>
               ) : (
                 customAlerts.map((ca) => (

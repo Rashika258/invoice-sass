@@ -156,6 +156,7 @@ const navConfig: NavGroup[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { href: "/employees", label: "Employees & Staff", icon: Users, plusHref: "/employees" },
       { href: "/attendance", label: "Attendance & OT", icon: CalendarClock, badge: "8H OT" },
       { href: "/attendance/kiosk", label: "Biometric Kiosk", icon: UserCheck, badge: "SCAN" },
     ],
@@ -455,9 +456,9 @@ export function AppSidebar({
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card text-card-foreground lg:flex sticky top-0 z-30 select-none">
+    <aside className="hidden h-full max-h-screen max-h-dvh w-64 shrink-0 flex-col border-r border-border bg-card text-card-foreground lg:flex select-none">
       {/* Billora Brand Header with Logo */}
-      <div className="p-3 border-b border-border flex items-center justify-between">
+      <div className="shrink-0 p-3 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
             src="/logo.png"
@@ -479,7 +480,7 @@ export function AppSidebar({
       </div>
 
       {/* Top Search: Open Anything (Ctrl+F) */}
-      <div className="p-3 border-b border-border">
+      <div className="shrink-0 p-2.5 border-b border-border">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
           <input
@@ -499,9 +500,9 @@ export function AppSidebar({
       </div>
 
       {/* Bottom Section: Trial card and Premium upgrade */}
-      <div className="shrink-0 border-t border-border p-3 space-y-2.5 bg-muted/30">
+      <div className="shrink-0 border-t border-border p-2.5 space-y-2 bg-muted/30">
         {/* 6 days Free Trial Left Card */}
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 space-y-2">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5 space-y-1.5">
           <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-300">
             <span>6 days Free Trial left</span>
           </div>
@@ -510,7 +511,7 @@ export function AppSidebar({
           </div>
           <Link
             href="/plans"
-            className="flex items-center justify-between rounded-lg bg-brand hover:opacity-90 text-white px-2.5 py-1.5 text-xs font-bold transition-colors shadow-xs"
+            className="flex items-center justify-between rounded-lg bg-brand hover:opacity-90 text-white px-2 py-1 text-[11px] font-bold transition-colors shadow-xs"
           >
             <div className="flex items-center gap-1.5">
               <Crown className="size-3.5" />

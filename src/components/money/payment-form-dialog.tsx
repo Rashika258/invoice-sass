@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 
 export function PaymentFormDialog({
@@ -43,6 +46,7 @@ export function PaymentFormDialog({
   const [invoiceId, setInvoiceId] = useState("");
   const [bankAccountId, setBankAccountId] = useState(accounts[0]?.id ?? "");
   const [mode, setMode] = useState<"CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD">("CASH");
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
   const linkedInvoices = invoices.filter((invoice) => !partyId || invoice.customerId === partyId);
 
@@ -57,7 +61,7 @@ export function PaymentFormDialog({
         invoiceId,
         bankAccountId,
         amount: Number(formData.get("amount") ?? 0),
-        date: String(formData.get("date") ?? ""),
+        date: date || String(formData.get("date") ?? ""),
         mode,
         reference: String(formData.get("reference") ?? ""),
         notes: String(formData.get("notes") ?? ""),
@@ -76,13 +80,22 @@ export function PaymentFormDialog({
       <DialogTrigger render={trigger as React.ReactElement} />
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{direction === "IN" ? "Payment In" : "Payment Out"}</DialogTitle>
+          <DialogTitle>{direction === "IN" ? "Record Payment In" : "Record Payment Out"}</DialogTitle>
+          <DialogDescription>
+            {direction === "IN"
+              ? "Record a payment received from a customer into cash or bank account."
+              : "Record a payment made to a supplier or vendor from cash or bank."}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Party</Label>
             <Select value={partyId} onValueChange={(value) => { if (value) { setPartyId(value); setInvoiceId(""); } }}>
-              <SelectTrigger><SelectValue placeholder="Select party" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select party">
+                  {parties.find((p) => p.id === partyId)?.name || "Select party"}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {parties.map((party) => (
                   <SelectItem key={party.id} value={party.id}>{party.name}</SelectItem>
@@ -93,7 +106,11 @@ export function PaymentFormDialog({
           <div className="space-y-2">
             <Label>Link to bill</Label>
             <Select value={invoiceId} onValueChange={(value) => value && setInvoiceId(value)}>
-              <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Optional bill link">
+                  {linkedInvoices.find((i) => i.id === invoiceId)?.invoiceNumber || "Optional bill link"}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {linkedInvoices.map((invoice) => (
                   <SelectItem key={invoice.id} value={invoice.id}>
@@ -106,11 +123,11 @@ export function PaymentFormDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount *</Label>
-              <Input id="amount" name="amount" type="number" min="0.01" step="0.01" required />
+              <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
-              <Input id="date" name="date" type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} required />
+              <Label>Date *</Label>
+              <DatePicker value={date} onChange={setDate} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -119,7 +136,7 @@ export function PaymentFormDialog({
               <Select value={mode} onValueChange={(value) => {
                 if (value === "CASH" || value === "UPI" || value === "BANK" || value === "CHEQUE" || value === "CARD") setMode(value);
               }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Mode">{mode}</SelectValue></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CASH">Cash</SelectItem>
                   <SelectItem value="UPI">UPI</SelectItem>
@@ -132,7 +149,11 @@ export function PaymentFormDialog({
             <div className="space-y-2">
               <Label>Received in / Paid from</Label>
               <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
-                <SelectTrigger><SelectValue placeholder="Account" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account">
+                    {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
@@ -149,10 +170,10 @@ export function PaymentFormDialog({
             <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" name="notes" rows={2} />
           </div>
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
-          </div>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Payment"}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

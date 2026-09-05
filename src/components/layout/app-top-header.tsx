@@ -165,7 +165,7 @@ export function AppTopHeader({
           >
             <Plus className="size-3.5" />
             <span>Add Sale</span>
-            <kbd className="hidden xl:inline-block ml-1 rounded bg-background/20 px-1 text-[9px] font-mono">
+            <kbd className="hidden xl:inline-block ml-1 rounded bg-primary-foreground/20 text-primary-foreground px-1 text-[9px] font-mono">
               F8
             </kbd>
           </Link>

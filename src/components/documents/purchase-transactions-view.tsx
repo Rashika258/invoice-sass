@@ -641,51 +641,51 @@ export function PurchaseTransactionsView({
         {/* Transactions Table */}
         <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
           <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow className="text-xs text-muted-foreground border-b border-border hover:bg-transparent">
-                <TableHead className="font-semibold text-foreground py-2.5">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>
                   <div className="flex items-center gap-1">
                     <span>Date</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground py-2.5">
+                <TableHead>
                   <div className="flex items-center gap-1">
                     <span>Bill no</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground py-2.5">
+                <TableHead>
                   <div className="flex items-center gap-1">
                     <span>Party Name</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground py-2.5">
+                <TableHead>
                   <div className="flex items-center gap-1">
                     <span>Transaction</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground py-2.5">
+                <TableHead>
                   <div className="flex items-center gap-1">
                     <span>Payment Type</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground text-right py-2.5">
+                <TableHead className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <span>Amount</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground text-right py-2.5">
+                <TableHead className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <span>Balance</span>
                     <Filter className="size-2.5 opacity-50" />
                   </div>
                 </TableHead>
-                <TableHead className="font-semibold text-foreground text-center w-24 py-2.5">
+                <TableHead className="text-center w-24">
                   <span>Actions</span>
                 </TableHead>
               </TableRow>

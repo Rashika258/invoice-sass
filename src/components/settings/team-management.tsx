@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -128,6 +130,9 @@ export function TeamManagement({
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold">Add New User to Organization</DialogTitle>
+                  <DialogDescription>
+                    Invite team members to manage attendance, billing, and GST reports.
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4 pt-2">
                   <div className="space-y-1.5">
@@ -166,14 +171,14 @@ export function TeamManagement({
                     </ul>
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-2">
+                  <DialogFooter>
                     <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-8 text-xs">
                       Cancel
                     </Button>
                     <Button type="submit" size="sm" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs font-semibold">
                       {isSubmitting ? "Creating..." : "Create User"}
                     </Button>
-                  </div>
+                  </DialogFooter>
                 </form>
               </DialogContent>
             </Dialog>

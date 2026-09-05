@@ -26,6 +26,8 @@ import {
   STANDARD_WORK_HOURS,
 } from "@/lib/salary-utils";
 
+import { DatePicker } from "@/components/ui/date-picker";
+
 export function AttendanceForm({
   employees,
   currency = "INR",
@@ -168,14 +170,10 @@ export function AttendanceForm({
 
             {/* Date */}
             <div className="space-y-1.5">
-              <Label htmlFor="date" className="text-xs font-semibold">Date *</Label>
-              <Input
-                id="date"
-                type="date"
+              <Label className="text-xs font-semibold">Date *</Label>
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="h-9 text-sm"
+                onChange={(val) => setDate(val)}
               />
             </div>
 

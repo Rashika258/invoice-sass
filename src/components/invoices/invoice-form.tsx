@@ -30,6 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -111,21 +113,8 @@ function ItemCombobox({
   onChange: (val: string) => void;
   onSelectItem: (item: Item) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [isOpen]);
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -138,114 +127,119 @@ function ItemCombobox({
   }, [catalogItems, search]);
 
   return (
-    <div ref={dropdownRef} className="relative w-full">
-      <div className="relative flex items-center">
-        <Input
-          value={value}
-          onChange={(e) => {
-            onChange(e.target.value);
-            setSearch(e.target.value);
-            if (!isOpen) setIsOpen(true);
-          }}
-          onFocus={() => {
-            setSearch("");
-            setIsOpen(true);
-          }}
-          placeholder="Select item from dropdown..."
-          required
-          className="h-8 text-xs pr-7 bg-background"
-        />
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={() => {
-            setSearch("");
-            setIsOpen((prev) => !prev);
-          }}
-          className="absolute right-1 flex size-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-          title="Open products dropdown"
-        >
-          <ChevronDown className="size-3.5" />
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-80 sm:w-96 rounded-lg border border-border bg-popover dark:bg-zinc-950 text-popover-foreground shadow-2xl overflow-hidden flex flex-col">
-          {/* Static opaque header - completely separated from scroll list */}
-          <div className="p-2 px-3 border-b border-border bg-muted shrink-0 flex items-center justify-between text-[11px] text-muted-foreground select-none">
-            <span className="font-bold uppercase tracking-wider text-[10px] text-foreground flex items-center gap-1.5">
-              <span>{filteredItems.length} Products Available</span>
-              {isEstimate && (
-                <span className="bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-1 py-0.2 rounded text-[9px]">
-                  Est. Rates Active
-                </span>
-              )}
-            </span>
-            <span className="text-[10px] text-muted-foreground">Select to auto-fill</span>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        nativeButton={false}
+        render={
+          <div className="relative flex items-center w-full">
+            <Input
+              value={value}
+              onChange={(e) => {
+                onChange(e.target.value);
+                setSearch(e.target.value);
+                if (!open) setOpen(true);
+              }}
+              onFocus={() => {
+                setSearch("");
+                setOpen(true);
+              }}
+              placeholder="Select item from dropdown..."
+              required
+              className="h-9 text-xs pr-7 bg-background w-full"
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSearch("");
+                setOpen((prev) => !prev);
+              }}
+              className="absolute right-1 flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              title="Open products dropdown"
+            >
+              <ChevronDown className="size-3.5" />
+            </button>
           </div>
-
-          {/* Dedicated scrollable items list */}
-          <div className="max-h-60 overflow-y-auto p-1 space-y-0.5 scrollbar-none bg-popover dark:bg-zinc-950">
-            {filteredItems.length === 0 ? (
-              <div className="p-3 text-center text-xs text-muted-foreground">
-                No products match &quot;{search}&quot;.
-                <div className="mt-1 text-[11px] text-foreground font-medium">
-                  Press enter or keep typing for custom item.
-                </div>
-              </div>
-            ) : (
-              filteredItems.map((catItem) => {
-                const price = isEstimate
-                  ? (catItem.estimatePrice && catItem.estimatePrice > 0 ? catItem.estimatePrice : catItem.unitPrice)
-                  : isPurchase
-                    ? (catItem.purchasePrice || catItem.unitPrice)
-                    : catItem.unitPrice;
-
-                return (
-                  <button
-                    key={catItem.id}
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      onSelectItem(catItem);
-                      setIsOpen(false);
-                    }}
-                    className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer group"
-                  >
-                    <div className="min-w-0 flex-1 pr-2">
-                      <div className="font-semibold text-foreground truncate group-hover:text-accent-foreground">
-                        {catItem.name}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
-                        {catItem.hsn && <span>HSN: {catItem.hsn}</span>}
-                        <span>Unit: {catItem.unit}</span>
-                        {catItem.stockQty !== undefined && catItem.stockQty !== null && (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                            Stock: {catItem.stockQty}
-                          </span>
-                        )}
-                        <span>GST: {catItem.gstRate}%</span>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="font-mono font-bold text-xs text-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/40">
-                        {formatCurrency(price, currency)}
-                      </div>
-                      {isEstimate && (
-                        <div className="text-[9px] text-amber-700 dark:text-amber-400 font-medium mt-0.5 text-right">
-                          {catItem.estimatePrice && catItem.estimatePrice > 0 ? "Estimate Rate" : "Standard Rate"}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })
+        }
+      />
+      <PopoverContent
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        className="w-80 sm:w-96 p-0 z-[100] shadow-2xl border border-border bg-popover rounded-xl overflow-hidden flex flex-col"
+      >
+        <div className="p-2.5 px-3 border-b border-border bg-muted/40 shrink-0 flex items-center justify-between text-[11px] text-muted-foreground select-none">
+          <span className="font-bold uppercase tracking-wider text-[10px] text-foreground flex items-center gap-1.5">
+            <span>{filteredItems.length} Products Available</span>
+            {isEstimate && (
+              <span className="bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold px-1.5 py-0.5 rounded text-[9px]">
+                Est. Rates Active
+              </span>
             )}
-          </div>
+          </span>
+          <span className="text-[10px] text-muted-foreground">Select to auto-fill</span>
         </div>
-      )}
-    </div>
+
+        <div className="max-h-60 overflow-y-auto p-1.5 space-y-0.5 scrollbar-none bg-popover">
+          {filteredItems.length === 0 ? (
+            <div className="p-3 text-center text-xs text-muted-foreground">
+              No products match &quot;{search}&quot;.
+              <div className="mt-1 text-[11px] text-foreground font-medium">
+                Press enter or keep typing for custom item.
+              </div>
+            </div>
+          ) : (
+            filteredItems.map((catItem) => {
+              const price = isEstimate
+                ? (catItem.estimatePrice && catItem.estimatePrice > 0 ? catItem.estimatePrice : catItem.unitPrice)
+                : isPurchase
+                  ? (catItem.purchasePrice || catItem.unitPrice)
+                  : catItem.unitPrice;
+
+              return (
+                <button
+                  key={catItem.id}
+                  type="button"
+                  onClick={() => {
+                    onSelectItem(catItem);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer group"
+                >
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="font-semibold text-foreground truncate group-hover:text-accent-foreground">
+                      {catItem.name}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                      {catItem.hsn && <span>HSN: {catItem.hsn}</span>}
+                      <span>Unit: {catItem.unit}</span>
+                      {catItem.stockQty !== undefined && catItem.stockQty !== null && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          Stock: {catItem.stockQty}
+                        </span>
+                      )}
+                      <span>GST: {catItem.gstRate}%</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-bold text-xs text-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/40">
+                      {formatCurrency(price, currency)}
+                    </div>
+                    {isEstimate && (
+                      <div className="text-[9px] text-amber-700 dark:text-amber-400 font-medium mt-0.5 text-right">
+                        {catItem.estimatePrice && catItem.estimatePrice > 0 ? "Estimate Rate" : "Standard Rate"}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -501,14 +495,24 @@ export function InvoiceForm({
                   }}
                 >
                   <SelectTrigger className="w-full h-9 font-medium text-sm">
-                    <SelectValue placeholder={`Select ${meta.partyLabel}`} />
+                    <SelectValue placeholder={`Select ${meta.partyLabel}`}>
+                      {selectedParty
+                        ? `${selectedParty.name}${selectedParty.phone ? ` (${selectedParty.phone})` : ""}`
+                        : `Select ${meta.partyLabel}`}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {parties.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} {p.phone ? `(${p.phone})` : ""}
+                    {parties.length === 0 ? (
+                      <SelectItem value="_empty" disabled>
+                        No {meta.partyLabel.toLowerCase()} records found. Click + to add
                       </SelectItem>
-                    ))}
+                    ) : (
+                      parties.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} {p.phone ? `(${p.phone})` : ""}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <CustomerFormDialog
@@ -523,32 +527,18 @@ export function InvoiceForm({
 
             {/* Bill Date */}
             <div className="space-y-1.5">
-              <Label htmlFor="issueDate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Bill Date *
               </Label>
-              <Input
-                id="issueDate"
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                required
-                className="h-9 text-xs"
-              />
+              <DatePicker value={issueDate} onChange={setIssueDate} />
             </div>
 
             {/* Due Date */}
             <div className="space-y-1.5">
-              <Label htmlFor="dueDate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Payment Due Date
               </Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                required
-                className="h-9 text-xs"
-              />
+              <DatePicker value={dueDate} onChange={setDueDate} />
             </div>
           </div>
 
@@ -643,7 +633,7 @@ export function InvoiceForm({
 
         <div className="overflow-x-auto min-h-[380px] pb-28">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-10 text-center">#</TableHead>
                 <TableHead className="min-w-64">Item Description *</TableHead>

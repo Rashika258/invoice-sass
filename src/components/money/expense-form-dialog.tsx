@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 
 const CATEGORIES = [
@@ -46,7 +49,8 @@ export function ExpenseFormDialog({
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bankAccountId, setBankAccountId] = useState(accounts[0]?.id ?? "");
-  const [category, setCategory] = useState("Other");
+  const [category, setCategory] = useState("Office & Administrative");
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,11 +59,11 @@ export function ExpenseFormDialog({
     try {
       await createExpense({
         category,
+        bankAccountId,
         description: String(formData.get("description") ?? ""),
         amount: Number(formData.get("amount") ?? 0),
         gstRate: Number(formData.get("gstRate") ?? 0),
-        date: String(formData.get("date") ?? ""),
-        bankAccountId,
+        date: date || String(formData.get("date") ?? ""),
         notes: String(formData.get("notes") ?? ""),
       });
       toast.success("Expense recorded");
@@ -74,15 +78,18 @@ export function ExpenseFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Expense</DialogTitle>
+          <DialogTitle>Record Business Expense</DialogTitle>
+          <DialogDescription>
+            Log daily operational overheads, bills, or petty cash vouchers.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Category</Label>
             <Select value={category} onValueChange={(value) => value && setCategory(value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Category">{category}</SelectValue></SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((item) => (
                   <SelectItem key={item} value={item}>{item}</SelectItem>
@@ -92,12 +99,12 @@ export function ExpenseFormDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" />
+            <Input id="description" name="description" placeholder="e.g. Office tea, Electricity bill" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount *</Label>
-              <Input id="amount" name="amount" type="number" min="0.01" step="0.01" required />
+              <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="gstRate">GST %</Label>
@@ -106,17 +113,25 @@ export function ExpenseFormDialog({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input id="date" name="date" type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} required />
+              <Label>Date</Label>
+              <DatePicker value={date} onChange={setDate} />
             </div>
             <div className="space-y-2">
               <Label>Paid from</Label>
               <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account">
+                    {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
-                  ))}
+                  {accounts.length === 0 ? (
+                    <SelectItem value="_empty" disabled>No cash or bank accounts found</SelectItem>
+                  ) : (
+                    accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -125,10 +140,10 @@ export function ExpenseFormDialog({
             <Label htmlFor="notes">Notes</Label>
             <Textarea id="notes" name="notes" rows={2} />
           </div>
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
-          </div>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Expense"}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

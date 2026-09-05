@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   const logoUrl = user.organization.profile?.logoUrl;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-screen h-dvh w-full overflow-hidden bg-background">
       {/* Non-scrolling fixed sidebar */}
       <AppSidebar
         userName={user.name}
@@ -28,7 +28,7 @@ export default async function DashboardLayout({
       />
 
       {/* Main Column */}
-      <div className="flex min-w-0 flex-1 flex-col h-screen overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
         {/* Mobile Header (small screens) */}
         <MobileHeader
           userName={user.name}

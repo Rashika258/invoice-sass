@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -97,6 +99,11 @@ export function CustomerFormDialog({
           <DialogTitle>
             {customer ? "Edit Party" : "Add Party"}
           </DialogTitle>
+          <DialogDescription>
+            {customer
+              ? "Update customer or supplier contact details and billing info."
+              : "Register a new customer or supplier in your business registry."}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -215,14 +222,14 @@ export function CustomerFormDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Party"}
+              {isSubmitting ? "Saving..." : customer ? "Save changes" : "Create Party"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
