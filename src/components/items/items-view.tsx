@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { ContextualAiBanner } from "@/components/ai/contextual-ai-banner";
 
 type ItemRecord = {
   id: string;
@@ -82,6 +83,18 @@ export function ItemsView({
 
   return (
     <div className="space-y-6">
+      {/* Contextual AI Reorder Alert */}
+      {lowStockItems.length > 0 && (
+        <ContextualAiBanner
+          type="INVENTORY"
+          title={`${lowStockItems.length} items need stock replenishment`}
+          description={`Based on recent workshop billing, ${lowStockItems.length} items are below minimum buffer quantities to prevent sales interruptions.`}
+          metricLabel="Low Stock Count"
+          metricValue={`${lowStockItems.length} Items`}
+          actionLabel="Create Supplier Purchase Order"
+          actionHref="/purchase-orders/new"
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

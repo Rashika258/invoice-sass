@@ -30,6 +30,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { AlertsNotificationBell } from "@/components/layout/alerts-notification-bell";
+import { CommandPalette } from "@/components/command-palette/command-palette";
+import { AiChatDrawer } from "@/components/ai/ai-chat-drawer";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -67,6 +69,7 @@ export function AppTopHeader({
   const [calcOpen, setCalcOpen] = useState(false);
   const [calcInput, setCalcInput] = useState("");
   const [calcResult, setCalcResult] = useState<string | null>(null);
+  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
 
   // Global search modal
   const [searchOpen, setSearchOpen] = useState(false);
@@ -135,31 +138,19 @@ export function AppTopHeader({
       <header className="flex h-14 w-full items-center justify-between px-6 border-b border-border bg-background">
         {/* Left: Multi-Company Switcher in Billora */}
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0" title="Billora ERP">
+          <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0" title="Billora — Business OS">
             <img
               src="/icon.png"
-              alt="Billora"
+              alt="Billora OS"
               className="size-7 rounded-lg object-contain border border-border/60 shadow-2xs"
             />
           </Link>
           <CompanySwitcher currentCompanyName={companyName} />
         </div>
 
-        {/* Center: Command Search Bar */}
+        {/* Center: Command Palette */}
         <div className="flex items-center justify-center max-w-md w-full px-4">
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="flex w-full max-w-sm items-center justify-between rounded-md border border-input bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/60 transition-colors shadow-2xs cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Search className="size-3.5" />
-              <span>Search invoices, items, parties...</span>
-            </div>
-            <kbd className="hidden sm:inline-flex items-center rounded border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-              ⌘K
-            </kbd>
-          </button>
+          <CommandPalette />
         </div>
 
         {/* Right: Quick Action Buttons, Calculator, User */}
@@ -267,6 +258,19 @@ export function AppTopHeader({
 
           {/* Brand & Theme Color Customizer */}
           <BrandThemePicker />
+
+          {/* AI Business Brain Quick Drawer */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setAiDrawerOpen(true)}
+            className="size-8 relative text-brand hover:bg-brand-light transition-colors cursor-pointer"
+            title="AI Business Brain & Autopilot"
+          >
+            <Sparkles className="size-4" />
+          </Button>
+
+          <AiChatDrawer isOpen={aiDrawerOpen} onClose={() => setAiDrawerOpen(false)} />
 
           {/* User Profile Dropdown */}
           <DropdownMenu>
@@ -431,6 +435,3 @@ export function AppTopHeader({
     </>
   );
 }
-
-// Alias for compatibility
-export { AppTopHeader as VyaparHeader };

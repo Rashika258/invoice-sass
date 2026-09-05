@@ -9,7 +9,7 @@ export function WhatsAppFloater() {
 
   useEffect(() => {
     // Show after 1.5 seconds if not previously closed in this session
-    const isClosed = sessionStorage.getItem("vyapar_wa_dismissed");
+    const isClosed = sessionStorage.getItem("billora_wa_dismissed");
     if (!isClosed) {
       const timer = setTimeout(() => setDismissed(false), 1500);
       return () => clearTimeout(timer);
@@ -20,13 +20,13 @@ export function WhatsAppFloater() {
 
   const handleDismiss = () => {
     setDismissed(true);
-    sessionStorage.setItem("vyapar_wa_dismissed", "true");
+    sessionStorage.setItem("billora_wa_dismissed", "true");
   };
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-zinc-700/80 bg-zinc-950 text-white shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
-      {/* Red / WhatsApp Banner matching reference screenshot */}
-      <div className="relative bg-gradient-to-r from-red-600 to-rose-700 p-4 text-white">
+      {/* WhatsApp Banner */}
+      <div className="relative bg-gradient-to-r from-brand to-brand/80 p-4 text-white">
         <button
           type="button"
           onClick={handleDismiss}
@@ -59,7 +59,7 @@ export function WhatsAppFloater() {
           </p>
         </div>
 
-        {/* Buttons matching screenshot: [Remind Later] [Try Now] */}
+        {/* Buttons: [Remind Later] [Try Now] */}
         <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
@@ -71,7 +71,7 @@ export function WhatsAppFloater() {
           <Link
             href="/invoices"
             onClick={handleDismiss}
-            className="flex-1 rounded-xl bg-red-600 hover:bg-red-500 py-1.5 text-center text-xs font-bold text-white shadow-md transition-colors"
+            className="flex-1 rounded-xl bg-brand hover:opacity-90 py-1.5 text-center text-xs font-bold text-white shadow-md transition-opacity"
           >
             Try Now
           </Link>

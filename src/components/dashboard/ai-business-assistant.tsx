@@ -57,7 +57,7 @@ export function AiBusinessAssistant() {
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-sm font-bold text-foreground">
-                  AI Business Assistant • Ask Your Business
+                  Billora Business OS • AI Brain &amp; Assistant
                 </CardTitle>
                 <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 text-[9px] font-bold">
                   NLP INSIGHTS

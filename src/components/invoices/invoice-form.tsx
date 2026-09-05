@@ -603,7 +603,7 @@ export function InvoiceForm({
         </CardContent>
       </Card>
 
-      {/* Items Table styled like Vyapar Desktop Bill Table */}
+      {/* Items Table styled for Billora Invoice Bill Table */}
       <Card className="rounded-xl shadow-xs">
         <div className="flex items-center justify-between p-4 bg-muted/30 border-b rounded-t-xl">
           <div>
@@ -760,7 +760,7 @@ export function InvoiceForm({
         </div>
       </Card>
 
-      {/* Bottom Section: Notes & Transport (Left) vs Vyapar Totals (Right) */}
+      {/* Bottom Section: Notes & Transport (Left) vs Summary Totals (Right) */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Left Column: Terms, Notes, Transport */}
         <div className="space-y-4 lg:col-span-7">

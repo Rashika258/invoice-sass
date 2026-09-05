@@ -26,7 +26,7 @@ export default function BackupToDrivePage() {
         <div className="space-y-1 max-w-md mx-auto">
           <h2 className="text-lg font-bold text-foreground">Link Your Google Drive Account</h2>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Automatically upload a daily copy of your Vyapar data file to your private Google Drive storage. Never worry about hard drive crashes or lost laptops.
+            Automatically upload a daily copy of your Billora data file to your private Google Drive storage. Never worry about hard drive crashes or lost laptops.
           </p>
         </div>
 

@@ -8,8 +8,10 @@ import {
   BarChart3,
   Barcode,
   Bell,
+  BookOpen,
   Building2,
   CalendarClock,
+  CalendarDays,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -169,6 +171,22 @@ const navConfig: NavGroup[] = [
       { href: "/cash-bank/cash", label: "Cash In Hand", icon: Wallet, plusHref: "/cash-bank/cash" },
       { href: "/cash-bank/cheques", label: "Cheques", icon: Receipt },
       { href: "/cash-bank/loans", label: "Loan Accounts", icon: Banknote, plusHref: "/cash-bank/loans" },
+    ],
+  },
+  {
+    id: "accounting",
+    title: "Accounting (Tally-Style)",
+    icon: BookOpen,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { href: "/accounting", label: "Accounting Hub", icon: BookOpen, badge: "GATEWAY" },
+      { href: "/accounting/vouchers", label: "Voucher Entry", icon: FileText, plusHref: "/accounting/vouchers", badge: "F4-F9" },
+      { href: "/accounting/ledgers", label: "Ledger Master (COA)", icon: BookOpen, plusHref: "/accounting/ledgers" },
+      { href: "/accounting/daybook", label: "Day Book", icon: CalendarDays },
+      { href: "/accounting/trial-balance", label: "Trial Balance", icon: BarChart3 },
+      { href: "/accounting/profit-loss", label: "Profit & Loss A/c", icon: TrendingUp },
+      { href: "/accounting/balance-sheet", label: "Balance Sheet", icon: BarChart3 },
     ],
   },
   {
@@ -439,8 +457,8 @@ export function AppSidebar({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black tracking-tight text-white">Billora</span>
-              <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[8px] font-bold px-1 py-0">
-                ERP
+              <Badge className="bg-brand-light text-brand border-brand/20 text-[8px] font-bold px-1 py-0">
+                BUSINESS OS
               </Badge>
             </div>
             <p className="text-[10px] text-zinc-400 truncate max-w-[140px]" title={companyName}>
@@ -469,7 +487,7 @@ export function AppSidebar({
         <NavLinks pathname={pathname} />
       </div>
 
-      {/* Bottom Section matching Vyapar desktop */}
+      {/* Bottom Section: Trial card and Premium upgrade */}
       <div className="shrink-0 border-t border-border/40 p-3 space-y-2.5 bg-[#0b0d13]">
         {/* 6 days Free Trial Left Card */}
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 space-y-2">

@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { ContextualAiBanner } from "@/components/ai/contextual-ai-banner";
 
 type PartyItem = {
   id: string;
@@ -72,6 +73,18 @@ export function PartiesView({
 
   return (
     <div className="space-y-6">
+      {/* Contextual AI Aging Dues Banner */}
+      {totalReceivable > 0 && (
+        <ContextualAiBanner
+          type="CUSTOMERS"
+          title={`Total Outstanding Dues: ${formatCurrency(totalReceivable, currency)}`}
+          description="Customer dues are active across your Khata accounts. Send instant automated WhatsApp reminders to collect pending payments."
+          metricLabel="Total Receivables"
+          metricValue={formatCurrency(totalReceivable, currency)}
+          actionLabel="Open AI Assistant to Send Reminders"
+          actionHref="/ai"
+        />
+      )}
       {/* Top Header & Metrics */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

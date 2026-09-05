@@ -164,7 +164,7 @@ export function CashBankHub({
                 Manage Multiple Bank Accounts
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                With Vyapar you can manage multiple banks and payment types like UPI, Net Banking and Credit Card
+                With Billora you can manage multiple banks and payment types like UPI, Net Banking and Credit Card
               </p>
             </div>
 

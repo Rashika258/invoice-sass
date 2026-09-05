@@ -103,10 +103,9 @@ export const companyProfileSchema = z.object({
   bankName: z.string().optional(),
   accountNumber: z.string().optional(),
   routingNumber: z.string().optional(),
-  paymentTerms: z.string().optional(),
-  invoicePrefix: z.string().min(1),
-  currency: z.string().min(1),
-  defaultTaxRate: z.coerce.number().min(0).max(100),
+  invoicePrefix: z.string().min(1).optional().default("INV"),
+  currency: z.string().min(1).optional().default("INR"),
+  defaultTaxRate: z.coerce.number().min(0).max(100).optional().default(18),
 });
 
 export const paymentSchema = z.object({

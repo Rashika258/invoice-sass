@@ -61,20 +61,31 @@ const SYSTEM_LEDGERS: Omit<LedgerInput, "openingBalance">[] = [
 
 export async function ensureSystemLedgers() {
   const org = await requireOrganization();
-  const existing = await db.ledger.count({ where: { organizationId: org.id, isSystem: true } });
-  if (existing >= SYSTEM_LEDGERS.length) return;
-
-  await db.ledger.createMany({
-    data: SYSTEM_LEDGERS.map((l) => ({
-      organizationId: org.id,
-      name: l.name,
-      group: l.group as any,
-      openingBalance: 0,
-      openingType: (l.openingType || "DR") as any,
-      isSystem: true,
-    })),
-    skipDuplicates: true,
+  const existing = await db.ledger.findMany({
+    where: { organizationId: org.id },
+    select: { name: true },
   });
+  const existingNames = new Set(existing.map((e) => e.name));
+
+  const missing = SYSTEM_LEDGERS.filter((l) => !existingNames.has(l.name));
+  if (missing.length === 0) return;
+
+  for (const l of missing) {
+    try {
+      await db.ledger.create({
+        data: {
+          organizationId: org.id,
+          name: l.name,
+          group: l.group as any,
+          openingBalance: 0,
+          openingType: (l.openingType || "DR") as any,
+          isSystem: true,
+        },
+      });
+    } catch {
+      // ignore if exists
+    }
+  }
 }
 
 // ─── Ledger CRUD ─────────────────────────────────────────────────────────────

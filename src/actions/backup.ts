@@ -45,7 +45,7 @@ export async function createCompanyBackup() {
   return {
     success: true,
     data: JSON.stringify(backupPayload, null, 2),
-    filename: `vyapar_backup_${organization.name.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().split("T")[0]}.json`,
+    filename: `billora_backup_${organization.name.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().split("T")[0]}.json`,
     stats: {
       customers: customers.length,
       items: items.length,
@@ -64,7 +64,7 @@ export async function restoreCompanyBackup(jsonString: string) {
   try {
     const data = JSON.parse(jsonString);
     if (!data.items && !data.customers && !data.invoices) {
-      throw new Error("Invalid Vyapar backup file format");
+      throw new Error("Invalid Billora backup file format");
     }
 
     // Merge/Restore Items if available

@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import type { Customer, DocumentType } from "@/generated/prisma/client";
 import { deleteInvoice } from "@/actions/invoices";
 import { deletePayment } from "@/actions/money";
+import { BillOcrScanner } from "@/components/purchases/bill-ocr-scanner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -415,8 +416,9 @@ export function PurchaseTransactionsView({
           </DropdownMenu>
         </div>
 
-        {/* Action Buttons: Blue Add Purchase + Cog Settings */}
+        {/* Action Buttons: 1-Click AI Scan + Add Purchase + Settings */}
         <div className="flex items-center gap-2.5">
+          {currentTab === "PURCHASE" && <BillOcrScanner />}
           <Link
             href={getAddRoute()}
             className="inline-flex items-center justify-center gap-1.5 h-8 px-4 rounded-lg bg-[#1976D2] hover:bg-[#1565C0] text-white font-bold text-xs shadow-xs transition-all active:scale-[0.98] select-none cursor-pointer"

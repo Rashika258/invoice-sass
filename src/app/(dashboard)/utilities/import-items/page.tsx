@@ -18,7 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  importFromVyaparLibrary,
+  importFromBilloraLibrary,
   importItemsInBulk,
   PREDEFINED_RETAIL_LIBRARY,
   quickAddBarcodeItem,
@@ -57,8 +57,8 @@ export default function ImportItemsPage() {
   const handleLibraryImport = async () => {
     setLoading(true);
     try {
-      const res = await importFromVyaparLibrary();
-      setSuccessMsg(`Successfully imported ${res.count} items from Vyapar Retail Library!`);
+      const res = await importFromBilloraLibrary();
+      setSuccessMsg(`Successfully imported ${res.count} items from Billora Retail Library!`);
       setTimeout(() => router.push("/items"), 1500);
     } catch (e: any) {
       alert(e.message || "Failed to import items");
@@ -94,7 +94,7 @@ export default function ImportItemsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "vyapar_items_sample.csv");
+    link.setAttribute("download", "billora_items_sample.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

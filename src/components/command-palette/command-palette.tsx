@@ -7,7 +7,7 @@ import {
   Search, LayoutDashboard, FileText, ShoppingBag, Package, Users,
   Wallet, BarChart3, Settings, Plus, Receipt, ArrowRight,
   CreditCard, Building2, FileSpreadsheet, Zap, BookOpen,
-  CalendarDays, Scale, TrendingUp, Moon, Sun, Keyboard,
+  CalendarDays, Scale, TrendingUp, Moon, Sun, Keyboard, Sparkles,
   Boxes, UserCheck, AlertCircle, Store, Clock, X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -62,8 +62,17 @@ export function CommandPalette() {
 
   const groups: CommandGroup[] = [
     {
-      heading: "Quick Create",
+      heading: "Quick Create & AI",
       items: [
+        {
+          id: "ask-ai",
+          label: "Ask AI Business Brain",
+          description: "Instant answers on dues, sales, inventory & profit",
+          icon: Sparkles,
+          shortcut: "⌘ A",
+          action: () => go("/ai"),
+          keywords: ["ai", "ask", "assistant", "autopilot", "brain", "dues", "stock", "profit"],
+        },
         {
           id: "new-invoice",
           label: "New Sale Invoice",

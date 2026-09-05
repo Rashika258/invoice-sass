@@ -92,7 +92,7 @@ export function AccountingDashboard({ stats }: AccountingDashboardProps) {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Double-entry bookkeeping with ledger master, voucher entry, trial balance, P&amp;L, and balance sheet.
+            Double-entry accounting engine of Billora Business OS: Ledger master, voucher entry, trial balance, P&amp;L, and balance sheet.
           </p>
         </div>
         <Link

@@ -424,6 +424,3 @@ export function SalesAnalyticsChart({
     </div>
   );
 }
-
-// Alias for compatibility
-export { SalesAnalyticsChart as VyaparSalesChart };

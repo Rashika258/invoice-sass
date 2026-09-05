@@ -24,9 +24,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Billora — Sri Manjunatha Engineering Works",
+  title: "Billora — Business OS for Indian SMBs",
   description:
-    "Next-generation billing, inventory management, shift attendance, overtime and business operations software.",
+    "The complete Operating System for Indian SMBs. Run sales, purchases, inventory, double-entry accounting, GST, payments, staff attendance, and AI business insights in one unified platform.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Manjunatha ERP",
+    title: "Billora OS",
   },
 };
 
