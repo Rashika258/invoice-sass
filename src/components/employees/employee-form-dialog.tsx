@@ -86,63 +86,80 @@ export function EmployeeFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input id="name" name="name" defaultValue={employee?.name} required />
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-xs font-semibold">Full Name *</Label>
+            <Input
+              id="name"
+              name="name"
+              placeholder="e.g. Rahul Sharma"
+              defaultValue={employee?.name}
+              required
+              className="h-9 text-sm"
+            />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                defaultValue={employee?.email ?? ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                name="position"
-                defaultValue={employee?.position ?? ""}
-              />
-            </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-semibold">Email Address (Optional, for digital salary slips)</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="rahul@company.com"
+              defaultValue={employee?.email ?? ""}
+              className="h-9 text-sm"
+            />
           </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="position" className="text-xs font-semibold">Position / Designation</Label>
+            <Input
+              id="position"
+              name="position"
+              placeholder="e.g. Billing Staff, Store Manager, Sales Executive"
+              defaultValue={employee?.position ?? ""}
+              className="h-9 text-sm"
+            />
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="hourlyRate">Hourly Rate *</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="hourlyRate" className="text-xs font-semibold">Hourly Rate (₹)</Label>
               <Input
                 id="hourlyRate"
                 name="hourlyRate"
                 type="number"
                 min="0"
                 step="0.01"
+                placeholder="Base rate per 8-hour workday"
                 defaultValue={employee?.hourlyRate ?? 0}
                 required
+                className="h-9 text-sm font-mono"
               />
+              <p className="text-[10px] text-muted-foreground">Base rate per 8-hour workday</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="overtimeRate">OT Rate / hour *</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="overtimeRate" className="text-xs font-semibold">Overtime (OT) Rate (₹/hr)</Label>
               <Input
                 id="overtimeRate"
                 name="overtimeRate"
                 type="number"
                 min="0"
                 step="0.01"
+                placeholder="Rate applied for hours worked beyond 8 hours"
                 defaultValue={employee?.overtimeRate ?? 0}
                 required
+                className="h-9 text-sm font-mono"
               />
+              <p className="text-[10px] text-muted-foreground">Rate applied for hours worked beyond 8 hours</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Standard day is 8 hours. Hours beyond 8 are paid at the overtime rate.
-          </p>
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-8 text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" size="sm" disabled={isSubmitting} className="h-8 text-xs font-bold bg-primary text-primary-foreground">
               {isSubmitting ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>

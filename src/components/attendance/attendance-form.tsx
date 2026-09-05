@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Clock, CheckCircle2, Zap, AlertCircle } from "lucide-react";
+import { Clock, CheckCircle2, Zap, AlertCircle, Plus } from "lucide-react";
 import type { Employee } from "@/generated/prisma/client";
 import { createAttendance } from "@/actions/employees";
+import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -148,7 +149,21 @@ export function AttendanceForm({
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Employee Picker */}
             <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
-              <Label className="text-xs font-semibold">Select Employee *</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold">Select Employee *</Label>
+                <EmployeeFormDialog
+                  onSuccess={() => router.refresh()}
+                  trigger={
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                    >
+                      <Plus className="size-3" />
+                      Add Employee
+                    </button>
+                  }
+                />
+              </div>
               <Select
                 value={employeeId}
                 onValueChange={(val) => {

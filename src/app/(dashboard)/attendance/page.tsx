@@ -1,10 +1,12 @@
 import { format } from "date-fns";
-import { Clock, Users, CalendarCheck, Wallet } from "lucide-react";
+import { Clock, Users, CalendarCheck, Wallet, Plus } from "lucide-react";
 import { getAttendanceRecords, getEmployees } from "@/actions/employees";
 import { getCompanyProfile } from "@/actions/settings";
 import { AttendanceForm } from "@/components/attendance/attendance-form";
 import { PayslipDialog } from "@/components/attendance/payslip-dialog";
 import { DeleteAttendanceButton } from "@/components/attendance/delete-attendance-button";
+import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,23 +78,33 @@ export default async function AttendancePage({
             Standard shift is {STANDARD_WORK_HOURS} hours. Overtime (OT) is calculated per extra hour worked.
           </p>
         </div>
-        <form className="flex items-center gap-2">
-          <div>
-            <input
-              id="month"
-              name="month"
-              type="month"
-              defaultValue={month}
-              className="flex h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium shadow-xs"
-            />
-          </div>
-          <button
-            type="submit"
-            className="h-9 rounded-lg bg-primary hover:bg-primary/90 px-3.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all active:scale-[0.98]"
-          >
-            Filter Month
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <form className="flex items-center gap-2">
+            <div>
+              <input
+                id="month"
+                name="month"
+                type="month"
+                defaultValue={month}
+                className="flex h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium shadow-xs"
+              />
+            </div>
+            <button
+              type="submit"
+              className="h-9 rounded-lg bg-secondary hover:bg-secondary/80 px-3 text-xs font-semibold text-secondary-foreground shadow-xs transition-all active:scale-[0.98]"
+            >
+              Filter Month
+            </button>
+          </form>
+          <EmployeeFormDialog
+            trigger={
+              <Button size="sm" className="h-9 text-xs font-bold gap-1.5 shadow-xs">
+                <Plus className="size-3.5" />
+                Add Employee
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       {/* KPI Cards */}

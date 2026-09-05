@@ -5,12 +5,9 @@ import Link from "next/link";
 import {
   ArrowRight,
   Bot,
-  ChevronRight,
-  CornerDownLeft,
   Loader2,
   Send,
   Sparkles,
-  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { askBusinessAi, type AiInsightResult } from "@/actions/business-ai";

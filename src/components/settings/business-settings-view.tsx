@@ -65,9 +65,11 @@ import { PrintSettings } from "@/components/settings/sections/print-settings";
 import { TransactionSettings } from "@/components/settings/sections/transaction-settings";
 import { TaxesSettings } from "@/components/settings/sections/taxes-settings";
 import { BrandThemeSettings } from "@/components/settings/sections/brand-theme-settings";
+import { TeamManagement } from "@/components/settings/team-management";
 
 const SETTINGS_SECTIONS = [
   { id: "GENERAL", label: "General Settings", icon: Sliders },
+  { id: "TEAM", label: "Team Members & Roles", icon: UserCheck },
   { id: "BRAND & THEME", label: "Brand & Theme Studio", icon: Palette },
   { id: "ATTENDANCE & BIOMETRIC", label: "Attendance & Biometrics", icon: Fingerprint },
   { id: "TRANSACTION", label: "Transaction Controls", icon: FileText },
@@ -83,7 +85,17 @@ const SETTINGS_SECTIONS = [
 
 const ZOOM_LEVELS = [70, 80, 90, 100, 110, 115, 120, 130];
 
-export function BusinessSettingsView({ profile }: { profile: any }) {
+export function BusinessSettingsView({
+  profile,
+  teamMembers = [],
+  currentUserId = "",
+  isAdmin = true,
+}: {
+  profile: any;
+  teamMembers?: any[];
+  currentUserId?: string;
+  isAdmin?: boolean;
+}) {
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState("GENERAL");
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -669,6 +681,17 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* SECTION: TEAM MEMBERS & ROLES */}
+        {activeSection === "TEAM" && (
+          <div className="max-w-4xl space-y-6 text-xs">
+            <TeamManagement
+              members={teamMembers}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+            />
           </div>
         )}
 
