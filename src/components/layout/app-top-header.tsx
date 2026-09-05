@@ -323,6 +323,7 @@ export function AppTopHeader({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search sections, bills, inventory..."
+              suppressHydrationWarning
               className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               autoFocus
             />

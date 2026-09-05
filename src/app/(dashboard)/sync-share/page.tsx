@@ -31,6 +31,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CAROUSEL_SLIDES = [
   {
@@ -134,10 +141,10 @@ export default function SyncSharePage() {
           <Button
             size="sm"
             onClick={() => setInviteModalOpen(true)}
-            className="h-8 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-xs"
+            className="h-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs"
           >
             <UserCheck className="mr-1.5 size-3.5" />
-            + Add Staff
+            Add Staff
           </Button>
         </div>
       </div>
@@ -206,14 +213,13 @@ export default function SyncSharePage() {
           </button>
         </div>
 
-        {/* Big Red Button matching media_1788527544062.png */}
         <div>
           <Button
             onClick={() => {
               setSyncEnabled(true);
               toast.success("Real-time cloud sync is enabled and running!");
             }}
-            className="h-10 rounded-full bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold px-10 text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+            className="h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
           >
             {syncEnabled ? "Sync Active (Connected)" : "Enable Sync"}
           </Button>
@@ -273,7 +279,7 @@ export default function SyncSharePage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <UserCheck className="size-4 text-[#ef4444]" />
+              <UserCheck className="size-4 text-primary" />
               Invite New Staff Member
             </DialogTitle>
           </DialogHeader>
@@ -302,22 +308,23 @@ export default function SyncSharePage() {
 
             <div className="space-y-1">
               <Label>Assigned Role</Label>
-              <select
-                value={staffRole}
-                onChange={(e) => setStaffRole(e.target.value)}
-                className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs"
-              >
-                <option value="BILLER">Billing Operator (Can create Sales &amp; Delivery Challans)</option>
-                <option value="ACCOUNTANT">Accountant (Full reports, purchases, payments, GST)</option>
-                <option value="SALESMAN">Field Salesman (Orders, Customers, Payment Collection)</option>
-              </select>
+              <Select value={staffRole} onValueChange={(val) => val && setStaffRole(val)}>
+                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BILLER" className="text-xs">Billing Operator (Can create Sales &amp; Delivery Challans)</SelectItem>
+                  <SelectItem value="ACCOUNTANT" className="text-xs">Accountant (Full reports, purchases, payments, GST)</SelectItem>
+                  <SelectItem value="SALESMAN" className="text-xs">Field Salesman (Orders, Customers, Payment Collection)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-border">
               <Button type="button" variant="outline" size="sm" onClick={() => setInviteModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#ef4444] text-white font-bold">
+              <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                 Send Invite
               </Button>
             </div>

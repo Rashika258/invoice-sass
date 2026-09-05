@@ -71,6 +71,7 @@ import {
 } from "@/components/ui/table";
 import { DOCUMENT_META } from "@/lib/documents";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { DateRangePicker, type DatePresetKey } from "@/components/ui/date-range-picker";
 
 export type PurchaseDocumentItem = {
   id: string;
@@ -254,15 +255,15 @@ export function PurchaseTransactionsView({
   const getAddBtnLabel = () => {
     switch (currentTab) {
       case "PURCHASE":
-        return "+ Add Purchase";
+        return "Add Purchase";
       case "PAYMENT_OUT":
-        return "+ Add Payment-Out";
+        return "Add Payment-Out";
       case "EXPENSE":
-        return "+ Add Expense";
+        return "Add Expense";
       case "PURCHASE_ORDER":
-        return "+ Add Purchase Order";
+        return "Add Purchase Order";
       case "DEBIT_NOTE":
-        return "+ Add Dr. Note";
+        return "Add Dr. Note";
     }
   };
 
@@ -421,8 +422,9 @@ export function PurchaseTransactionsView({
           {currentTab === "PURCHASE" && <BillOcrScanner />}
           <Link
             href={getAddRoute()}
-            className="inline-flex items-center justify-center gap-1.5 h-8 px-4 rounded-lg bg-[#1976D2] hover:bg-[#1565C0] text-white font-bold text-xs shadow-xs transition-all active:scale-[0.98] select-none cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 h-8 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition-all active:scale-[0.98] select-none cursor-pointer"
           >
+            <Plus className="size-3.5" />
             <span>{getAddBtnLabel()}</span>
           </Link>
           <Link
@@ -439,55 +441,17 @@ export function PurchaseTransactionsView({
       <div className="flex flex-wrap items-center gap-2.5 py-1 text-xs select-none">
         <span className="font-semibold text-muted-foreground text-xs">Filter by :</span>
 
-        {/* Date Preset Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                className="flex items-center gap-1.5 h-7 px-3 rounded-full border border-border bg-card text-foreground font-medium hover:bg-muted/60 transition-colors cursor-pointer text-xs"
-              >
-                <span>{PRESET_LABELS[datePreset]}</span>
-                <ChevronDown className="size-3 text-muted-foreground" />
-              </button>
-            }
-          />
-          <DropdownMenuContent align="start" className="w-40 rounded-xl border border-border shadow-md">
-            {(Object.keys(PRESET_LABELS) as DatePreset[]).map((preset) => (
-              <DropdownMenuItem
-                key={preset}
-                onClick={() => handleSelectPreset(preset)}
-                className={`text-xs py-1.5 cursor-pointer ${datePreset === preset ? "font-bold bg-accent" : ""}`}
-              >
-                {PRESET_LABELS[preset]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Date Range Picker Display */}
-        <div className="flex items-center gap-1.5 h-7 px-3 rounded-full border border-border bg-card text-foreground font-mono text-xs">
-          <Calendar className="size-3 text-muted-foreground" />
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value);
-              setDatePreset("CUSTOM");
-            }}
-            className="bg-transparent border-none outline-hidden text-xs font-sans cursor-pointer"
-          />
-          <span className="text-muted-foreground font-sans text-[11px]">To</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value);
-              setDatePreset("CUSTOM");
-            }}
-            className="bg-transparent border-none outline-hidden text-xs font-sans cursor-pointer"
-          />
-        </div>
+        {/* Shadcn Calendar Date Range Picker */}
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          activePreset={datePreset as DatePresetKey}
+          onRangeChange={(start, end, preset) => {
+            setStartDate(start);
+            setEndDate(end);
+            if (preset) setDatePreset(preset as DatePreset);
+          }}
+        />
 
         {/* Party / Supplier Filter */}
         <DropdownMenu>

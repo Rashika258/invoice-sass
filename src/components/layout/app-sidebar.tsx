@@ -264,13 +264,31 @@ function NavLinks({
   pathname: string;
   onNavigate?: () => void;
 }) {
+  // Find exact or longest matching item href across navConfig so ONLY ONE item is active at a time
+  const activeHref = (() => {
+    let bestMatch = "";
+    for (const grp of navConfig) {
+      for (const item of grp.items) {
+        if (pathname === item.href) return item.href;
+        if (
+          item.href !== "/dashboard" &&
+          pathname.startsWith(`${item.href}/`) &&
+          item.href.length > bestMatch.length
+        ) {
+          bestMatch = item.href;
+        }
+      }
+    }
+    return bestMatch;
+  })();
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {
       sale: true,
       purchase: true,
     };
     navConfig.forEach((grp) => {
-      if (grp.items.some((it) => pathname.startsWith(it.href))) {
+      if (grp.items.some((it) => it.href === activeHref || pathname.startsWith(it.href))) {
         initial[grp.id] = true;
       }
     });
@@ -287,16 +305,11 @@ function NavLinks({
         const GroupIcon = group.icon;
         const isOpen = openGroups[group.id] ?? false;
         const hasSubItems = group.collapsible && group.items.length > 0;
-        const isGroupActive = group.items.some(
-          (it) => pathname === it.href || (it.href !== "/dashboard" && pathname.startsWith(`${it.href}/`))
-        );
+        const isGroupActive = group.items.some((it) => it.href === activeHref);
 
         if (!hasSubItems && group.items.length === 1) {
           const singleItem = group.items[0];
-          const isActive =
-            singleItem.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname === singleItem.href || pathname.startsWith(`${singleItem.href}/`);
+          const isActive = singleItem.href === activeHref;
 
           return (
             <div
@@ -370,10 +383,7 @@ function NavLinks({
               <div className="space-y-0.5 pl-3 pt-0.5">
                 {group.items.map((item) => {
                   const SubIcon = item.icon;
-                  const isActive =
-                    item.href === "/dashboard"
-                      ? pathname === "/dashboard"
-                      : pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+                  const isActive = item.href === activeHref;
 
                   return (
                     <div
@@ -445,39 +455,40 @@ export function AppSidebar({
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-[#0f1117] text-white lg:flex sticky top-0 z-30 select-none">
+    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card text-card-foreground lg:flex sticky top-0 z-30 select-none">
       {/* Billora Brand Header with Logo */}
-      <div className="p-3 border-b border-border/40 flex items-center justify-between">
+      <div className="p-3 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
             src="/logo.png"
             alt="Billora Logo"
-            className="size-8 rounded-lg object-contain shadow-xs border border-white/10 shrink-0"
+            className="size-8 rounded-lg object-contain shadow-xs border border-border shrink-0"
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-tight text-white">Billora</span>
+              <span className="text-xs font-black tracking-tight text-foreground">Billora</span>
               <Badge className="bg-brand-light text-brand border-brand/20 text-[8px] font-bold px-1 py-0">
                 BUSINESS OS
               </Badge>
             </div>
-            <p className="text-[10px] text-zinc-400 truncate max-w-[140px]" title={companyName}>
+            <p className="text-[10px] text-muted-foreground truncate max-w-[140px]" title={companyName}>
               {companyName || "Sri Manjunatha Engineering Works"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Top Search: Open Anything (Ctrl+F) matching media_1788527179966.png */}
-      <div className="p-3 border-b border-border/40">
+      {/* Top Search: Open Anything (Ctrl+F) */}
+      <div className="p-3 border-b border-border">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 size-3.5 text-zinc-400" />
+          <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Open Anything (Ctrl+F)"
-            className="w-full h-8 pl-8 pr-3 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden focus:border-zinc-700"
+            suppressHydrationWarning
+            className="w-full h-8 pl-8 pr-3 text-xs rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-brand"
           />
         </div>
       </div>
@@ -488,13 +499,13 @@ export function AppSidebar({
       </div>
 
       {/* Bottom Section: Trial card and Premium upgrade */}
-      <div className="shrink-0 border-t border-border/40 p-3 space-y-2.5 bg-[#0b0d13]">
+      <div className="shrink-0 border-t border-border p-3 space-y-2.5 bg-muted/30">
         {/* 6 days Free Trial Left Card */}
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 space-y-2">
-          <div className="flex items-center justify-between text-xs font-semibold text-amber-300">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-amber-600 dark:text-amber-300">
             <span>6 days Free Trial left</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
             <div className="h-full w-2/3 rounded-full bg-emerald-500" />
           </div>
           <Link
@@ -510,16 +521,16 @@ export function AppSidebar({
         </div>
 
         {/* Company profile selector */}
-        <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-2 text-xs">
+        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-2 text-xs">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-500/20 text-sky-400 font-bold text-xs">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand font-bold text-xs">
               M
             </div>
             <div className="min-w-0">
-              <p className="truncate font-semibold text-zinc-200 leading-tight">
+              <p className="truncate font-semibold text-foreground leading-tight">
                 {companyName || "My Company"}
               </p>
-              <p className="truncate text-[10px] text-zinc-400">{userRole}</p>
+              <p className="truncate text-[10px] text-muted-foreground">{userRole}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -530,7 +541,7 @@ export function AppSidebar({
               variant="ghost"
               size="icon"
               onClick={() => logoutUser()}
-              className="size-7 text-zinc-400 hover:text-white"
+              className="size-7 text-muted-foreground hover:text-foreground"
               title="Sign Out"
             >
               <LogOut className="size-3.5" />

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { UserCircle, DollarSign, TrendingUp, Award, ArrowRight } from "lucide-react";
+import { UserCircle, DollarSign, TrendingUp, Award, ArrowRight, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -28,8 +28,9 @@ export default function TrackSalesmenPage() {
           </p>
         </div>
         <Link href="/team">
-          <Button size="sm" className="bg-brand text-white font-bold text-xs rounded-xl shadow-xs">
-            + Add Sales Rep
+          <Button size="sm" className="bg-brand text-white font-bold text-xs rounded-xl shadow-xs gap-1.5">
+            <Plus className="size-3.5" />
+            <span>Add Sales Rep</span>
           </Button>
         </Link>
       </div>

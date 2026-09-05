@@ -92,7 +92,7 @@ export default function BulkUpdatePage() {
           </Link>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <Database className="size-5 text-[#ef4444]" />
+              <Database className="size-5 text-primary" />
               <span>Update Items In Bulk</span>
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -115,7 +115,7 @@ export default function BulkUpdatePage() {
           <Button
             onClick={handleSaveAll}
             disabled={saving || Object.keys(editedItems).length === 0}
-            className="h-8 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-xs"
+            className="h-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs"
           >
             {saving ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : <Save className="mr-1.5 size-3.5" />}
             <span>Save All ({Object.keys(editedItems).length})</span>

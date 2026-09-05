@@ -71,7 +71,7 @@ export default function CloseFinancialYearPage() {
                 id="conf"
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
-                className="size-4 rounded accent-[#ef4444] cursor-pointer"
+                className="size-4 rounded accent-primary cursor-pointer"
               />
               <label htmlFor="conf" className="cursor-pointer font-semibold text-foreground">
                 I understand this operation locks previous financial year books
@@ -81,7 +81,7 @@ export default function CloseFinancialYearPage() {
             <Button
               disabled={!confirmed || closing}
               onClick={handleCloseFy}
-              className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold rounded-xl"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl"
             >
               {closing ? "Closing Books..." : "Proceed with FY Closure"}
             </Button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Building2,
   Camera,
@@ -9,19 +10,27 @@ import {
   ChevronDown,
   Clock,
   Edit2,
+  FileText,
   Fingerprint,
+  Globe,
   HardDrive,
   Info,
+  Landmark,
   Layers,
+  MessageSquare,
   Monitor,
+  Package,
   Palette,
   PlayCircle,
+  Printer,
+  Receipt,
   Save,
   Search,
   ShieldCheck,
   Sliders,
   Sparkles,
   UserCheck,
+  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -37,6 +46,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { AppSettings } from "@/lib/settings-store";
 import { PrintSettings } from "@/components/settings/sections/print-settings";
@@ -45,27 +61,43 @@ import { TaxesSettings } from "@/components/settings/sections/taxes-settings";
 import { BrandThemeSettings } from "@/components/settings/sections/brand-theme-settings";
 
 const SETTINGS_SECTIONS = [
-  "GENERAL",
-  "BRAND & THEME",
-  "ATTENDANCE & BIOMETRIC",
-  "TRANSACTION",
-  "PRINT",
-  "TAXES & GST",
-  "TRANSACTION MESSAGE",
-  "PARTY",
-  "ITEM",
-  "SERVICE REMINDERS",
-  "ACCOUNTING",
-  "MULTI CURRENCY",
+  { id: "GENERAL", label: "General Settings", icon: Sliders },
+  { id: "BRAND & THEME", label: "Brand & Theme Studio", icon: Palette },
+  { id: "ATTENDANCE & BIOMETRIC", label: "Attendance & Biometrics", icon: Fingerprint },
+  { id: "TRANSACTION", label: "Transaction Controls", icon: FileText },
+  { id: "PRINT", label: "Print & Invoices", icon: Printer },
+  { id: "TAXES & GST", label: "Taxes & GST", icon: Receipt },
+  { id: "TRANSACTION MESSAGE", label: "Transaction Messages", icon: MessageSquare },
+  { id: "PARTY", label: "Party & Customers", icon: Users },
+  { id: "ITEM", label: "Items & Inventory", icon: Package },
+  { id: "SERVICE REMINDERS", label: "Service Reminders", icon: Clock },
+  { id: "ACCOUNTING", label: "Accounting & Ledgers", icon: Landmark },
+  { id: "MULTI CURRENCY", label: "Multi Currency", icon: Globe },
 ];
 
 const ZOOM_LEVELS = [70, 80, 90, 100, 110, 115, 120, 130];
 
 export function BusinessSettingsView({ profile }: { profile: any }) {
+  const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState("GENERAL");
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [zoom, setZoom] = useState(100);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const secParam = searchParams.get("section") || searchParams.get("tab");
+    if (secParam) {
+      const upper = secParam.toUpperCase();
+      if (upper === "BRAND" || upper === "THEME" || upper === "BRAND & THEME") {
+        setActiveSection("BRAND & THEME");
+      } else {
+        const found = SETTINGS_SECTIONS.find(
+          (s) => s.id.includes(upper) || s.label.toUpperCase().includes(upper)
+        );
+        if (found) setActiveSection(found.id);
+      }
+    }
+  }, [searchParams]);
 
   // Brand Theme states
   const [selectedThemeColor, setSelectedThemeColor] = useState("#10b981");
@@ -206,29 +238,34 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
 
   return (
     <div className="flex h-[calc(100vh-5rem)] rounded-2xl border border-border bg-card overflow-hidden shadow-sm select-none">
-      {/* Left Sidebar Menu matching media_1788527610985.png */}
-      <div className="w-56 shrink-0 bg-[#0f1117] text-white flex flex-col border-r border-border/40">
-        <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
-          <span className="text-sm font-bold tracking-tight">Settings</span>
-          <Search className="size-4 text-zinc-400 cursor-pointer" />
+      {/* Left Sidebar Menu */}
+      <div className="w-56 shrink-0 bg-muted/40 text-foreground flex flex-col border-r border-border">
+        <div className="p-3 border-b border-border flex items-center justify-between">
+          <span className="text-sm font-bold tracking-tight text-foreground">Settings</span>
+          <Search className="size-4 text-muted-foreground cursor-pointer" />
         </div>
 
-        <div className="flex-1 overflow-y-auto py-1.5 space-y-0.5">
-          {SETTINGS_SECTIONS.map((sec) => (
-            <button
-              key={sec}
-              type="button"
-              suppressHydrationWarning
-              onClick={() => setActiveSection(sec)}
-              className={`w-full text-left px-3 py-2 text-xs font-semibold tracking-wider transition-colors cursor-pointer ${
-                activeSection === sec
-                  ? "bg-brand-light text-brand border-l-3 border-brand font-bold"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900"
-              }`}
-            >
-              {sec}
-            </button>
-          ))}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {SETTINGS_SECTIONS.map((sec) => {
+            const Icon = sec.icon;
+            const isActive = activeSection === sec.id;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                suppressHydrationWarning
+                onClick={() => setActiveSection(sec.id)}
+                className={`w-full text-left px-3 py-2 text-xs font-medium transition-all rounded-xl flex items-center gap-2.5 cursor-pointer ${
+                  isActive
+                    ? "bg-brand-light text-brand font-bold shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                }`}
+              >
+                <Icon className={`size-4 shrink-0 ${isActive ? "text-brand" : "text-muted-foreground"}`} />
+                <span className="truncate">{sec.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -237,8 +274,8 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
         {/* Top bar with Close (X) icon */}
         <div className="flex items-center justify-between pb-4 border-b border-border mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-foreground capitalize">
-              {activeSection.toLowerCase()} Settings
+            <h2 className="text-lg font-bold text-foreground tracking-tight">
+              {SETTINGS_SECTIONS.find((s) => s.id === activeSection)?.label || "Settings"}
             </h2>
           </div>
 
@@ -261,49 +298,57 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
           </div>
         </div>
 
-        {/* SECTION: GENERAL (3-Column Layout matching media_1788527610985.png) */}
+        {/* SECTION: GENERAL */}
         {activeSection === "GENERAL" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-xs">
-            {/* COLUMN 1: APPLICATION & MORE TRANSACTIONS */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
+            {/* COLUMN 1: APPLICATION & TRANSACTION TYPES */}
             <div className="space-y-6">
-              {/* Application Block */}
-              <div className="space-y-3.5">
-                <h3 className="font-bold text-foreground text-sm">Application</h3>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="passcode"
-                    checked={passcode}
-                    onChange={(e) => setPasscode(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="passcode" className="cursor-pointer">Enable Passcode</Label>
-                  <Info className="size-3 text-muted-foreground" />
+              {/* Application Settings Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+                <div className="space-y-0.5">
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <Sliders className="size-4 text-brand" />
+                    <span>Application Settings</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">General operational parameters and formatting.</p>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    Business Currency <Info className="size-3 text-muted-foreground" />
-                  </span>
-                  <select
-                    value={currency}
-                    suppressHydrationWarning
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="h-7 rounded border border-input bg-background px-2 text-xs font-semibold"
-                  >
-                    <option value="INR">₹ (INR)</option>
-                    <option value="USD">$ (USD)</option>
-                    <option value="EUR">€ (EUR)</option>
-                    <option value="AED">AED</option>
-                  </select>
-                </div>
+                <div className="space-y-3.5 divide-y divide-border/40 text-xs">
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="passcode" className="font-medium text-foreground cursor-pointer block">Enable Passcode Security</Label>
+                      <p className="text-[10px] text-muted-foreground">Require master PIN to access ledger reports.</p>
+                    </div>
+                    <Switch
+                      id="passcode"
+                      checked={passcode}
+                      onCheckedChange={(val) => setPasscode(val)}
+                    />
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    Amount (upto Decimal Places) <Info className="size-3 text-muted-foreground" />
-                  </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5">
+                      <span className="font-medium text-foreground block">Business Currency</span>
+                      <p className="text-[10px] text-muted-foreground">Default currency symbol on invoices.</p>
+                    </div>
+                    <Select value={currency} onValueChange={(val) => val && setCurrency(val)}>
+                      <SelectTrigger className="h-8 rounded-lg border border-input bg-background px-2.5 text-xs font-semibold text-foreground">
+                        <SelectValue placeholder="Currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="INR" className="text-xs">₹ (INR)</SelectItem>
+                        <SelectItem value="USD" className="text-xs">$ (USD)</SelectItem>
+                        <SelectItem value="EUR" className="text-xs">€ (EUR)</SelectItem>
+                        <SelectItem value="AED" className="text-xs">AED</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5">
+                      <span className="font-medium text-foreground block">Amount Decimal Places</span>
+                      <p className="text-[10px] text-muted-foreground">Precision for currency fields (e.g. 0.00)</p>
+                    </div>
                     <input
                       type="number"
                       suppressHydrationWarning
@@ -311,179 +356,135 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                       max="4"
                       value={decimalPlaces}
                       onChange={(e) => setDecimalPlaces(Number(e.target.value))}
-                      className="h-7 w-12 rounded border border-input bg-background px-2 font-mono text-center"
+                      className="h-8 w-14 rounded-lg border border-input bg-background px-2 font-mono text-center font-bold text-xs"
                     />
-                    <span className="text-[10px] text-muted-foreground">e.g. 0.00</span>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="gstin"
-                    checked={gstinEnabled}
-                    onChange={(e) => setGstinEnabled(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="gstin" className="cursor-pointer font-medium">GSTIN Number</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="gstin" className="font-medium text-foreground cursor-pointer block">GSTIN Number Tracking</Label>
+                      <p className="text-[10px] text-muted-foreground">Enables GST columns & tax split calculations.</p>
+                    </div>
+                    <Switch
+                      id="gstin"
+                      checked={gstinEnabled}
+                      onCheckedChange={(val) => setGstinEnabled(val)}
+                    />
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="stopNeg"
-                    checked={negativeStock}
-                    onChange={(e) => setNegativeStock(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="stopNeg" className="cursor-pointer">Stop Sale on Negative Stock</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="stopNeg" className="font-medium text-foreground cursor-pointer block">Stop Sale on Negative Stock</Label>
+                      <p className="text-[10px] text-muted-foreground">Block invoice if item count &lt; 0.</p>
+                    </div>
+                    <Switch
+                      id="stopNeg"
+                      checked={negativeStock}
+                      onCheckedChange={(val) => setNegativeStock(val)}
+                    />
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="blkItems"
-                    checked={blockItems}
-                    onChange={(e) => setBlockItems(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="blkItems" className="cursor-pointer">Block New Items from Txn Form</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="blkItems" className="font-medium text-foreground cursor-pointer block">Block New Items in Billing</Label>
+                      <p className="text-[10px] text-muted-foreground">Require items to exist in Catalogue first.</p>
+                    </div>
+                    <Switch
+                      id="blkItems"
+                      checked={blockItems}
+                      onCheckedChange={(val) => setBlockItems(val)}
+                    />
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="blkParties"
-                    checked={blockParties}
-                    onChange={(e) => setBlockParties(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="blkParties" className="cursor-pointer">Block New Parties from Txn Form</Label>
-                  <Info className="size-3 text-muted-foreground" />
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="blkParties" className="font-medium text-foreground cursor-pointer block">Block New Parties in Billing</Label>
+                      <p className="text-[10px] text-muted-foreground">Require parties to be registered first.</p>
+                    </div>
+                    <Switch
+                      id="blkParties"
+                      checked={blockParties}
+                      onCheckedChange={(val) => setBlockParties(val)}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* More Transactions Block matching media_1788527610985.png */}
-              <div className="space-y-3 pt-3 border-t border-border">
-                <h3 className="font-bold text-foreground text-sm">More Transactions</h3>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="est"
-                    checked={enableEstimate}
-                    onChange={(e) => setEnableEstimate(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="est" className="cursor-pointer">Estimate/Quotation</Label>
-                  <Info className="size-3 text-muted-foreground" />
+              {/* Document Types Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+                <div className="space-y-0.5">
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <FileText className="size-4 text-brand" />
+                    <span>Transaction Document Types</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">Enable active transaction vouchers in navigation.</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="prof"
-                    checked={enableProforma}
-                    onChange={(e) => setEnableProforma(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="prof" className="cursor-pointer">Proforma Invoice</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="ord"
-                    checked={enableOrder}
-                    onChange={(e) => setEnableOrder(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="ord" className="cursor-pointer">Sale/Purchase Order</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="othInc"
-                    checked={enableOtherIncome}
-                    onChange={(e) => setEnableOtherIncome(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="othInc" className="cursor-pointer">Other Income</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="fa"
-                    checked={enableFixedAssets}
-                    onChange={(e) => setEnableFixedAssets(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="fa" className="cursor-pointer">Fixed Assets (FA)</Label>
-                  <Info className="size-3 text-muted-foreground" />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="dc"
-                      checked={enableChallan}
-                      onChange={(e) => setEnableChallan(e.target.checked)}
-                      className="size-4 rounded accent-brand cursor-pointer"
-                    />
-                    <Label htmlFor="dc" className="cursor-pointer">Delivery Challan</Label>
-                    <Info className="size-3 text-muted-foreground" />
+                <div className="space-y-3 divide-y divide-border/40 text-xs">
+                  <div className="flex items-center justify-between pt-1">
+                    <Label htmlFor="est" className="font-medium text-foreground cursor-pointer">Estimate / Quotation</Label>
+                    <Switch id="est" checked={enableEstimate} onCheckedChange={setEnableEstimate} />
                   </div>
 
-                  {enableChallan && (
-                    <div className="flex items-center gap-2 pl-6">
-                      <input
-                        type="checkbox"
-                        id="dcRet"
-                        checked={enableReturnChallan}
-                        onChange={(e) => setEnableReturnChallan(e.target.checked)}
-                        className="size-4 rounded accent-brand cursor-pointer"
-                      />
-                      <Label htmlFor="dcRet" className="cursor-pointer">Goods return on Delivery Challan</Label>
-                      <Info className="size-3 text-muted-foreground" />
+                  <div className="flex items-center justify-between pt-3">
+                    <Label htmlFor="prof" className="font-medium text-foreground cursor-pointer">Proforma Invoice</Label>
+                    <Switch id="prof" checked={enableProforma} onCheckedChange={setEnableProforma} />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <Label htmlFor="ord" className="font-medium text-foreground cursor-pointer">Sale / Purchase Order</Label>
+                    <Switch id="ord" checked={enableOrder} onCheckedChange={setEnableOrder} />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <Label htmlFor="othInc" className="font-medium text-foreground cursor-pointer">Other Income Vouchers</Label>
+                    <Switch id="othInc" checked={enableOtherIncome} onCheckedChange={setEnableOtherIncome} />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <Label htmlFor="fa" className="font-medium text-foreground cursor-pointer">Fixed Assets (FA)</Label>
+                    <Switch id="fa" checked={enableFixedAssets} onCheckedChange={setEnableFixedAssets} />
+                  </div>
+
+                  <div className="space-y-2 pt-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="dc" className="font-medium text-foreground cursor-pointer">Delivery Challan</Label>
+                      <Switch id="dc" checked={enableChallan} onCheckedChange={setEnableChallan} />
                     </div>
-                  )}
+
+                    {enableChallan && (
+                      <div className="flex items-center justify-between pl-4 pt-1 text-[11px]">
+                        <Label htmlFor="dcRet" className="text-muted-foreground cursor-pointer">Goods return on Delivery Challan</Label>
+                        <Switch id="dcRet" checked={enableReturnChallan} onCheckedChange={setEnableReturnChallan} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* COLUMN 2: MULTI FIRM, GODOWNS & ONLINE STORE INVENTORY MODE */}
             <div className="space-y-6">
-              {/* Multi Firm */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="mf"
-                    checked={multiFirm}
-                    onChange={(e) => setMultiFirm(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="mf" className="font-bold text-foreground text-sm cursor-pointer">
-                    Multi Firm
-                  </Label>
+              {/* Multi Firm Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <Building2 className="size-4 text-brand" />
+                      <span>Multi Firm Management</span>
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">Manage multiple GST companies in one workspace.</p>
+                  </div>
+                  <Switch id="mf" checked={multiFirm} onCheckedChange={setMultiFirm} />
                 </div>
 
-                <div className="rounded-xl border border-primary/50 bg-primary/5 p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-3.5 rounded-full border-2 border-primary bg-primary" />
-                    <span className="font-bold text-foreground">
+                <div className="rounded-xl border border-brand/30 bg-brand-light/40 p-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-3 rounded-full bg-brand" />
+                    <span className="font-bold text-foreground text-xs">
                       {profile?.companyName || "Sri Manjunatha Engineering Works"}
                     </span>
-                    <Badge className="bg-primary/20 text-primary border-none text-[9px] px-1 py-0">
+                    <Badge className="bg-brand text-white border-none text-[9px] px-1.5 py-0.5">
                       DEFAULT
                     </Badge>
                   </div>
@@ -493,71 +494,65 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                 </div>
               </div>
 
-              {/* Stock Transfer Between Godowns */}
-              <div className="space-y-2 pt-3 border-t border-border">
-                <h3 className="font-bold text-foreground text-sm">
-                  Stock Transfer Between Godowns
-                </h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Manage all your stores/godowns and transfer stock seamlessly between them. Using this feature, you can transfer stock between stores/godowns and manage your inventory more efficiently.
-                </p>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="godown"
-                    checked={godowns}
-                    onChange={(e) => setGodowns(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="godown" className="cursor-pointer flex items-center gap-1.5 font-medium">
-                    <span>Godown management &amp; Stock transfer</span>
-                    <PlayCircle className="size-3.5 text-rose-500" />
-                  </Label>
+              {/* Godowns Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 pr-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <Layers className="size-4 text-brand" />
+                      <span>Godown &amp; Stock Transfer</span>
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Transfer inventory between stores/warehouses seamlessly.
+                    </p>
+                  </div>
+                  <Switch id="godown" checked={godowns} onCheckedChange={setGodowns} />
                 </div>
               </div>
 
-              {/* Configurable Online Store Mode (USER's exact request!) */}
-              <div className="space-y-2 pt-3 border-t border-border">
-                <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-                  <Layers className="size-4 text-primary" />
-                  <span>Online Store Inventory &amp; Billing</span>
-                </h3>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Configure whether the digital store has its own independent stock and dedicated bills, or syncs with main B2B inventory.
-                </p>
+              {/* Configurable Online Store Mode Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-2xs">
+                <div className="space-y-1">
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <Layers className="size-4 text-brand" />
+                    <span>Online Store Inventory &amp; Billing</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Configure whether the digital store has dedicated stock or syncs with main B2B warehouse inventory.
+                  </p>
+                </div>
 
-                <div className="space-y-2 pt-1">
+                <div className="space-y-2.5 pt-1">
                   <div
                     onClick={() => setStoreMode("SEPARATE")}
-                    className={`p-2.5 rounded-xl border cursor-pointer transition-colors ${
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
                       storeMode === "SEPARATE"
-                        ? "border-primary bg-primary/5 font-semibold text-foreground"
+                        ? "border-brand bg-brand-light shadow-2xs font-semibold text-foreground"
                         : "border-border text-muted-foreground hover:bg-muted/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Separate Mode (Independent Stock &amp; DB)</span>
-                      <div className={`size-3 rounded-full border-2 ${storeMode === "SEPARATE" ? "border-primary bg-primary" : "border-muted"}`} />
+                      <span className="text-xs font-bold">Separate Mode (Independent Stock &amp; DB)</span>
+                      <div className={`size-3.5 rounded-full border-2 ${storeMode === "SEPARATE" ? "border-brand bg-brand" : "border-muted"}`} />
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
                       Online sales generate separate Store GST Bills and deduct only from online stock.
                     </p>
                   </div>
 
                   <div
                     onClick={() => setStoreMode("SHARED")}
-                    className={`p-2.5 rounded-xl border cursor-pointer transition-colors ${
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
                       storeMode === "SHARED"
-                        ? "border-primary bg-primary/5 font-semibold text-foreground"
+                        ? "border-brand bg-brand-light shadow-2xs font-semibold text-foreground"
                         : "border-border text-muted-foreground hover:bg-muted/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Shared Mode (Unified Warehouse Stock)</span>
-                      <div className={`size-3 rounded-full border-2 ${storeMode === "SHARED" ? "border-primary bg-primary" : "border-muted"}`} />
+                      <span className="text-xs font-bold">Shared Mode (Unified Warehouse Stock)</span>
+                      <div className={`size-3.5 rounded-full border-2 ${storeMode === "SHARED" ? "border-brand bg-brand" : "border-muted"}`} />
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
                       Online sales draw directly from physical stock and appear in the main sale invoices list.
                     </p>
                   </div>
@@ -567,52 +562,54 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
 
             {/* COLUMN 3: BACKUP & SCREEN ZOOM / SCALE */}
             <div className="space-y-6">
-              {/* Backup & History */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-foreground text-sm">Backup &amp; History</h3>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="autoBk"
-                    checked={autoBackup}
-                    onChange={(e) => setAutoBackup(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="autoBk" className="cursor-pointer">Auto Backup</Label>
-                  <Info className="size-3 text-muted-foreground" />
+              {/* Backup & History Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+                <div className="space-y-0.5">
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <HardDrive className="size-4 text-brand" />
+                    <span>Backup &amp; Audit History</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">Automated database snapshots and change logs.</p>
                 </div>
 
-                <div className="text-[11px] text-muted-foreground pl-6">
-                  Last Backup 04/09/2026 | 07:09 AM <Info className="inline size-3 text-muted-foreground ml-0.5" />
-                </div>
+                <div className="space-y-3.5 divide-y divide-border/40 text-xs">
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="autoBk" className="font-medium text-foreground cursor-pointer block">Auto Cloud Backup</Label>
+                      <p className="text-[10px] text-muted-foreground">Daily encrypted backup to cloud storage.</p>
+                    </div>
+                    <Switch id="autoBk" checked={autoBackup} onCheckedChange={setAutoBackup} />
+                  </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
-                    id="audit"
-                    checked={auditTrail}
-                    onChange={(e) => setAuditTrail(e.target.checked)}
-                    className="size-4 rounded accent-brand cursor-pointer"
-                  />
-                  <Label htmlFor="audit" className="cursor-pointer font-medium">Audit Trail</Label>
-                  <Info className="size-3 text-muted-foreground" />
+                  <div className="pt-3">
+                    <div className="text-[11px] text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/60">
+                      <span className="font-medium text-foreground">Last Backup:</span> 04/09/2026 | 07:09 AM
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="space-y-0.5 pr-2">
+                      <Label htmlFor="audit" className="font-medium text-foreground cursor-pointer block">Audit Trail Logging</Label>
+                      <p className="text-[10px] text-muted-foreground">Track user edit and deletion actions.</p>
+                    </div>
+                    <Switch id="audit" checked={auditTrail} onCheckedChange={setAuditTrail} />
+                  </div>
                 </div>
               </div>
 
-              {/* Customize Your View: Screen Zoom/Scale slider matching media_1788527610985.png */}
-              <div className="space-y-3 pt-3 border-t border-border">
-                <h3 className="font-bold text-foreground text-sm">Customize Your View</h3>
-
+              {/* Screen Zoom & Scale Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
                 <div className="space-y-1">
-                  <span className="font-semibold text-foreground">Choose Your Screen Zoom/Scale</span>
+                  <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <Monitor className="size-4 text-brand" />
+                    <span>Customize Display Scale</span>
+                  </h3>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    You can use this setting to resize the Billora screen, making it larger or smaller to fit your preferences.
+                    Adjust the overall UI zoom level to fit your display size.
                   </p>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  {/* Slider Control */}
+                <div className="space-y-4 pt-1">
                   <div className="space-y-2">
                     <input
                       type="range"
@@ -622,14 +619,14 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                       step="5"
                       value={zoom}
                       onChange={(e) => setZoom(Number(e.target.value))}
-                      className="w-full accent-primary cursor-pointer"
+                      className="w-full accent-brand cursor-pointer"
                     />
                     <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
                       {ZOOM_LEVELS.map((lvl) => (
                         <span
                           key={lvl}
                           onClick={() => setZoom(lvl)}
-                          className={`cursor-pointer hover:text-foreground ${zoom === lvl ? "font-bold text-primary" : ""}`}
+                          className={`cursor-pointer hover:text-foreground ${zoom === lvl ? "font-bold text-brand" : ""}`}
                         >
                           {lvl}%
                         </span>
@@ -644,9 +641,9 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
                     <Button
                       size="sm"
                       onClick={handleApplyZoom}
-                      className="h-7 text-xs font-semibold rounded-lg bg-primary text-primary-foreground px-4"
+                      className="h-8 text-xs font-bold rounded-xl bg-brand text-white hover:opacity-90 px-4"
                     >
-                      Apply
+                      Apply Scale
                     </Button>
                   </div>
                 </div>
@@ -1130,15 +1127,21 @@ export function BusinessSettingsView({ profile }: { profile: any }) {
             <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-foreground">Active Financial Year</Label>
-                <select
+                <Select
                   value={settings.currentFinancialYear}
-                  onChange={(e) => updateSetting("currentFinancialYear", e.target.value)}
-                  className="h-8 w-full max-w-[200px] rounded-lg border border-border bg-background px-3 text-xs font-mono font-bold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand"
+                  onValueChange={(val) => val && updateSetting("currentFinancialYear", val)}
                 >
-                  {["2023-2024", "2024-2025", "2025-2026", "2026-2027"].map((fy) => (
-                    <option key={fy} value={fy}>{fy} (Apr–Mar)</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-8 w-full max-w-[220px] rounded-lg border border-border bg-background px-3 text-xs font-mono font-bold text-foreground">
+                    <SelectValue placeholder="Financial Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["2023-2024", "2024-2025", "2025-2026", "2026-2027"].map((fy) => (
+                      <SelectItem key={fy} value={fy} className="text-xs font-mono font-bold">
+                        {fy} (Apr–Mar)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-[10px] text-muted-foreground">All reports, GSTR, and trial balance will be filtered within this FY period.</p>
               </div>
 

@@ -53,6 +53,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -174,7 +181,7 @@ export default function OnlineStorePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/80 pb-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Store className="size-5 text-[#ef4444]" />
+            <Store className="size-5 text-primary" />
             <span>My Online Store</span>
             <Badge
               className={`border-none text-[10px] font-bold ${
@@ -214,10 +221,10 @@ export default function OnlineStorePage() {
 
           <Button
             onClick={() => setNewBillOpen(true)}
-            className="h-8 text-xs font-bold rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white shadow-xs"
+            className="h-8 text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
           >
             <Plus className="mr-1.5 size-3.5" />
-            + New Store GST Bill
+            New Store GST Bill
           </Button>
         </div>
       </div>
@@ -229,34 +236,30 @@ export default function OnlineStorePage() {
             <Layers className="size-4" />
           </div>
           <div>
-            <span className="font-bold text-foreground">
-              Storage Mode: {isSeparate ? "Independent Online Store Database & Stock" : "Shared with Main GST Warehouse"}
-            </span>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <div className="font-bold text-foreground">
+              Inventory &amp; Database Mode: {isSeparate ? "Separate Mode" : "Shared Mode"}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
               {isSeparate
-                ? "Online orders deduct ONLY from online stock and generate separate Store GST Bills without touching B2B inventory."
-                : "Online store is unified directly with your primary GST inventory and standard sale invoice series."}
+                ? "Online store has dedicated product stock and issues separate Store GST Bills."
+                : "Online store deducts directly from warehouse inventory and syncs with B2B invoices."}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => handleToggleInventoryMode(isSeparate ? "SHARED" : "SEPARATE")}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-          >
-            <Settings2 className="size-3 text-muted-foreground" />
-            <span>Switch to {isSeparate ? "Shared Mode" : "Separate Mode"}</span>
-          </button>
-        </div>
+        <Link
+          href="/settings?section=GENERAL"
+          className="inline-flex items-center gap-1 font-bold text-primary hover:underline shrink-0"
+        >
+          Change Mode in Settings &rarr;
+        </Link>
       </div>
 
-      {/* Tabs Row */}
-      <div className="flex items-center gap-2 border-b border-border/60 pb-1">
+      {/* Navigation Sub-Tabs */}
+      <div className="flex border-b border-border gap-1">
         {[
-          { id: "stock", label: `Product Stock (${storeProducts.length})`, icon: Boxes },
-          { id: "bills", label: `Store GST Bills (${storeBills.length})`, icon: Receipt },
+          { id: "stock", label: "Product Stock & Pricing", icon: Package },
+          { id: "bills", label: "Store GST Bills", icon: Receipt },
           { id: "overview", label: "Storefront & Share", icon: Store },
           { id: "config", label: "Settings & Mode", icon: Settings2 },
         ].map((tab) => {
@@ -268,7 +271,7 @@ export default function OnlineStorePage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
                 activeTab === tab.id
-                  ? "border-[#ef4444] text-[#ef4444] bg-[#ef4444]/5"
+                  ? "border-primary text-primary bg-primary/5 font-bold"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -364,7 +367,7 @@ export default function OnlineStorePage() {
             <Button
               size="sm"
               onClick={() => setNewBillOpen(true)}
-              className="h-8 text-xs font-bold rounded-lg bg-[#ef4444] text-white"
+              className="h-8 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="mr-1.5 size-3.5" />
               Generate Store Bill
@@ -721,17 +724,18 @@ export default function OnlineStorePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
               <div className="sm:col-span-2 space-y-1">
                 <Label>Select Product *</Label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs"
-                >
-                  {storeProducts.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} (₹{p.onlinePrice} | Stock: {p.onlineStock})
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedProductId} onValueChange={(val) => val && setSelectedProductId(val)}>
+                  <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                    <SelectValue placeholder="Select Product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {storeProducts.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs">
+                        {p.name} (₹{p.onlinePrice} | Stock: {p.onlineStock})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
@@ -748,16 +752,17 @@ export default function OnlineStorePage() {
 
             <div className="space-y-1">
               <Label>Payment Mode</Label>
-              <select
-                value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs"
-              >
-                <option value="UPI">UPI (Google Pay / PhonePe / Paytm)</option>
-                <option value="COD">Cash on Delivery (COD)</option>
-                <option value="NET_BANKING">Net Banking / NEFT</option>
-                <option value="CARD">Credit / Debit Card</option>
-              </select>
+              <Select value={paymentMode} onValueChange={(val) => val && setPaymentMode(val)}>
+                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                  <SelectValue placeholder="Select Payment Mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UPI" className="text-xs">UPI (Google Pay / PhonePe / Paytm)</SelectItem>
+                  <SelectItem value="COD" className="text-xs">Cash on Delivery (COD)</SelectItem>
+                  <SelectItem value="NET_BANKING" className="text-xs">Net Banking / NEFT</SelectItem>
+                  <SelectItem value="CARD" className="text-xs">Credit / Debit Card</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 text-[11px] text-muted-foreground">

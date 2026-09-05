@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { createLedger } from "@/actions/accounting";
 import type { LedgerGroupKey } from "@/actions/accounting";
@@ -153,15 +160,18 @@ export function LedgerMaster({ ledgers: initialLedgers }: LedgerMasterProps) {
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-semibold">Under (Group)</Label>
-              <select
-                value={newGroup}
-                onChange={(e) => setNewGroup(e.target.value as LedgerGroupKey)}
-                className="h-8 w-full rounded-lg border border-border bg-background px-2 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
-              >
-                {ALL_GROUPS.map((g) => (
-                  <option key={g} value={g}>{GROUP_LABELS[g]?.label ?? g}</option>
-                ))}
-              </select>
+              <Select value={newGroup} onValueChange={(val) => setNewGroup(val as LedgerGroupKey)}>
+                <SelectTrigger className="h-8 w-full rounded-lg border border-border bg-background px-2 text-xs font-semibold text-foreground">
+                  <SelectValue placeholder="Select Group" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {ALL_GROUPS.map((g) => (
+                    <SelectItem key={g} value={g} className="text-xs">
+                      {GROUP_LABELS[g]?.label ?? g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-semibold">Opening Balance</Label>

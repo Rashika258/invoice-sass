@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { DateRangePicker, type DatePresetKey } from "@/components/ui/date-range-picker";
 
 type ReportType =
   // Transaction reports
@@ -70,6 +71,13 @@ export function ReportsExplorer({
   const [activeReport, setActiveReport] = useState<ReportType>("sale");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPartyId, setSelectedPartyId] = useState<string>(parties[0]?.id || "");
+  const [datePreset, setDatePreset] = useState<DatePresetKey>("THIS_MONTH");
+  const [startDate, setStartDate] = useState<string>(() =>
+    format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd")
+  );
+  const [endDate, setEndDate] = useState<string>(() =>
+    format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0), "yyyy-MM-dd")
+  );
 
   const activeParty = parties.find((p) => p.id === selectedPartyId) || parties[0];
 
@@ -184,7 +192,17 @@ export function ReportsExplorer({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <DateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              activePreset={datePreset}
+              onRangeChange={(start, end, preset) => {
+                setStartDate(start);
+                setEndDate(end);
+                if (preset) setDatePreset(preset);
+              }}
+            />
             <Button
               variant="outline"
               size="sm"

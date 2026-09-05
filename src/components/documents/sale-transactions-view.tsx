@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/table";
 import { DOCUMENT_META } from "@/lib/documents";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { DateRangePicker, type DatePresetKey } from "@/components/ui/date-range-picker";
 
 export type SaleDocumentItem = {
   id: string;
@@ -104,13 +105,13 @@ type SaleTransactionsViewProps = {
 };
 
 const SALE_TABS = [
-  { key: "SALE", label: "Sale Invoices", href: "/invoices", addHref: "/invoices/new", btnLabel: "+ Add Sale" },
-  { key: "ESTIMATE", label: "Estimate/ Quotation", href: "/estimates", addHref: "/estimates/new", btnLabel: "+ Add Estimate" },
-  { key: "PROFORMA", label: "Proforma Invoice", href: "/proforma", addHref: "/proforma/new", btnLabel: "+ Add Proforma" },
-  { key: "PAYMENT_IN", label: "Payment-In", href: "/payment-in", addHref: "/payments/new?direction=IN", btnLabel: "+ Add Payment-In" },
-  { key: "SALE_ORDER", label: "Sale Order", href: "/sale-orders", addHref: "/sale-orders/new", btnLabel: "+ Add Sale Order" },
-  { key: "DELIVERY_CHALLAN", label: "Delivery Challan", href: "/challans", addHref: "/challans/new", btnLabel: "+ Add Challan" },
-  { key: "CREDIT_NOTE", label: "Sale Return/ Credit Note", href: "/credit-notes", addHref: "/credit-notes/new", btnLabel: "+ Add Sale Return" },
+  { key: "SALE", label: "Sale Invoices", href: "/invoices", addHref: "/invoices/new", btnLabel: "Add Sale" },
+  { key: "ESTIMATE", label: "Estimate/ Quotation", href: "/estimates", addHref: "/estimates/new", btnLabel: "Add Estimate" },
+  { key: "PROFORMA", label: "Proforma Invoice", href: "/proforma", addHref: "/proforma/new", btnLabel: "Add Proforma" },
+  { key: "PAYMENT_IN", label: "Payment-In", href: "/payment-in", addHref: "/payments/new?direction=IN", btnLabel: "Add Payment-In" },
+  { key: "SALE_ORDER", label: "Sale Order", href: "/sale-orders", addHref: "/sale-orders/new", btnLabel: "Add Sale Order" },
+  { key: "DELIVERY_CHALLAN", label: "Delivery Challan", href: "/challans", addHref: "/challans/new", btnLabel: "Add Challan" },
+  { key: "CREDIT_NOTE", label: "Sale Return/ Credit Note", href: "/credit-notes", addHref: "/credit-notes/new", btnLabel: "Add Sale Return" },
 ] as const;
 
 type DatePreset =
@@ -441,7 +442,7 @@ export function SaleTransactionsView({
         <div className="flex items-center gap-2">
           <Link
             href={activeTabMeta.addHref}
-            className="inline-flex items-center justify-center bg-[#E53935] hover:bg-[#d32f2f] text-white font-semibold text-xs px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.98] gap-1.5 select-none"
+            className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all active:scale-[0.98] gap-1.5 select-none"
           >
             <Plus className="size-4 stroke-[2.5]" />
             <span>{activeTabMeta.btnLabel}</span>
@@ -463,89 +464,17 @@ export function SaleTransactionsView({
           <span>Filter by :</span>
         </span>
 
-        {/* Date Preset Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background px-3 py-1 text-xs font-medium text-foreground hover:bg-muted/60 transition-colors shadow-2xs">
-            <span>
-              {datePreset === "TODAY"
-                ? "Today"
-                : datePreset === "YESTERDAY"
-                  ? "Yesterday"
-                  : datePreset === "THIS_WEEK"
-                    ? "This Week"
-                    : datePreset === "LAST_WEEK"
-                      ? "Last Week"
-                      : datePreset === "THIS_MONTH"
-                        ? "This Month"
-                        : datePreset === "LAST_MONTH"
-                          ? "Previous Month"
-                          : datePreset === "THIS_QUARTER"
-                            ? "This Quarter"
-                            : datePreset === "THIS_YEAR"
-                              ? "This Year"
-                              : datePreset === "ALL_TIME"
-                                ? "All Time"
-                                : "Custom"}
-            </span>
-            <ChevronDown className="size-3 text-muted-foreground" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-40 shadow-lg">
-            <DropdownMenuItem onClick={() => handlePresetChange("TODAY")}>
-              Today
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("YESTERDAY")}>
-              Yesterday
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("THIS_WEEK")}>
-              This Week
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("LAST_WEEK")}>
-              Last Week
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("THIS_MONTH")}>
-              This Month
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("LAST_MONTH")}>
-              Previous Month
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("THIS_QUARTER")}>
-              This Quarter
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("THIS_YEAR")}>
-              This Year
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("ALL_TIME")}>
-              All Time
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePresetChange("CUSTOM")}>
-              Custom Range
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Date Range Selector Display / Inputs */}
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-background px-3 py-1 text-xs text-muted-foreground shadow-2xs">
-          <Calendar className="size-3.5 text-muted-foreground" />
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value);
-              setDatePreset("CUSTOM");
-            }}
-            className="bg-transparent text-foreground outline-none font-medium cursor-pointer"
-          />
-          <span className="font-semibold text-muted-foreground text-[11px]">To</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value);
-              setDatePreset("CUSTOM");
-            }}
-            className="bg-transparent text-foreground outline-none font-medium cursor-pointer"
-          />
-        </div>
+        {/* Shadcn Calendar Date Range Picker */}
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          activePreset={datePreset as DatePresetKey}
+          onRangeChange={(start, end, preset) => {
+            setStartDate(start);
+            setEndDate(end);
+            if (preset) setDatePreset(preset as DatePreset);
+          }}
+        />
 
         {/* Firm / Party Filter Dropdown */}
         <DropdownMenu>

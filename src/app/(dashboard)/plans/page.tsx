@@ -21,6 +21,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SILVER_FEATURES = [
   { text: "Sync data across devices", included: true },
@@ -92,23 +99,25 @@ export default function PlansPricingPage() {
 
       {/* Dropdown Filters matching media_1788527632317.png */}
       <div className="flex items-center justify-center gap-3 select-none">
-        <select
-          value={deviceType}
-          onChange={(e) => setDeviceType(e.target.value as any)}
-          className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground cursor-pointer outline-hidden shadow-2xs"
-        >
-          <option value="DESKTOP_MOBILE">Desktop + Mobile</option>
-          <option value="DESKTOP">Desktop Only</option>
-        </select>
+        <Select value={deviceType} onValueChange={(val) => setDeviceType(val as any)}>
+          <SelectTrigger className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground shadow-2xs">
+            <SelectValue placeholder="Device" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="DESKTOP_MOBILE" className="text-xs">Desktop + Mobile</SelectItem>
+            <SelectItem value="DESKTOP" className="text-xs">Desktop Only</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={tenure}
-          onChange={(e) => setTenure(e.target.value as any)}
-          className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground cursor-pointer outline-hidden shadow-2xs"
-        >
-          <option value="1_YEAR">1 Year</option>
-          <option value="3_YEAR">3 Years (Save 20% Extra)</option>
-        </select>
+        <Select value={tenure} onValueChange={(val) => setTenure(val as any)}>
+          <SelectTrigger className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground shadow-2xs">
+            <SelectValue placeholder="Tenure" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1_YEAR" className="text-xs">1 Year</SelectItem>
+            <SelectItem value="3_YEAR" className="text-xs">3 Years (Save 20% Extra)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 2 Plan Cards Grid matching media_1788527632317.png */}
@@ -222,7 +231,7 @@ export default function PlansPricingPage() {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
         <Button
           onClick={() => setCompareModalOpen(true)}
-          className="h-9 rounded-full bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 text-xs shadow-lg shadow-sky-600/30 cursor-pointer"
+          className="h-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 text-xs shadow-lg shadow-primary/20 cursor-pointer"
         >
           Compare All Features
         </Button>

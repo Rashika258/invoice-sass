@@ -800,7 +800,7 @@ export function InvoiceForm({
                   className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
                 >
                   <Truck className="size-3.5" />
-                  <span>{showTransport ? "Hide E-Way Bill & Transport Details" : "+ Add E-Way Bill & Transport Details"}</span>
+                  <span>{showTransport ? "Hide E-Way Bill & Transport Details" : "Add E-Way Bill & Transport Details"}</span>
                   <ChevronDown className={`size-3 transition-transform ${showTransport ? "rotate-180" : ""}`} />
                 </button>
 

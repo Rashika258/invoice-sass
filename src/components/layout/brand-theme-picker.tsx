@@ -135,11 +135,13 @@ export function BrandThemePicker() {
               type="color"
               value={customHex}
               onChange={(e) => handleCustomColorChange(e.target.value)}
+              suppressHydrationWarning
               className="size-7 rounded-lg border border-border cursor-pointer bg-transparent p-0 shrink-0"
             />
             <Input
               value={customHex}
               onChange={(e) => handleCustomColorChange(e.target.value)}
+              suppressHydrationWarning
               placeholder="#10b981"
               maxLength={7}
               className="h-7 text-xs font-mono uppercase bg-background"
@@ -178,7 +180,7 @@ export function BrandThemePicker() {
 
         {/* Link to full Brand Studio in settings */}
         <Link
-          href="/settings"
+          href="/settings?section=BRAND"
           className="flex items-center justify-between p-2 rounded-xl bg-brand-light text-brand hover:opacity-90 transition-opacity text-xs font-bold"
         >
           <div className="flex items-center gap-1.5">

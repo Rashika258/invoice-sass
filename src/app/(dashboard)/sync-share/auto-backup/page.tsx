@@ -38,7 +38,7 @@ export default function AutoBackupPage() {
               setEnabled(e.target.checked);
               toast.success(e.target.checked ? "Auto backup enabled" : "Auto backup paused");
             }}
-            className="size-5 rounded accent-[#ef4444] cursor-pointer"
+            className="size-5 rounded accent-primary cursor-pointer"
           />
         </div>
 

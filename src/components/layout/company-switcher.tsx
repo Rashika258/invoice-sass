@@ -217,7 +217,7 @@ export function CompanySwitcher({
             className="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-bold text-primary hover:text-primary hover:bg-primary/10"
           >
             <Plus className="size-3.5" />
-            <span>+ Add New Company / Firm</span>
+            <span>Add New Company / Firm</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

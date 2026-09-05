@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   Camera,
@@ -35,6 +36,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ItemFormDialogProps = {
   item?: Item;
@@ -70,6 +78,7 @@ const COMMON_CATEGORIES = [
 ];
 
 export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -206,13 +215,13 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             </h2>
 
             {/* Product / Service Switch Pill */}
-            <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-full border border-border/70 text-xs">
+            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-full border border-border/70 text-xs">
               <button
                 type="button"
                 onClick={() => setItemType("PRODUCT")}
-                className={`px-3 py-0.5 rounded-full font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "PRODUCT"
-                    ? "bg-[#1976D2] text-white shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -221,9 +230,9 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
               <button
                 type="button"
                 onClick={() => setItemType("SERVICE")}
-                className={`px-3 py-0.5 rounded-full font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "SERVICE"
-                    ? "bg-[#1976D2] text-white shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -232,10 +241,15 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 mr-8">
             <button
               type="button"
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                router.push("/settings");
+              }}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer transition-colors"
               title="Item Settings"
             >
               <Settings className="size-4" />
@@ -284,32 +298,19 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             </div>
 
             {/* Select Unit Button */}
-            <div className="sm:col-span-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-[42px] rounded-lg border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold text-xs hover:bg-sky-500/20"
-                    >
-                      <span>{unit || "Select Unit"}</span>
-                      <ChevronDown className="size-3 ml-1" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent className="w-32 max-h-48 overflow-y-auto">
+            <div className="sm:col-span-2 space-y-1">
+              <Select value={unit || "PCS"} onValueChange={(val) => val && setUnit(val)}>
+                <SelectTrigger className="w-full h-[42px] rounded-lg border border-primary/40 bg-primary/10 text-primary font-semibold text-xs hover:bg-primary/20">
+                  <SelectValue placeholder="Select Unit" />
+                </SelectTrigger>
+                <SelectContent className="max-h-48">
                   {COMMON_UNITS.map((u) => (
-                    <DropdownMenuItem
-                      key={u}
-                      onClick={() => setUnit(u)}
-                      className={`text-xs cursor-pointer ${unit === u ? "font-bold bg-accent" : ""}`}
-                    >
+                    <SelectItem key={u} value={u} className="text-xs">
                       {u}
-                    </DropdownMenuItem>
+                    </SelectItem>
                   ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Add Item Image */}
@@ -332,17 +333,18 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             {/* Category */}
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-muted-foreground">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-xs text-foreground focus:outline-hidden focus:border-foreground"
-              >
-                {COMMON_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              <Select value={category} onValueChange={(val) => val && setCategory(val)}>
+                <SelectTrigger className="w-full h-9 rounded-lg border border-input bg-background px-3 text-xs text-foreground">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMMON_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat} className="text-xs">
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Item Code */}
@@ -375,7 +377,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setActiveTab("pricing")}
                 className={`pb-2 transition-all cursor-pointer ${
                   activeTab === "pricing"
-                    ? "border-b-2 border-[#ef4444] text-[#ef4444]"
+                    ? "border-b-2 border-primary text-primary font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -386,7 +388,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setActiveTab("stock")}
                 className={`pb-2 transition-all cursor-pointer ${
                   activeTab === "stock"
-                    ? "border-b-2 border-[#ef4444] text-[#ef4444]"
+                    ? "border-b-2 border-primary text-primary font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -412,14 +414,15 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                       onChange={(e) => setSalePrice(e.target.value)}
                       className="border-none rounded-none text-xs font-mono h-9"
                     />
-                    <select
-                      value={saleTaxType}
-                      onChange={(e) => setSaleTaxType(e.target.value as any)}
-                      className="border-l border-input bg-muted/30 px-2 text-[11px] font-medium text-muted-foreground outline-hidden cursor-pointer"
-                    >
-                      <option value="WITHOUT_TAX">Without Tax</option>
-                      <option value="WITH_TAX">With Tax</option>
-                    </select>
+                    <Select value={saleTaxType} onValueChange={(val) => setSaleTaxType(val as any)}>
+                      <SelectTrigger className="h-9 border-l border-input border-t-0 border-r-0 border-b-0 bg-background text-foreground px-2 text-[11px] font-medium rounded-none shadow-none focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WITHOUT_TAX" className="text-xs">Without Tax</SelectItem>
+                        <SelectItem value="WITH_TAX" className="text-xs">With Tax</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Discount on Sale Price */}
@@ -431,21 +434,22 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                       onChange={(e) => setDiscountVal(e.target.value)}
                       className="border-none rounded-none text-xs font-mono h-9"
                     />
-                    <select
-                      value={discountType}
-                      onChange={(e) => setDiscountType(e.target.value as any)}
-                      className="border-l border-input bg-muted/30 px-2 text-[11px] font-medium text-muted-foreground outline-hidden cursor-pointer"
-                    >
-                      <option value="PERCENT">Percentage</option>
-                      <option value="AMOUNT">Amount</option>
-                    </select>
+                    <Select value={discountType} onValueChange={(val) => setDiscountType(val as any)}>
+                      <SelectTrigger className="h-9 border-l border-input border-t-0 border-r-0 border-b-0 bg-background text-foreground px-2 text-[11px] font-medium rounded-none shadow-none focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PERCENT" className="text-xs">Percentage</SelectItem>
+                        <SelectItem value="AMOUNT" className="text-xs">Amount</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 {/* Estimate Price for Quotations (Dual Pricing Feature) */}
                 <div className="pt-1">
-                  <div className="flex items-center gap-2 max-w-sm rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-2 text-xs">
-                    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                  <div className="flex items-center gap-2 max-w-sm rounded-lg border border-border bg-muted/20 p-2 text-xs">
+                    <span className="text-[11px] font-bold text-foreground whitespace-nowrap">
                       Estimate Price:
                     </span>
                     <Input
@@ -509,33 +513,34 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                       onChange={(e) => setPurchasePrice(e.target.value)}
                       className="border-none rounded-none text-xs font-mono h-9"
                     />
-                    <select
-                      value={purchaseTaxType}
-                      onChange={(e) => setPurchaseTaxType(e.target.value as any)}
-                      className="border-l border-input bg-muted/30 px-2 text-[11px] font-medium text-muted-foreground outline-hidden cursor-pointer"
-                    >
-                      <option value="WITHOUT_TAX">Without Tax</option>
-                      <option value="WITH_TAX">With Tax</option>
-                    </select>
+                    <Select value={purchaseTaxType} onValueChange={(val) => setPurchaseTaxType(val as any)}>
+                      <SelectTrigger className="h-9 border-l border-input border-t-0 border-r-0 border-b-0 bg-background text-foreground px-2 text-[11px] font-medium rounded-none shadow-none focus:ring-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WITHOUT_TAX" className="text-xs">Without Tax</SelectItem>
+                        <SelectItem value="WITH_TAX" className="text-xs">With Tax</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 {/* Taxes Section */}
                 <div className="rounded-xl border border-border/70 bg-card/60 p-4 space-y-2">
                   <span className="text-xs font-bold text-foreground">Taxes</span>
-                  <div className="relative rounded-lg border border-input bg-background px-3 pt-1 pb-1">
-                    <label className="text-[9px] text-muted-foreground block">Tax Rate</label>
-                    <select
-                      value={gstRate}
-                      onChange={(e) => setGstRate(Number(e.target.value))}
-                      className="w-full bg-transparent border-none outline-hidden text-xs font-semibold text-foreground cursor-pointer"
-                    >
-                      <option value={0}>None (0%)</option>
-                      <option value={5}>GST @ 5%</option>
-                      <option value={12}>GST @ 12%</option>
-                      <option value={18}>GST @ 18%</option>
-                      <option value={28}>GST @ 28%</option>
-                    </select>
+                  <div className="space-y-1">
+                    <Select value={String(gstRate)} onValueChange={(val) => setGstRate(Number(val))}>
+                      <SelectTrigger className="w-full h-9 rounded-lg border border-input bg-background px-3 text-xs font-semibold text-foreground">
+                        <SelectValue placeholder="Select Tax Rate" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0" className="text-xs">None (0%)</SelectItem>
+                        <SelectItem value="5" className="text-xs">GST @ 5%</SelectItem>
+                        <SelectItem value="12" className="text-xs">GST @ 12%</SelectItem>
+                        <SelectItem value="18" className="text-xs">GST @ 18%</SelectItem>
+                        <SelectItem value="28" className="text-xs">GST @ 28%</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -647,7 +652,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             type="button"
             onClick={() => handleSave(false)}
             disabled={isSubmitting}
-            className="h-9 rounded-xl text-xs font-bold bg-[#6366f1] hover:bg-[#4f46e5] text-white px-6 shadow-xs transition-all active:scale-[0.98]"
+            className="h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-6 shadow-xs transition-all active:scale-[0.98]"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>

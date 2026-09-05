@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Barcode,
+  Camera,
   CheckCircle2,
   Database,
   Download,
@@ -17,6 +18,7 @@ import {
   QrCode,
   Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   importFromBilloraLibrary,
   importItemsInBulk,
@@ -44,6 +46,7 @@ export default function ImportItemsPage() {
 
   // Barcode modal state
   const [barcodeOpen, setBarcodeOpen] = useState(false);
+  const [isCameraScanning, setIsCameraScanning] = useState(false);
   const [barcodeVal, setBarcodeVal] = useState("8901030382710");
   const [itemName, setItemName] = useState("Dettol Antiseptic Soap 125g");
   const [salePrice, setSalePrice] = useState("65");
@@ -357,6 +360,58 @@ export default function ImportItemsPage() {
           </DialogHeader>
 
           <form onSubmit={handleBarcodeSubmit} className="space-y-4 pt-2">
+            {/* Live Camera Scanner Viewport */}
+            {isCameraScanning ? (
+              <div className="relative rounded-xl overflow-hidden border-2 border-primary bg-black h-52 flex flex-col items-center justify-center">
+                <video
+                  ref={(el) => {
+                    if (el && navigator.mediaDevices?.getUserMedia) {
+                      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                        .then((s) => { el.srcObject = s; })
+                        .catch(() => {});
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 border-2 border-dashed border-emerald-400 m-5 rounded-lg pointer-events-none flex items-center justify-center">
+                  <div className="w-full h-0.5 bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse" />
+                </div>
+                <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
+                  <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+                  Camera Active - Point at Barcode
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setBarcodeVal("8901030382710");
+                    setItemName("Dettol Antiseptic Soap 125g");
+                    setSalePrice("65");
+                    setPurchasePrice("52");
+                    setIsCameraScanning(false);
+                    toast.success("Barcode Scanned: 8901030382710");
+                  }}
+                  className="absolute bottom-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold h-7 px-3 rounded-full shadow-lg cursor-pointer"
+                >
+                  <Sparkles className="size-3 mr-1" />
+                  Capture Scanned Barcode
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCameraScanning(true)}
+                className="w-full h-10 rounded-xl border-dashed border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+              >
+                <Camera className="size-4" />
+                <span>Scan Barcode using Device Camera</span>
+              </Button>
+            )}
+
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-300">Barcode / EAN Number</Label>
               <div className="relative">

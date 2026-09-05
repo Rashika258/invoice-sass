@@ -57,7 +57,7 @@ export default function BackupToComputerPage() {
           <Button
             onClick={handleDownload}
             disabled={loading}
-            className="h-10 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold px-8 text-xs shadow-md"
+            className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 text-xs shadow-md"
           >
             {loading ? (
               <>

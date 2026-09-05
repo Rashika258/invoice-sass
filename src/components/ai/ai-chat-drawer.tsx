@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Sparkles,
@@ -81,19 +82,24 @@ export function AiChatDrawer({
     }
   };
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end"
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex justify-end"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg h-full bg-card border-l border-border flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
+        className="w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
-        <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
+        <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="flex size-9 items-center justify-center rounded-xl bg-brand text-white shadow-xs">
               <Sparkles className="size-5" />
@@ -119,7 +125,7 @@ export function AiChatDrawer({
         </div>
 
         {/* Suggested Prompt Chips */}
-        <div className="p-3 border-b border-border/60 bg-background/50 flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="p-3 border-b border-border/60 bg-background/50 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
           {SUGGESTED_PROMPTS.map((prompt) => (
             <button
               key={prompt}
@@ -179,7 +185,7 @@ export function AiChatDrawer({
         </div>
 
         {/* Input Footer */}
-        <div className="p-3 border-t border-border bg-card">
+        <div className="p-3 border-t border-border bg-card shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -203,6 +209,7 @@ export function AiChatDrawer({
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

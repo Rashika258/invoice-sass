@@ -37,6 +37,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -265,7 +272,7 @@ export function CashBankHub({
                 trigger={
                   <Button className="h-10 rounded-full bg-brand hover:opacity-90 text-white font-bold px-8 text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer">
                     <Plus className="mr-1.5 size-4" />
-                    + Add Bank Account
+                    Add Bank Account
                   </Button>
                 }
               />
@@ -285,7 +292,7 @@ export function CashBankHub({
 
             {bankOnlyAccounts.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                No bank accounts registered yet. Click &quot;+ Add Bank Account&quot; above to link your first account.
+                No bank accounts registered yet. Click &quot;Add Bank Account&quot; above to link your first account.
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -493,36 +500,34 @@ export function CashBankHub({
           <form onSubmit={handleTransfer} className="space-y-4 pt-2 text-xs">
             <div className="space-y-1">
               <Label>Transfer From *</Label>
-              <select
-                value={transferFrom}
-                onChange={(e) => setTransferFrom(e.target.value)}
-                className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs"
-                required
-              >
-                <option value="">Select Account</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} (Balance: ₹{a.balance || 0})
-                  </option>
-                ))}
-              </select>
+              <Select value={transferFrom} onValueChange={(val) => val && setTransferFrom(val)}>
+                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                  <SelectValue placeholder="Select Account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.name} (Balance: ₹{a.balance || 0})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1">
               <Label>Transfer To *</Label>
-              <select
-                value={transferTo}
-                onChange={(e) => setTransferTo(e.target.value)}
-                className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs"
-                required
-              >
-                <option value="">Select Account</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} (Balance: ₹{a.balance || 0})
-                  </option>
-                ))}
-              </select>
+              <Select value={transferTo} onValueChange={(val) => val && setTransferTo(val)}>
+                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                  <SelectValue placeholder="Select Account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.name} (Balance: ₹{a.balance || 0})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

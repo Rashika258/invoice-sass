@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 type CustomerFormDialogProps = {
@@ -33,6 +40,7 @@ export function CustomerFormDialog({
 }: CustomerFormDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [partyType, setPartyType] = useState<string>(customer?.partyType ?? "CUSTOMER");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -105,16 +113,17 @@ export function CustomerFormDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="partyType">Party type</Label>
-              <select
-                id="partyType"
-                name="partyType"
-                defaultValue={customer?.partyType ?? "CUSTOMER"}
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="CUSTOMER">Customer</option>
-                <option value="SUPPLIER">Supplier</option>
-                <option value="BOTH">Customer & Supplier</option>
-              </select>
+              <input type="hidden" name="partyType" value={partyType} />
+              <Select value={partyType} onValueChange={(val) => val && setPartyType(val)}>
+                <SelectTrigger className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <SelectValue placeholder="Select Party Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectItem value="SUPPLIER">Supplier</SelectItem>
+                  <SelectItem value="BOTH">Customer &amp; Supplier</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="openingBalance">Opening balance</Label>

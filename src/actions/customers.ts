@@ -44,3 +44,36 @@ export async function deleteCustomer(id: string) {
   if (!result.count) throw new Error("Customer not found");
   revalidatePath("/customers"); revalidatePath("/dashboard");
 }
+
+export async function bulkCreateCustomers(
+  parties: Array<{
+    name: string;
+    type?: "CUSTOMER" | "SUPPLIER" | "BOTH";
+    phone?: string;
+    gstin?: string;
+    state?: string;
+    openingBalance?: number;
+  }>
+) {
+  const organization = await requireOrganization();
+  let count = 0;
+  for (const party of parties) {
+    if (!party.name?.trim()) continue;
+    await db.customer.create({
+      data: {
+        organizationId: organization.id,
+        name: party.name.trim(),
+        partyType: party.type || "CUSTOMER",
+        phone: party.phone || null,
+        taxId: party.gstin || null,
+        state: party.state || null,
+        openingBalance: Number(party.openingBalance) || 0,
+      },
+    });
+    count++;
+  }
+  revalidatePath("/customers");
+  revalidatePath("/invoices/new");
+  revalidatePath("/dashboard");
+  return { success: true, count };
+}

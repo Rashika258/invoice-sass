@@ -24,6 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCurrency } from "@/lib/invoice-utils";
 
 type POSCartItem = {
@@ -267,17 +274,18 @@ export function PosView({
 
               {/* Customer Selector */}
               <div className="mt-2.5">
-                <select
-                  value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium"
-                >
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} {c.phone ? `(${c.phone})` : ""}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedCustomerId} onValueChange={(val) => val && setSelectedCustomerId(val)}>
+                  <SelectTrigger className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium">
+                    <SelectValue placeholder="Select Customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id} className="text-xs">
+                        {c.name} {c.phone ? `(${c.phone})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
 
@@ -422,7 +430,7 @@ export function PosView({
                 type="button"
                 onClick={handleCheckout}
                 disabled={isProcessing || cart.length === 0}
-                className="w-full bg-[#E53935] hover:bg-[#d32f2f] text-white font-bold h-10 text-sm gap-2 shadow-sm active:scale-[0.98]"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 text-sm gap-2 shadow-sm active:scale-[0.98]"
               >
                 <Printer className="size-4" />
                 <span>
