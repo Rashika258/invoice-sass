@@ -14,6 +14,7 @@ import {
   type ExpenseInput,
   type PaymentInput,
 } from "@/lib/validations";
+import { recordAuditLog } from "@/lib/audit";
 
 function refreshMoney() {
   revalidatePath("/dashboard");
@@ -85,6 +86,12 @@ export async function deleteBankAccount(id: string) {
   refreshMoney();
 }
 
+export interface GetPaymentsOptions {
+  direction?: "IN" | "OUT";
+  page?: number;
+  limit?: number;
+}
+
 export async function getPayments(direction?: "IN" | "OUT") {
   const organization = await requireOrganization();
   return db.payment.findMany({
@@ -95,6 +102,37 @@ export async function getPayments(direction?: "IN" | "OUT") {
     include: { party: true, invoice: true, bankAccount: true },
     orderBy: { date: "desc" },
   });
+}
+
+export async function getPaginatedPayments(options: GetPaymentsOptions) {
+  const organization = await requireOrganization();
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 10;
+  const skip = (Math.max(page, 1) - 1) * limit;
+
+  const where = {
+    organizationId: organization.id,
+    ...(options.direction ? { direction: options.direction } : {}),
+  };
+
+  const [payments, total] = await Promise.all([
+    db.payment.findMany({
+      where,
+      include: { party: true, invoice: true, bankAccount: true },
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    db.payment.count({ where }),
+  ]);
+
+  return {
+    payments,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
 }
 
 async function syncInvoicePaid(
@@ -169,6 +207,18 @@ export async function createPayment(data: PaymentInput) {
     return created;
   });
 
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "CREATE",
+    entity: "Payment",
+    entityId: payment.id,
+    changes: {
+      number: payment.number,
+      amount: payment.amount,
+      direction: payment.direction,
+    },
+  });
+
   refreshMoney();
   return payment;
 }
@@ -184,7 +234,24 @@ export async function deletePayment(id: string) {
     await tx.payment.delete({ where: { id } });
     await syncInvoicePaid(tx, existing.invoiceId);
   });
+
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "DELETE",
+    entity: "Payment",
+    entityId: id,
+    changes: {
+      number: existing.number,
+      amount: existing.amount,
+    },
+  });
+
   refreshMoney();
+}
+
+export interface GetExpensesOptions {
+  page?: number;
+  limit?: number;
 }
 
 export async function getExpenses() {
@@ -194,6 +261,34 @@ export async function getExpenses() {
     include: { bankAccount: true },
     orderBy: { date: "desc" },
   });
+}
+
+export async function getPaginatedExpenses(options: GetExpensesOptions) {
+  const organization = await requireOrganization();
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 10;
+  const skip = (Math.max(page, 1) - 1) * limit;
+
+  const where = { organizationId: organization.id };
+
+  const [expenses, total] = await Promise.all([
+    db.expense.findMany({
+      where,
+      include: { bankAccount: true },
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    db.expense.count({ where }),
+  ]);
+
+  return {
+    expenses,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
 }
 
 export async function createExpense(data: ExpenseInput) {
@@ -223,15 +318,43 @@ export async function createExpense(data: ExpenseInput) {
       },
     });
   });
+
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "CREATE",
+    entity: "Expense",
+    entityId: expense.id,
+    changes: {
+      number: expense.number,
+      category: expense.category,
+      amount: expense.amount,
+    },
+  });
+
   refreshMoney();
   return expense;
 }
 
 export async function deleteExpense(id: string) {
   const organization = await requireOrganization();
-  const result = await db.expense.deleteMany({
+  const existing = await db.expense.findFirst({
     where: { id, organizationId: organization.id },
   });
-  if (!result.count) throw new Error("Expense not found");
+  if (!existing) throw new Error("Expense not found");
+
+  await db.expense.delete({ where: { id } });
+
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "DELETE",
+    entity: "Expense",
+    entityId: id,
+    changes: {
+      number: existing.number,
+      category: existing.category,
+      amount: existing.amount,
+    },
+  });
+
   refreshMoney();
 }

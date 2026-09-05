@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import { db } from "@/lib/db";
+import { requireOrganization } from "@/lib/organization";
 
 export interface GstThresholdConfig {
   goodsThreshold: number; // ₹40,00,000
@@ -24,10 +24,10 @@ export const GST_THRESHOLDS: GstThresholdConfig = {
 };
 
 export type DpdpConsentPurpose =
-  | "TRANSACTIONAL_INVOICES" // Invoices & credit notes over WhatsApp/SMS
-  | "PAYMENT_REMINDERS" // Digital Khata overdue payment collections
-  | "MARKETING_OFFERS" // Promotional catalogs, discounts & broadcasts
-  | "BIOMETRIC_ATTENDANCE"; // Fingerprint & Facial geometry processing
+  | "TRANSACTIONAL_INVOICES"
+  | "PAYMENT_REMINDERS"
+  | "MARKETING_OFFERS"
+  | "BIOMETRIC_ATTENDANCE";
 
 export interface DpdpConsentRecord {
   id: string;
@@ -43,11 +43,8 @@ export interface DpdpConsentRecord {
   notes?: string;
 }
 
-const DPDP_STORE_FILE = path.join(process.cwd(), "prisma", "dpdp_consent.json");
-
-const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
+const SEED_CONSENT_RECORDS: Omit<DpdpConsentRecord, "id">[] = [
   {
-    id: "dpdp-001",
     entityType: "CUSTOMER",
     entityId: "cust-1",
     entityName: "Kiran Auto Works",
@@ -60,7 +57,6 @@ const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
     notes: "Customer authorized digital invoice PDF delivery via WhatsApp",
   },
   {
-    id: "dpdp-002",
     entityType: "CUSTOMER",
     entityId: "cust-1",
     entityName: "Kiran Auto Works",
@@ -73,7 +69,6 @@ const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
     notes: "Consented to automated UPI payment collection alerts",
   },
   {
-    id: "dpdp-003",
     entityType: "CUSTOMER",
     entityId: "cust-2",
     entityName: "Rajesh Hardware & Tools",
@@ -86,7 +81,6 @@ const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
     notes: "Counter authorization during GST account setup",
   },
   {
-    id: "dpdp-004",
     entityType: "CUSTOMER",
     entityId: "cust-3",
     entityName: "Sri Balaji Fabricators",
@@ -99,7 +93,6 @@ const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
     notes: "Customer requested removal from seasonal promotional broadcasts",
   },
   {
-    id: "dpdp-005",
     entityType: "EMPLOYEE",
     entityId: "emp-1",
     entityName: "Ramesh Kumar (Operator)",
@@ -111,81 +104,138 @@ const SEED_CONSENT_RECORDS: DpdpConsentRecord[] = [
     noticeVersion: "v1.2-2026",
     notes: "Explicit consent for Mantra MFS100 fingerprint recognition & time clock",
   },
-  {
-    id: "dpdp-006",
-    entityType: "EMPLOYEE",
-    entityId: "emp-2",
-    entityName: "Suresh Gowda (Welder)",
-    contact: "+91 98440 67890",
-    purpose: "BIOMETRIC_ATTENDANCE",
-    status: "GRANTED",
-    grantedAt: "2026-08-01T09:00:00.000Z",
-    channel: "Employee Onboarding Contract",
-    noticeVersion: "v1.2-2026",
-    notes: "Explicit consent for attendance camera face scanning",
-  },
 ];
 
-export function getDpdpConsentLedger(): DpdpConsentRecord[] {
+export async function getDpdpConsentLedger(): Promise<DpdpConsentRecord[]> {
   try {
-    if (fs.existsSync(DPDP_STORE_FILE)) {
-      const data = fs.readFileSync(DPDP_STORE_FILE, "utf-8");
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.error("Error reading DPDP consent file:", err);
-  }
+    const org = await requireOrganization();
+    let records = await db.dpdpConsent.findMany({
+      where: { organizationId: org.id },
+      orderBy: { createdAt: "desc" },
+    });
 
-  // If not exists, write seed and return
-  saveDpdpConsentLedger(SEED_CONSENT_RECORDS);
-  return SEED_CONSENT_RECORDS;
+    if (records.length === 0) {
+      // Seed default consents for org
+      for (const s of SEED_CONSENT_RECORDS) {
+        await db.dpdpConsent.create({
+          data: {
+            organizationId: org.id,
+            entityType: s.entityType,
+            entityId: s.entityId,
+            entityName: s.entityName,
+            contact: s.contact,
+            purpose: s.purpose,
+            status: s.status,
+            grantedAt: new Date(s.grantedAt),
+            channel: s.channel,
+            noticeVersion: s.noticeVersion,
+            notes: s.notes,
+          },
+        });
+      }
+
+      records = await db.dpdpConsent.findMany({
+        where: { organizationId: org.id },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+
+    return records.map((r) => ({
+      id: r.id,
+      entityType: r.entityType as "CUSTOMER" | "EMPLOYEE",
+      entityId: r.entityId,
+      entityName: r.entityName,
+      contact: r.contact,
+      purpose: r.purpose as DpdpConsentPurpose,
+      status: r.status as "GRANTED" | "WITHDRAWN" | "EXPIRED",
+      grantedAt: r.grantedAt.toISOString(),
+      channel: r.channel,
+      noticeVersion: r.noticeVersion,
+      notes: r.notes || undefined,
+    }));
+  } catch (err) {
+    console.error("Error loading DPDP consent records from DB:", err);
+    return [];
+  }
 }
 
-export function saveDpdpConsentLedger(records: DpdpConsentRecord[]): boolean {
+export async function addOrUpdateConsent(
+  entry: Omit<DpdpConsentRecord, "id" | "grantedAt"> & { id?: string }
+): Promise<DpdpConsentRecord> {
+  const org = await requireOrganization();
+  if (entry.id) {
+    const updated = await db.dpdpConsent.update({
+      where: { id: entry.id },
+      data: {
+        entityType: entry.entityType,
+        entityId: entry.entityId,
+        entityName: entry.entityName,
+        contact: entry.contact,
+        purpose: entry.purpose,
+        status: entry.status,
+        channel: entry.channel,
+        noticeVersion: entry.noticeVersion || "v1.2-2026",
+        notes: entry.notes,
+      },
+    });
+
+    return {
+      id: updated.id,
+      entityType: updated.entityType as "CUSTOMER" | "EMPLOYEE",
+      entityId: updated.entityId,
+      entityName: updated.entityName,
+      contact: updated.contact,
+      purpose: updated.purpose as DpdpConsentPurpose,
+      status: updated.status as "GRANTED" | "WITHDRAWN" | "EXPIRED",
+      grantedAt: updated.grantedAt.toISOString(),
+      channel: updated.channel,
+      noticeVersion: updated.noticeVersion,
+      notes: updated.notes || undefined,
+    };
+  }
+
+  const created = await db.dpdpConsent.create({
+    data: {
+      organizationId: org.id,
+      entityType: entry.entityType,
+      entityId: entry.entityId,
+      entityName: entry.entityName,
+      contact: entry.contact,
+      purpose: entry.purpose,
+      status: entry.status,
+      grantedAt: new Date(),
+      channel: entry.channel,
+      noticeVersion: entry.noticeVersion || "v1.2-2026",
+      notes: entry.notes,
+    },
+  });
+
+  return {
+    id: created.id,
+    entityType: created.entityType as "CUSTOMER" | "EMPLOYEE",
+    entityId: created.entityId,
+    entityName: created.entityName,
+    contact: created.contact,
+    purpose: created.purpose as DpdpConsentPurpose,
+    status: created.status as "GRANTED" | "WITHDRAWN" | "EXPIRED",
+    grantedAt: created.grantedAt.toISOString(),
+    channel: created.channel,
+    noticeVersion: created.noticeVersion,
+    notes: created.notes || undefined,
+  };
+}
+
+export async function toggleConsentStatus(
+  id: string,
+  newStatus: "GRANTED" | "WITHDRAWN" | "EXPIRED"
+): Promise<boolean> {
   try {
-    const dir = path.dirname(DPDP_STORE_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(DPDP_STORE_FILE, JSON.stringify(records, null, 2), "utf-8");
+    await db.dpdpConsent.update({
+      where: { id },
+      data: { status: newStatus },
+    });
     return true;
-  } catch (err) {
-    console.error("Error writing DPDP consent file:", err);
+  } catch {
     return false;
   }
-}
-
-export function addOrUpdateConsent(entry: Omit<DpdpConsentRecord, "id" | "grantedAt"> & { id?: string }): DpdpConsentRecord {
-  const records = getDpdpConsentLedger();
-  const existingIdx = records.findIndex((r) => r.id === entry.id);
-
-  if (existingIdx >= 0) {
-    const updated: DpdpConsentRecord = {
-      ...records[existingIdx],
-      ...entry,
-      grantedAt: new Date().toISOString(),
-    };
-    records[existingIdx] = updated;
-    saveDpdpConsentLedger(records);
-    return updated;
-  }
-
-  const newRecord: DpdpConsentRecord = {
-    ...entry,
-    id: `dpdp-${Date.now()}`,
-    grantedAt: new Date().toISOString(),
-    noticeVersion: entry.noticeVersion || "v1.2-2026",
-  };
-
-  records.unshift(newRecord);
-  saveDpdpConsentLedger(records);
-  return newRecord;
-}
-
-export function toggleConsentStatus(id: string, newStatus: "GRANTED" | "WITHDRAWN" | "EXPIRED"): boolean {
-  const records = getDpdpConsentLedger();
-  const record = records.find((r) => r.id === id);
-  if (!record) return false;
-  record.status = newStatus;
-  return saveDpdpConsentLedger(records);
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { recordAuditLog } from "@/lib/audit";
 import { requireOrganization } from "@/lib/organization";
 import { revalidatePath } from "next/cache";
 
@@ -180,11 +181,31 @@ export async function createVoucher(input: VoucherInput) {
     include: { entries: { include: { ledger: true } } },
   });
 
+  await recordAuditLog({
+    organizationId: org.id,
+    action: "CREATE",
+    entity: "Voucher",
+    entityId: voucher.id,
+    changes: {
+      voucherNumber: voucher.voucherNumber,
+      voucherType: voucher.voucherType,
+      amount: drTotal,
+    },
+  });
+
   revalidatePath("/accounting");
   revalidatePath("/accounting/vouchers");
   revalidatePath("/accounting/daybook");
   revalidatePath("/accounting/trial-balance");
   return voucher;
+}
+
+export interface GetVouchersOptions {
+  voucherType?: VoucherTypeKey;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  limit?: number;
 }
 
 export async function getVouchers(filters?: { voucherType?: VoucherTypeKey; fromDate?: string; toDate?: string }) {
@@ -201,9 +222,59 @@ export async function getVouchers(filters?: { voucherType?: VoucherTypeKey; from
   });
 }
 
+export async function getPaginatedVouchers(filters: GetVouchersOptions) {
+  const org = await requireOrganization();
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 10;
+  const skip = (Math.max(page, 1) - 1) * limit;
+
+  const where = {
+    organizationId: org.id,
+    ...(filters.voucherType && { voucherType: filters.voucherType as any }),
+    ...(filters.fromDate && { date: { gte: new Date(filters.fromDate) } }),
+    ...(filters.toDate && { date: { lte: new Date(filters.toDate) } }),
+  };
+
+  const [vouchers, total] = await Promise.all([
+    db.journalVoucher.findMany({
+      where,
+      include: { entries: { include: { ledger: { select: { id: true, name: true, group: true } } } } },
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    db.journalVoucher.count({ where }),
+  ]);
+
+  return {
+    vouchers,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
+}
+
 export async function deleteVoucher(id: string) {
   const org = await requireOrganization();
+  const existing = await db.journalVoucher.findFirst({
+    where: { id, organizationId: org.id },
+  });
+  if (!existing) throw new Error("Voucher not found");
+
   await db.journalVoucher.delete({ where: { id, organizationId: org.id } });
+
+  await recordAuditLog({
+    organizationId: org.id,
+    action: "DELETE",
+    entity: "Voucher",
+    entityId: id,
+    changes: {
+      voucherNumber: existing.voucherNumber,
+      voucherType: existing.voucherType,
+    },
+  });
+
   revalidatePath("/accounting");
   revalidatePath("/accounting/vouchers");
 }

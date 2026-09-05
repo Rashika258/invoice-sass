@@ -89,6 +89,9 @@ model Organization {
   numberSeries  NumberSeries[]
   ledgers       Ledger[]
   vouchers      JournalVoucher[]
+  dpdpConsents  DpdpConsent[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -429,4 +432,55 @@ model JournalEntry {
 
   @@index([voucherId])
   @@index([ledgerId])
+}
+
+model DpdpConsent {
+  id            String       @id @default(cuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entityType    String       // "CUSTOMER" | "EMPLOYEE"
+  entityId      String
+  entityName    String
+  contact       String
+  purpose       String       // "TRANSACTIONAL_INVOICES", etc.
+  status        String       // "GRANTED" | "WITHDRAWN" | "EXPIRED"
+  grantedAt     DateTime
+  channel       String
+  noticeVersion String
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([entityId])
+}
+
+model AuditLog {
+  id            String       @id @default(cuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId        String?
+  action        String       // "CREATE", "UPDATE", "DELETE"
+  entity        String       // "Invoice", "Ledger", etc.
+  entityId      String
+  changes       String?      // JSON diff or description
+  timestamp     DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([timestamp])
+}
+
+model Notification {
+  id            String       @id @default(cuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId        String?
+  type          String       // "PAYMENT_DUE", "INVOICE_SENT", "LOW_STOCK"
+  title         String
+  message       String
+  read          Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([read])
 }

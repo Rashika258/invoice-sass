@@ -89,6 +89,8 @@ export function numberToWordsIndian(amount: number): string {
   // Hundreds & below
   if (remaining > 0) {
     parts.push(convertBelowThousand(remaining));
+  } else if (parts.length === 0) {
+    parts.push("Zero");
   }
 
   let words = "Rupees " + parts.join(" ").replace(/\s+/g, " ").trim();

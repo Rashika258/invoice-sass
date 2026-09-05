@@ -116,7 +116,7 @@ export async function getComplianceDashboardData(): Promise<ComplianceSummary> {
     });
 
   // DPDP Consent Records
-  const consentRecords = getDpdpConsentLedger();
+  const consentRecords = await getDpdpConsentLedger();
   const dpdpStats = {
     totalActive: consentRecords.filter((r) => r.status === "GRANTED").length,
     withdrawn: consentRecords.filter((r) => r.status === "WITHDRAWN").length,
@@ -161,7 +161,7 @@ export async function addOrUpdateConsentRecordAction(data: {
   notes?: string;
 }) {
   await requireOrganization();
-  return addOrUpdateConsent({
+  return await addOrUpdateConsent({
     ...data,
     status: "GRANTED",
     noticeVersion: "v1.2-2026",
@@ -170,5 +170,5 @@ export async function addOrUpdateConsentRecordAction(data: {
 
 export async function toggleConsentStatusAction(id: string, newStatus: "GRANTED" | "WITHDRAWN" | "EXPIRED") {
   await requireOrganization();
-  return toggleConsentStatus(id, newStatus);
+  return await toggleConsentStatus(id, newStatus);
 }

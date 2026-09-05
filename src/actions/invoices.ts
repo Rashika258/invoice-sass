@@ -9,6 +9,7 @@ import { nextDocumentNumber } from "@/lib/number-series";
 import { requireOrganization } from "@/lib/organization";
 import { applyStockChange, shouldAffectStock } from "@/lib/stock";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
+import { recordAuditLog } from "@/lib/audit";
 
 function refreshDocuments(href: string) {
   revalidatePath("/dashboard");
@@ -25,6 +26,14 @@ function refreshDocuments(href: string) {
   revalidatePath(href);
 }
 
+export interface GetInvoicesOptions {
+  documentType?: DocumentType;
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
 export async function getInvoices(documentType?: DocumentType) {
   const organization = await requireOrganization();
   return db.invoice.findMany({
@@ -35,6 +44,46 @@ export async function getInvoices(documentType?: DocumentType) {
     include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function getPaginatedInvoices(options: GetInvoicesOptions) {
+  const organization = await requireOrganization();
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 10;
+  const skip = (Math.max(page, 1) - 1) * limit;
+
+  const where = {
+    organizationId: organization.id,
+    ...(options.documentType ? { documentType: options.documentType } : {}),
+    ...(options.status ? { status: options.status as any } : {}),
+    ...(options.search
+      ? {
+          OR: [
+            { invoiceNumber: { contains: options.search } },
+            { customer: { name: { contains: options.search } } },
+          ],
+        }
+      : {}),
+  };
+
+  const [invoices, total] = await Promise.all([
+    db.invoice.findMany({
+      where,
+      include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    db.invoice.count({ where }),
+  ]);
+
+  return {
+    invoices,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
 }
 
 export async function getInvoice(id: string) {
@@ -131,6 +180,19 @@ export async function createInvoice(data: InvoiceInput) {
     return created;
   });
 
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "CREATE",
+    entity: "Invoice",
+    entityId: invoice.id,
+    changes: {
+      invoiceNumber: invoice.invoiceNumber,
+      documentType: invoice.documentType,
+      total: invoice.total,
+      customer: customer.name,
+    },
+  });
+
   refreshDocuments(DOCUMENT_META[parsed.documentType].href);
   return invoice;
 }
@@ -202,6 +264,18 @@ export async function updateInvoice(id: string, data: InvoiceInput) {
     return updated;
   });
 
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "UPDATE",
+    entity: "Invoice",
+    entityId: invoice.id,
+    changes: {
+      invoiceNumber: invoice.invoiceNumber,
+      documentType: invoice.documentType,
+      total: invoice.total,
+    },
+  });
+
   refreshDocuments(DOCUMENT_META[parsed.documentType].href);
   revalidatePath(`/invoices/${id}`);
   return invoice;
@@ -226,6 +300,17 @@ export async function deleteInvoice(id: string) {
       );
     }
     await tx.invoice.delete({ where: { id } });
+  });
+
+  await recordAuditLog({
+    organizationId: organization.id,
+    action: "DELETE",
+    entity: "Invoice",
+    entityId: id,
+    changes: {
+      invoiceNumber: existing.invoiceNumber,
+      documentType: existing.documentType,
+    },
   });
 
   refreshDocuments(DOCUMENT_META[existing.documentType].href);
