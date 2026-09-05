@@ -30,7 +30,7 @@ function PopoverContent({
   alignOffset = 0,
   side = "bottom",
   sideOffset = 4,
-  positionMethod,
+  positionMethod = "fixed",
   className,
   ...props
 }: PopoverPrimitive.Popup.Props &

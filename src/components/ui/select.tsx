@@ -64,7 +64,7 @@ function SelectContent({
   align = "start",
   alignOffset = 0,
   alignItemWithTrigger = false,
-  positionMethod,
+  positionMethod = "fixed",
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<

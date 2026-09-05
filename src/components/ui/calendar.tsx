@@ -20,10 +20,10 @@ function Calendar({
       className={cn("p-1 select-none", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-3",
-        month_caption: "flex justify-between pt-1 relative items-center px-1 mb-2",
+        month: "space-y-3 relative",
+        month_caption: "flex justify-center pt-1 relative items-center px-1 mb-2 h-7",
         caption_label: "text-sm font-semibold text-foreground dark:text-zinc-100",
-        nav: "space-x-1 flex items-center justify-between w-full absolute inset-x-0 px-1",
+        nav: "flex items-center justify-between w-full absolute inset-x-0 top-0 h-7 px-1 z-10 pointer-events-none *:pointer-events-auto",
         button_previous: cn(
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
           "size-7 bg-transparent p-0 text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-zinc-100 cursor-pointer rounded-lg"

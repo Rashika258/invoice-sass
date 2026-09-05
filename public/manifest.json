@@ -1,12 +1,12 @@
 {
-  "name": "Sri Manjunatha Engineering Works",
-  "short_name": "Manjunatha ERP",
-  "description": "GST Billing, Shift Attendance & Inventory Operations",
-  "start_url": "/dashboard",
+  "name": "Billora ERP & Invoice SaaS",
+  "short_name": "Billora POS",
+  "description": "Modern All-in-One Business ERP, Invoicing, POS & Inventory Management",
+  "start_url": "/pos",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#090d16",
   "theme_color": "#10b981",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icon.png",
@@ -14,19 +14,9 @@
       "type": "image/png"
     },
     {
-      "src": "/logo.png",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "/apple-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
     }
   ]
 }

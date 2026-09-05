@@ -22,7 +22,7 @@
   "autoBackup": true,
   "lastBackupDate": "04/09/2026 | 07:09 AM",
   "auditTrail": true,
-  "screenZoom": 105,
+  "screenZoom": 100,
   "attendanceMode": "HYBRID",
   "fingerprintProvider": "MANTRA_RD_SERVICE",
   "enableFaceCaptureSnapshot": true,

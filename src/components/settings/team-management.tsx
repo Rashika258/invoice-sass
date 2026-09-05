@@ -152,13 +152,16 @@ export function TeamManagement({
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold">Assigned Role</Label>
-                    <Select value={role} onValueChange={(val) => setRole(val as "ADMIN" | "STAFF")}>
+                    <Select value={role} onValueChange={(val) => setRole(val as any)}>
                       <SelectTrigger className="w-full h-9 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="STAFF">Staff / Operator (Attendance, OT &amp; Salary Slips)</SelectItem>
                         <SelectItem value="ADMIN">Admin (Full Access &amp; Company Settings)</SelectItem>
+                        <SelectItem value="STAFF">Staff / Operator (Attendance, OT &amp; Salary Slips)</SelectItem>
+                        <SelectItem value="SALES_OPERATOR">Sales Operator (POS Counter &amp; Billing Only)</SelectItem>
+                        <SelectItem value="WAREHOUSE_CLERK">Warehouse Clerk (Items &amp; Inventory Only)</SelectItem>
+                        <SelectItem value="CA_AUDITOR">CA Auditor (Accounting &amp; Tax Reports Only)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -167,7 +170,10 @@ export function TeamManagement({
                     <p className="font-semibold text-foreground">Role Permissions:</p>
                     <ul className="list-disc pl-4 mt-1 space-y-0.5">
                       <li><b>Admin</b>: Access all billing, inventory, banking, reports, and settings.</li>
-                      <li><b>Staff</b>: Log employee attendance, calculate overtime (OT), and print monthly salary slips.</li>
+                      <li><b>Staff</b>: Log attendance, calculate overtime (OT), and print salary slips.</li>
+                      <li><b>Sales Operator</b>: Create sales invoices &amp; run POS counter.</li>
+                      <li><b>Warehouse Clerk</b>: Manage products, stock quantities, and barcodes.</li>
+                      <li><b>CA Auditor</b>: View ledger accounts, GST returns, and trial balance.</li>
                     </ul>
                   </div>
 
@@ -222,14 +228,17 @@ export function TeamManagement({
                   {isAdmin && member.id !== currentUserId ? (
                     <Select
                       value={member.role}
-                      onValueChange={(val) => handleRoleChange(member.id, val as "ADMIN" | "STAFF")}
+                      onValueChange={(val) => handleRoleChange(member.id, val as any)}
                     >
-                      <SelectTrigger className="h-7 w-28 text-xs font-medium">
+                      <SelectTrigger className="h-7 w-36 text-xs font-medium">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="ADMIN">Admin</SelectItem>
                         <SelectItem value="STAFF">Staff</SelectItem>
+                        <SelectItem value="SALES_OPERATOR">Sales Operator</SelectItem>
+                        <SelectItem value="WAREHOUSE_CLERK">Warehouse Clerk</SelectItem>
+                        <SelectItem value="CA_AUDITOR">CA Auditor</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (

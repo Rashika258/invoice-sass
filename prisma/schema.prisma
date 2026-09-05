@@ -60,6 +60,9 @@ enum AccountType {
 enum UserRole {
   ADMIN
   STAFF
+  WAREHOUSE_CLERK
+  CA_AUDITOR
+  SALES_OPERATOR
 }
 
 model User {
@@ -68,6 +71,8 @@ model User {
   email          String       @unique
   passwordHash   String
   role           UserRole     @default(ADMIN)
+  totpSecret     String?
+  totpEnabled    Boolean      @default(false)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
