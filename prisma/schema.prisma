@@ -92,6 +92,7 @@ model Organization {
   dpdpConsents  DpdpConsent[]
   auditLogs     AuditLog[]
   notifications Notification[]
+  recurringInvoices RecurringInvoice[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -175,8 +176,10 @@ model Item {
   itemType       ItemType     @default(PRODUCT)
   stockQty       Float        @default(0)
   minStock       Float        @default(0)
-  isPublic       Boolean      @default(false)
-  createdAt      DateTime     @default(now())
+  isPublic       Boolean          @default(false)
+  batches        InventoryBatch[]
+  serialNumbers  SerialNumber[]
+  createdAt      DateTime         @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([organizationId, name])
@@ -317,6 +320,7 @@ model Employee {
   hourlyRate     Float
   overtimeRate   Float
   attendance     AttendanceRecord[]
+  payrolls       PayrollRecord[]
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
@@ -484,3 +488,73 @@ model Notification {
   @@index([organizationId])
   @@index([read])
 }
+
+model InventoryBatch {
+  id            String    @id @default(cuid())
+  itemId        String
+  item          Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  batchNumber   String
+  expiryDate    DateTime?
+  quantity      Float
+  costPrice     Float     @default(0)
+  dateReceived  DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([itemId, batchNumber])
+  @@index([itemId])
+}
+
+model SerialNumber {
+  id            String   @id @default(cuid())
+  itemId        String
+  item          Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  serialNumber  String
+  status        String   @default("AVAILABLE")
+  dateAdded     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([itemId, serialNumber])
+  @@index([itemId])
+}
+
+model RecurringInvoice {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceTemplateId  String?
+  frequency          String       // "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"
+  startDate          DateTime
+  endDate            DateTime?
+  lastGeneratedAt    DateTime?
+  nextGenerationDate DateTime
+  status             String       @default("ACTIVE")
+  autoEmail          Boolean      @default(true)
+  autoWhatsApp       Boolean      @default(false)
+  reminderDaysBefore Int          @default(3)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([nextGenerationDate])
+}
+
+model PayrollRecord {
+  id            String   @id @default(cuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month         DateTime
+  baseSalary    Float
+  overtimePay   Float    @default(0)
+  grossSalary   Float
+  pfDeduction   Float    @default(0)
+  esiDeduction  Float    @default(0)
+  taxDeduction  Float    @default(0)
+  netSalary     Float
+  status        String   @default("DRAFT")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([employeeId])
+}
+

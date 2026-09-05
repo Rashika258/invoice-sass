@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { importTallyXmlData } from "@/actions/tally-integration";
 
 interface TallyHubViewProps {
   companyName: string;
@@ -397,16 +398,28 @@ ${purchases
           </div>
 
           {/* Upload area */}
-          <div
-            className="p-10 rounded-2xl border-2 border-dashed border-border bg-card/50 text-center space-y-4 cursor-pointer hover:border-brand hover:bg-brand-light transition-all"
-            onClick={() => {
-              setUploading(true);
-              setTimeout(() => {
-                setUploading(false);
-                toast.success("Tally XML parsed! 47 ledgers, 128 stock items, and 12 opening balances queued for review.");
-              }, 1200);
-            }}
-          >
+          <label className="p-10 rounded-2xl border-2 border-dashed border-border bg-card/50 text-center space-y-4 cursor-pointer hover:border-brand hover:bg-brand-light transition-all block">
+            <input
+              type="file"
+              accept=".xml,.txt"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploading(true);
+                try {
+                  const text = await file.text();
+                  const res = await importTallyXmlData(text);
+                  toast.success(
+                    `Imported ${res.ledgersImported} ledgers and processed ${res.vouchersFound} vouchers from Tally XML!`,
+                  );
+                } catch (err: any) {
+                  toast.error(`Failed to parse Tally file: ${err.message}`);
+                } finally {
+                  setUploading(false);
+                }
+              }}
+            />
             <div className="p-4 rounded-full bg-brand-light text-brand w-fit mx-auto">
               <UploadCloud className="size-8" />
             </div>
@@ -416,7 +429,7 @@ ${purchases
               </h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                 Export from Tally: <code className="bg-muted px-1 rounded text-[10px]">Gateway → Export → Masters → XML</code>.
-                Supported: <strong>.xml</strong>, <strong>.xls</strong>
+                Supported: <strong>.xml</strong>, <strong>.txt</strong>
               </p>
             </div>
             {uploading ? (
@@ -425,12 +438,12 @@ ${purchases
                 <span>Parsing XML schema...</span>
               </div>
             ) : (
-              <Button className="bg-brand text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer">
+              <div className="inline-flex items-center justify-center px-4 py-2 bg-brand text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer">
                 <Upload className="mr-1.5 size-3.5" />
-                Select Tally XML File
-              </Button>
+                Select Tally File
+              </div>
             )}
-          </div>
+          </label>
 
           {/* Export steps from Tally */}
           <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
