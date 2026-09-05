@@ -113,6 +113,47 @@ export function AppTopHeader({
     }
   };
 
+  // Keyboard support for Quick Calculator
+  useEffect(() => {
+    if (!calcOpen) return;
+
+    const handleCalcKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA") return;
+
+      const key = e.key;
+      if (key >= "0" && key <= "9") {
+        e.preventDefault();
+        setCalcInput((prev) => prev + key);
+      } else if (key === "." || key === "+" || key === "-" || key === "*" || key === "/" || key === "(" || key === ")") {
+        e.preventDefault();
+        setCalcInput((prev) => prev + key);
+      } else if (key === "Enter" || key === "=") {
+        e.preventDefault();
+        handleCalcButton("=");
+      } else if (key === "Backspace") {
+        e.preventDefault();
+        setCalcInput((prev) => prev.slice(0, -1));
+        setCalcResult(null);
+      } else if (key === "c" || key === "C" || key === "Delete") {
+        e.preventDefault();
+        setCalcInput("");
+        setCalcResult(null);
+      } else if (key === "Escape") {
+        e.preventDefault();
+        if (calcInput || calcResult !== null) {
+          setCalcInput("");
+          setCalcResult(null);
+        } else {
+          setCalcOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleCalcKeyDown);
+    return () => window.removeEventListener("keydown", handleCalcKeyDown);
+  }, [calcOpen, calcInput, calcResult]);
+
   const quickNav = [
     { title: "Sale Invoices", href: "/invoices", icon: FileText, category: "Sales" },
     { title: "New Sale Invoice", href: "/invoices/new", icon: Plus, category: "Sales" },

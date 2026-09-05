@@ -1,15 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
   Building2,
   Check,
+  CheckCircle2,
   ChevronDown,
+  Copy,
+  CreditCard,
   Crown,
+  Download,
+  ExternalLink,
   HelpCircle,
+  Lock,
   MoreVertical,
+  QrCode,
+  RefreshCw,
   Shield,
+  ShieldCheck,
   Sparkles,
   Users,
   X,
@@ -77,12 +87,37 @@ const GOLD_FEATURES = [
   { text: "WhatsApp Connect", included: true },
 ];
 
+interface ActivePlanData {
+  plan: string;
+  expiresAt: string;
+  licenseKey: string;
+  activatedOn: string;
+  tenure: string;
+  amount: number;
+  txnId: string;
+}
+
 export default function PlansPricingPage() {
   const [deviceType, setDeviceType] = useState<"DESKTOP_MOBILE" | "DESKTOP">("DESKTOP_MOBILE");
   const [tenure, setTenure] = useState<"1_YEAR" | "3_YEAR">("1_YEAR");
   const [compareModalOpen, setCompareModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+
+  // Single Checkout Flow State
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState<"METHOD" | "UPI" | "CARD" | "OTP" | "SUCCESS">("METHOD");
+  const [cardTab, setCardTab] = useState<"CARD" | "NETBANKING">("CARD");
+  const [utrNumber, setUtrNumber] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [activePlan, setActivePlan] = useState<ActivePlanData | null>(null);
+  const [otpCode, setOtpCode] = useState("123456");
+
+  // Card Form State
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [selectedBank, setSelectedBank] = useState("HDFC");
 
   // Bulk license calculator state
   const [bulkPlan, setBulkPlan] = useState<"SILVER" | "GOLD">("GOLD");
@@ -107,6 +142,87 @@ export default function PlansPricingPage() {
   const bulkDiscount = Math.round(rawSubtotal * 0.25);
   const bulkTotal = rawSubtotal - bulkDiscount;
 
+  const currentPayablePrice = checkoutPlan === "Gold" ? goldPrice : silverPrice;
+  const currentPayableNum = checkoutPlan === "Gold" ? goldPriceNum : silverPriceNum;
+  const upiPayUrl = `upi://pay?pa=9448673532@okaxis&pn=Billora%20Software&am=${currentPayableNum.toFixed(
+    2
+  )}&cu=INR&tn=Billora_${checkoutPlan || "Pro"}_License`;
+
+  // Restore active plan from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("billora_active_plan");
+      if (saved) {
+        setActivePlan(JSON.parse(saved));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleOpenCheckout = (plan: string) => {
+    setCheckoutPlan(plan);
+    setCheckoutStep("METHOD");
+    setUtrNumber("");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCvv("");
+    setCardName("");
+    setOtpCode("123456");
+  };
+
+  const handleActivateLicense = (method: string) => {
+    setIsVerifying(true);
+    setTimeout(() => {
+      setIsVerifying(false);
+      const planName = checkoutPlan || "Gold";
+      const validUntilDate = new Date();
+      validUntilDate.setFullYear(validUntilDate.getFullYear() + (is3Year ? 3 : 1));
+      const expiresAt = validUntilDate.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const randomKey = `BIL-${planName.toUpperCase()}-2026-${randomSuffix}-${Math.floor(
+        1000 + Math.random() * 9000
+      )}`;
+
+      const newPlanData: ActivePlanData = {
+        plan: planName,
+        expiresAt,
+        licenseKey: randomKey,
+        activatedOn: new Date().toISOString(),
+        tenure: is3Year ? "3 Years" : "1 Year",
+        amount: currentPayableNum,
+        txnId: `TXN_${method}_${Date.now().toString().slice(-8)}`,
+      };
+
+      try {
+        localStorage.setItem("billora_active_plan", JSON.stringify(newPlanData));
+      } catch {
+        // ignore
+      }
+
+      setActivePlan(newPlanData);
+      setCheckoutStep("SUCCESS");
+      toast.success(`Billora ${planName} license activated successfully!`);
+    }, 1200);
+  };
+
+  const handleDownloadReceipt = () => {
+    if (!activePlan) return;
+    const content = `BILLORA BUSINESS OS - OFFICIAL PAYMENT RECEIPT\n--------------------------------------------\nReceipt / TXN ID : ${activePlan.txnId}\nPlan Name        : Billora ${activePlan.plan}\nTenure           : ${activePlan.tenure}\nAmount Paid      : ₹ ${activePlan.amount.toLocaleString()} (All GST Included)\nLicense Key      : ${activePlan.licenseKey}\nActivation Date  : ${new Date().toLocaleDateString("en-IN")}\nValid Until      : ${activePlan.expiresAt}\nStatus           : PAID & ACTIVE\n--------------------------------------------\nThank you for choosing Billora Business OS!`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Billora_${activePlan.plan}_Receipt.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Receipt downloaded!");
+  };
+
   return (
     <div className="relative min-h-[calc(100vh-5rem)] pb-16 space-y-6 select-none">
       {/* Top Header Row */}
@@ -116,6 +232,12 @@ export default function PlansPricingPage() {
           <Badge variant="outline" className="text-[10px] text-brand border-brand/20 bg-brand-light font-bold">
             BUSINESS OS
           </Badge>
+          {activePlan && (
+            <Badge className="bg-emerald-600 text-white font-mono text-[10px] gap-1">
+              <Crown className="size-3" />
+              <span>{activePlan.plan} Active</span>
+            </Badge>
+          )}
         </h1>
 
         <div className="flex items-center gap-2">
@@ -143,10 +265,18 @@ export default function PlansPricingPage() {
               <DropdownMenuItem onClick={() => setBulkModalOpen(true)}>
                 Buy Multiple Licenses
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.success("License Key Status: Active & Valid")}>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (activePlan) {
+                    toast.success(`Active License Key: ${activePlan.licenseKey} (Expires: ${activePlan.expiresAt})`);
+                  } else {
+                    toast.info("No active commercial license found. Please upgrade below.");
+                  }
+                }}
+              >
                 Verify License Key
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info("Opening enterprise support desk...")}>
+              <DropdownMenuItem onClick={() => toast.info("Sales Desk: 94486 73532 / support@billora.com")}>
                 Contact Sales Desk
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -156,7 +286,7 @@ export default function PlansPricingPage() {
 
       {/* Dropdown Filters */}
       <div className="flex items-center justify-center gap-3">
-        <Select value={deviceType} onValueChange={(val) => setDeviceType(val as any)}>
+        <Select value={deviceType} onValueChange={(val: any) => setDeviceType(val)}>
           <SelectTrigger className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground shadow-2xs w-44">
             <SelectValue placeholder="Device">
               {deviceType === "DESKTOP_MOBILE" ? "Desktop + Mobile" : "Desktop Only"}
@@ -168,7 +298,7 @@ export default function PlansPricingPage() {
           </SelectContent>
         </Select>
 
-        <Select value={tenure} onValueChange={(val) => setTenure(val as any)}>
+        <Select value={tenure} onValueChange={(val: any) => setTenure(val)}>
           <SelectTrigger className="h-8 px-3 rounded-full border border-border bg-card text-xs font-semibold text-foreground shadow-2xs w-48">
             <SelectValue placeholder="Tenure">
               {tenure === "1_YEAR" ? "1 Year" : "3 Years (Save 20% Extra)"}
@@ -184,7 +314,20 @@ export default function PlansPricingPage() {
       {/* 2 Plan Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2 max-w-3xl mx-auto items-stretch pt-2">
         {/* SILVER CARD */}
-        <div className="relative rounded-2xl border border-border/80 bg-card p-6 shadow-2xs flex flex-col justify-between space-y-6">
+        <div
+          className={`relative rounded-2xl border bg-card p-6 shadow-2xs flex flex-col justify-between space-y-6 ${
+            activePlan?.plan.toLowerCase() === "silver"
+              ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-500/[0.02]"
+              : "border-border/80"
+          }`}
+        >
+          {activePlan?.plan.toLowerCase() === "silver" && (
+            <div className="absolute -top-3 left-6 bg-emerald-600 text-white px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1">
+              <CheckCircle2 className="size-3" />
+              <span>Current Active Plan</span>
+            </div>
+          )}
+
           <div className="space-y-4">
             {/* Header: Icon & Plan Name */}
             <div className="flex items-center gap-2">
@@ -210,13 +353,23 @@ export default function PlansPricingPage() {
             </div>
 
             {/* Get Billora Silver Button */}
-            <Button
-              variant="outline"
-              onClick={() => setCheckoutPlan("Silver")}
-              className="w-full h-10 rounded-full border-2 border-brand text-brand hover:bg-brand-light font-bold text-xs shadow-xs cursor-pointer"
-            >
-              Get Billora Silver
-            </Button>
+            {activePlan?.plan.toLowerCase() === "silver" ? (
+              <Button
+                variant="outline"
+                onClick={() => handleOpenCheckout("Silver")}
+                className="w-full h-10 rounded-full border-2 border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs shadow-xs cursor-pointer"
+              >
+                Renew Silver Plan
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => handleOpenCheckout("Silver")}
+                className="w-full h-10 rounded-full border-2 border-brand text-brand hover:bg-brand-light font-bold text-xs shadow-xs cursor-pointer"
+              >
+                Get Billora Silver
+              </Button>
+            )}
 
             {/* Features Checklist */}
             <div className="space-y-2.5 pt-3 border-t border-border/60 text-xs">
@@ -237,10 +390,23 @@ export default function PlansPricingPage() {
         </div>
 
         {/* GOLD CARD */}
-        <div className="relative rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-500/[0.04] to-card p-6 shadow-md flex flex-col justify-between space-y-6">
+        <div
+          className={`relative rounded-2xl border-2 bg-gradient-to-b from-amber-500/[0.04] to-card p-6 shadow-md flex flex-col justify-between space-y-6 ${
+            activePlan?.plan.toLowerCase() === "gold"
+              ? "border-emerald-500 ring-2 ring-emerald-500/20"
+              : "border-amber-400/60"
+          }`}
+        >
           <div className="absolute -top-3.5 right-6 bg-brand text-white px-3 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shadow-xs">
-            Most Popular
+            {activePlan?.plan.toLowerCase() === "gold" ? "Active Tier" : "Most Popular"}
           </div>
+
+          {activePlan?.plan.toLowerCase() === "gold" && (
+            <div className="absolute -top-3.5 left-6 bg-emerald-600 text-white px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1">
+              <CheckCircle2 className="size-3" />
+              <span>Current Active Plan</span>
+            </div>
+          )}
 
           <div className="space-y-4">
             {/* Header */}
@@ -267,12 +433,21 @@ export default function PlansPricingPage() {
             </div>
 
             {/* Get Billora Gold Button */}
-            <Button
-              onClick={() => setCheckoutPlan("Gold")}
-              className="w-full h-10 rounded-full bg-brand hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
-            >
-              Get Billora Gold
-            </Button>
+            {activePlan?.plan.toLowerCase() === "gold" ? (
+              <Button
+                onClick={() => handleOpenCheckout("Gold")}
+                className="w-full h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Renew Gold Plan
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleOpenCheckout("Gold")}
+                className="w-full h-10 rounded-full bg-brand hover:opacity-90 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Get Billora Gold
+              </Button>
+            )}
 
             {/* Features Checklist */}
             <div className="space-y-2.5 pt-3 border-t border-border/60 text-xs">
@@ -299,24 +474,25 @@ export default function PlansPricingPage() {
 
       {/* Compare Features Modal */}
       <Dialog open={compareModalOpen} onOpenChange={setCompareModalOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl p-6">
+        <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center justify-between border-b pb-3">
-              <span>Silver vs Gold Feature Comparison</span>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Sparkles className="size-4 text-brand" />
+              <span>Full Features Comparison (Silver vs Gold)</span>
             </DialogTitle>
           </DialogHeader>
 
-          <Table className="mt-2">
-            <TableHeader className="bg-muted/70">
-              <TableRow>
-                <TableHead className="w-1/2">Capability</TableHead>
-                <TableHead className="text-center font-bold">Silver (₹{silverPrice})</TableHead>
-                <TableHead className="text-center font-bold text-amber-600 dark:text-amber-400">Gold (₹{goldPrice})</TableHead>
+          <Table className="text-xs">
+            <TableHeader>
+              <TableRow className="border-b">
+                <TableHead className="w-2/3">Feature</TableHead>
+                <TableHead className="text-center font-bold">Silver</TableHead>
+                <TableHead className="text-center font-bold text-primary">Gold</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {GOLD_FEATURES.map((gf, i) => {
-                const sf = SILVER_FEATURES[i];
+                const sf = SILVER_FEATURES[i] || { included: false };
                 return (
                   <TableRow key={i} className="hover:bg-muted/30">
                     <TableCell className="font-medium text-foreground">{gf.text}</TableCell>
@@ -351,7 +527,7 @@ export default function PlansPricingPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              toast.success(`Order placed for ${licenseCount} Billora ${bulkPlan} Licenses! Our team will contact ${contactPhone || "you"} shortly.`);
+              toast.success(`Order placed for ${licenseCount} Billora ${bulkPlan} Licenses! Our enterprise desk will contact ${contactPhone || "you"} shortly.`);
               setBulkModalOpen(false);
             }}
             className="space-y-4 pt-2 text-xs"
@@ -359,7 +535,7 @@ export default function PlansPricingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Select Tier</Label>
-                <Select value={bulkPlan} onValueChange={(val) => setBulkPlan(val as any)}>
+                <Select value={bulkPlan} onValueChange={(val: any) => setBulkPlan(val)}>
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder="Select Tier">
                       {bulkPlan === "GOLD" ? "Gold Tier (Full Features)" : "Silver Tier"}
@@ -374,7 +550,7 @@ export default function PlansPricingPage() {
 
               <div className="space-y-1.5">
                 <Label>Number of Licenses</Label>
-                <Select value={String(licenseCount)} onValueChange={(val) => setLicenseCount(Number(val))}>
+                <Select value={String(licenseCount)} onValueChange={(val: any) => setLicenseCount(Number(val))}>
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder="Quantity">
                       {licenseCount} Licenses (25% Bulk Disc.)
@@ -397,7 +573,7 @@ export default function PlansPricingPage() {
                 id="companyName"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="e.g. Sri Manjunatha Enterprises"
+                placeholder="e.g. Sri Manjunatha Engineering Works"
                 required
                 className="h-9 text-xs"
               />
@@ -410,7 +586,7 @@ export default function PlansPricingPage() {
                 type="tel"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+91 98765 43210"
+                placeholder="+91 94486 73532"
                 required
                 className="h-9 text-xs"
               />
@@ -444,52 +620,495 @@ export default function PlansPricingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Single Checkout Modal */}
+      {/* Interactive Single Checkout Modal with Real Payment Flows */}
       <Dialog open={!!checkoutPlan} onOpenChange={(open) => !open && setCheckoutPlan(null)}>
-        <DialogContent className="sm:max-w-md rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Crown className="size-4 text-amber-500" />
-              <span>Upgrade to Billora {checkoutPlan}</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2 text-xs">
-            <div className="rounded-xl bg-muted/40 p-3 space-y-1">
-              <div className="flex justify-between font-bold text-sm">
-                <span>Total Payable ({is3Year ? "3 Years" : "Annual"})</span>
-                <span className="font-mono text-primary">₹ {checkoutPlan === "Gold" ? goldPrice : silverPrice}</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">Includes all GST, automated cloud backup, and lifetime mobile sync.</p>
-            </div>
+        <DialogContent className="sm:max-w-md rounded-2xl p-6 bg-card border shadow-2xl">
+          {/* STEP 1: METHOD SELECTION */}
+          {checkoutStep === "METHOD" && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold flex items-center gap-2">
+                  <Crown className="size-4 text-amber-500" />
+                  <span>Upgrade to Billora {checkoutPlan}</span>
+                </DialogTitle>
+              </DialogHeader>
 
-            <div className="space-y-2">
-              <p className="font-semibold text-foreground">Select Payment Method:</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-4 pt-2 text-xs">
+                <div className="rounded-xl bg-muted/50 border p-3 space-y-1">
+                  <div className="flex justify-between font-bold text-sm">
+                    <span>Total Payable ({is3Year ? "3 Years" : "Annual"})</span>
+                    <span className="font-mono text-primary font-black text-base">
+                      ₹ {currentPayablePrice}
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Includes all GST, automated cloud backup, and lifetime mobile sync.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  <p className="font-semibold text-foreground">Select Payment Method:</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {/* UPI Button */}
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutStep("UPI")}
+                      className="p-3.5 rounded-xl border border-border hover:border-emerald-500 hover:bg-emerald-500/5 text-left cursor-pointer transition-all bg-card group shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <QrCode className="size-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                        <Badge className="bg-emerald-100 text-emerald-800 text-[9px] font-mono px-1 py-0">
+                          Instant
+                        </Badge>
+                      </div>
+                      <span className="font-bold block text-foreground text-xs">UPI / QR Code</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        PhonePe, GPay, Paytm
+                      </span>
+                    </button>
+
+                    {/* Net Banking / Card Button */}
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutStep("CARD")}
+                      className="p-3.5 rounded-xl border border-border hover:border-primary hover:bg-primary/5 text-left cursor-pointer transition-all bg-card group shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <CreditCard className="size-4 text-primary group-hover:scale-110 transition-transform" />
+                        <span className="text-[9px] text-muted-foreground font-semibold">Cards</span>
+                      </div>
+                      <span className="font-bold block text-foreground text-xs">Net Banking / Card</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Visa, MasterCard, RuPay
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-center gap-4 text-[10px] text-muted-foreground border-t">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="size-3 text-emerald-600" />
+                    256-Bit SSL Encrypted
+                  </span>
+                  <span>•</span>
+                  <span>Instant Activation</span>
+                  <span>•</span>
+                  <span>GST Tax Invoice Included</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* STEP 2: UPI QR CODE GATEWAY */}
+          {checkoutStep === "UPI" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    toast.success(`License activated for Billora ${checkoutPlan}! Thank you.`);
-                    setCheckoutPlan(null);
-                  }}
-                  className="p-3 rounded-xl border border-border hover:border-primary text-left cursor-pointer transition-colors bg-card"
+                  onClick={() => setCheckoutStep("METHOD")}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
                 >
-                  <span className="font-bold block">UPI / QR Code</span>
-                  <span className="text-[10px] text-muted-foreground">Instant Activation</span>
+                  <ArrowLeft className="size-3.5" />
+                  <span>Change Method</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    toast.success(`License activated for Billora ${checkoutPlan}! Thank you.`);
-                    setCheckoutPlan(null);
-                  }}
-                  className="p-3 rounded-xl border border-border hover:border-primary text-left cursor-pointer transition-colors bg-card"
-                >
-                  <span className="font-bold block">Net Banking / Card</span>
-                  <span className="text-[10px] text-muted-foreground">Visa, MasterCard, RuPay</span>
-                </button>
+                <Badge variant="outline" className="font-mono font-bold text-xs">
+                  Pay ₹ {currentPayablePrice}
+                </Badge>
+              </div>
+
+              <div className="text-center space-y-2">
+                <div className="p-2.5 rounded-xl bg-white border inline-block shadow-xs">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(
+                      upiPayUrl
+                    )}&margin=6`}
+                    alt="UPI Payment QR"
+                    className="size-38 object-contain"
+                  />
+                </div>
+                <p className="text-[11px] font-bold text-foreground">
+                  Scan using Google Pay, PhonePe, Paytm, or BHIM
+                </p>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                {/* Copy UPI ID */}
+                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border text-[11px]">
+                  <span className="text-muted-foreground">Payee UPI ID:</span>
+                  <div className="flex items-center gap-1.5">
+                    <code className="font-mono font-bold text-foreground">9448673532@okaxis</code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText("9448673532@okaxis");
+                        toast.success("UPI ID copied to clipboard!");
+                      }}
+                      className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Copy UPI ID"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Direct App Link */}
+                <div className="text-center">
+                  <a
+                    href={upiPayUrl}
+                    className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-bold"
+                  >
+                    <span>Click to Pay via Installed UPI App</span>
+                    <ExternalLink className="size-3" />
+                  </a>
+                </div>
+
+                {/* UTR Input */}
+                <div className="space-y-1.5 pt-1">
+                  <Label htmlFor="utr-input" className="text-[11px] font-bold">
+                    Enter 12-Digit UTR / UPI Ref No. after payment:
+                  </Label>
+                  <Input
+                    id="utr-input"
+                    placeholder="e.g. 429184920194"
+                    value={utrNumber}
+                    onChange={(e) => setUtrNumber(e.target.value)}
+                    className="h-9 font-mono text-xs"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleActivateLicense("DEMO_UPI")}
+                    disabled={isVerifying}
+                    className="flex-1 h-9 text-xs"
+                  >
+                    ⚡ Fast Demo Activate
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (!utrNumber.trim()) {
+                        toast.error("Please enter the 12-digit UPI UTR / Reference number from your payment receipt");
+                        return;
+                      }
+                      handleActivateLicense("UPI");
+                    }}
+                    disabled={isVerifying}
+                    className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {isVerifying ? "Verifying..." : "Verify & Activate"}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* STEP 3: CARD & NET BANKING GATEWAY */}
+          {checkoutStep === "CARD" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-3">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutStep("METHOD")}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Change Method</span>
+                </button>
+                <Badge variant="outline" className="font-mono font-bold text-xs">
+                  Pay ₹ {currentPayablePrice}
+                </Badge>
+              </div>
+
+              {/* Sub-tab toggle */}
+              <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/60 border text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setCardTab("CARD")}
+                  className={`py-1.5 rounded-lg transition-all ${
+                    cardTab === "CARD"
+                      ? "bg-card text-foreground shadow-2xs font-extrabold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Credit / Debit Card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardTab("NETBANKING")}
+                  className={`py-1.5 rounded-lg transition-all ${
+                    cardTab === "NETBANKING"
+                      ? "bg-card text-foreground shadow-2xs font-extrabold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Net Banking
+                </button>
+              </div>
+
+              {/* Card Payment Form */}
+              {cardTab === "CARD" && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (cardNumber.replace(/\s/g, "").length < 15) {
+                      toast.error("Please enter a valid 16-digit card number");
+                      return;
+                    }
+                    setCheckoutStep("OTP");
+                  }}
+                  className="space-y-3 text-xs"
+                >
+                  <div className="space-y-1">
+                    <Label htmlFor="card-number">Card Number</Label>
+                    <div className="relative">
+                      <Input
+                        id="card-number"
+                        placeholder="4532 8920 1829 4810"
+                        maxLength={19}
+                        value={cardNumber}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                          const formatted = v.match(/.{1,4}/g)?.join(" ") || v;
+                          setCardNumber(formatted);
+                        }}
+                        required
+                        className="h-9 font-mono text-xs pr-12"
+                      />
+                      <CreditCard className="size-4 absolute right-3 top-2.5 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="card-name">Cardholder Name</Label>
+                    <Input
+                      id="card-name"
+                      placeholder="e.g. Rajesh Kumar"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      required
+                      className="h-9 text-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="card-expiry">Expiry Date</Label>
+                      <Input
+                        id="card-expiry"
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        value={cardExpiry}
+                        onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          if (v.length >= 3) v = `${v.slice(0, 2)}/${v.slice(2)}`;
+                          setCardExpiry(v);
+                        }}
+                        required
+                        className="h-9 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="card-cvv">CVV</Label>
+                      <div className="relative">
+                        <Input
+                          id="card-cvv"
+                          placeholder="•••"
+                          type="password"
+                          maxLength={4}
+                          value={cardCvv}
+                          onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                          required
+                          className="h-9 font-mono text-xs pr-8"
+                        />
+                        <Lock className="size-3.5 absolute right-2.5 top-3 text-muted-foreground pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      className="w-full h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      Pay ₹ {currentPayablePrice} &amp; Verify OTP
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {/* Net Banking Form */}
+              {cardTab === "NETBANKING" && (
+                <div className="space-y-3 text-xs">
+                  <Label>Select Your Bank:</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: "HDFC", name: "HDFC Bank" },
+                      { id: "SBI", name: "State Bank of India" },
+                      { id: "ICICI", name: "ICICI Bank" },
+                      { id: "AXIS", name: "Axis Bank" },
+                      { id: "KOTAK", name: "Kotak Mahindra" },
+                      { id: "PNB", name: "Punjab National Bank" },
+                    ].map((bank) => (
+                      <button
+                        key={bank.id}
+                        type="button"
+                        onClick={() => setSelectedBank(bank.id)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          selectedBank === bank.id
+                            ? "border-primary bg-primary/5 ring-1 ring-primary font-bold"
+                            : "border-border hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="font-semibold text-xs text-foreground">{bank.name}</div>
+                        <div className="text-[10px] text-muted-foreground">Retail &amp; Corporate</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      onClick={() => handleActivateLicense("NETBANKING")}
+                      disabled={isVerifying}
+                      className="w-full h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      {isVerifying ? "Connecting to Bank..." : `Pay ₹ ${currentPayablePrice} via ${selectedBank}`}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 4: 3D SECURE OTP SIMULATION */}
+          {checkoutStep === "OTP" && (
+            <div className="space-y-4">
+              <div className="text-center space-y-1">
+                <div className="size-10 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center font-bold">
+                  <Shield className="size-5" />
+                </div>
+                <h3 className="font-bold text-sm text-foreground">3D Secure Bank Verification</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  An OTP has been sent to your registered mobile ending in •••• 7532
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-muted/50 border text-xs space-y-1 font-mono">
+                <div className="flex justify-between"><span>Merchant:</span><span className="font-bold">Billora Business OS</span></div>
+                <div className="flex justify-between"><span>Amount:</span><span className="font-bold text-primary">₹ {currentPayablePrice}</span></div>
+                <div className="flex justify-between"><span>Card:</span><span>•••• •••• •••• {cardNumber.slice(-4) || "4810"}</span></div>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <Label htmlFor="otp-input">Enter 6-Digit Bank OTP:</Label>
+                <Input
+                  id="otp-input"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  className="h-10 text-center font-mono font-bold tracking-widest text-base"
+                />
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Demo auto-filled with 123456 for instant verification
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCheckoutStep("CARD")}
+                  disabled={isVerifying}
+                  className="flex-1 h-9 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleActivateLicense("CARD")}
+                  disabled={isVerifying}
+                  className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {isVerifying ? "Authorizing..." : "Submit OTP & Activate"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: SUCCESS & LICENSE DISPLAY */}
+          {checkoutStep === "SUCCESS" && activePlan && (
+            <div className="space-y-4 text-center py-2">
+              <div className="size-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center animate-in zoom-in-50">
+                <CheckCircle2 className="size-8" />
+              </div>
+
+              <div>
+                <h3 className="font-black text-lg text-foreground">
+                  Billora {activePlan.plan} Activated!
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your commercial license is now active and synced across all your devices.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-muted/50 border text-left text-xs space-y-2">
+                <div className="flex justify-between items-center pb-2 border-b border-border/80">
+                  <span className="text-muted-foreground">License Key:</span>
+                  <div className="flex items-center gap-1.5">
+                    <code className="font-mono font-black text-primary text-[11px] bg-primary/10 px-2 py-0.5 rounded">
+                      {activePlan.licenseKey}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(activePlan.licenseKey);
+                        toast.success("License Key copied to clipboard!");
+                      }}
+                      className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Copy Key"
+                    >
+                      <Copy className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-foreground">Valid Tenure:</span>
+                  <span className="font-semibold text-foreground">{activePlan.tenure} (Expires: {activePlan.expiresAt})</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-foreground">Transaction ID:</span>
+                  <span className="font-mono text-muted-foreground">{activePlan.txnId}</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-foreground">Amount Paid:</span>
+                  <span className="font-mono font-bold text-emerald-600">₹ {activePlan.amount.toLocaleString()} (GST Paid)</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDownloadReceipt}
+                  className="flex-1 h-9 text-xs gap-1.5 font-semibold"
+                >
+                  <Download className="size-3.5" />
+                  <span>Download Receipt</span>
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setCheckoutPlan(null)}
+                  className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Done
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

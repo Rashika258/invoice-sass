@@ -67,24 +67,34 @@ export function PrintSettings({
 
   const templateOptions = [
     {
-      id: "MODERN",
-      name: "Modern Clean",
-      desc: "Brand gradient accent header, clean borderless tables, high readability",
+      id: "CLASSIC",
+      name: "Sri Manjunatha Authentic",
+      desc: "Exact printed bill book replica from your workshop with gear logo, watermark, and recipient checks",
     },
     {
-      id: "CLASSIC",
-      name: "Classic Tally Style",
-      desc: "Structured full grid borders, compact boxed totals, traditional Indian layout",
+      id: "MODERN",
+      name: "Modern Executive",
+      desc: "Brand gradient accent header, clean borderless tables, high readability & UPI QR code",
     },
     {
       id: "GST_TAX",
       name: "GST Tax Detailed",
-      desc: "Itemized HSN/SAC code breakdown, dedicated CGST/SGST/IGST tax rate columns",
+      desc: "Itemized HSN/SAC code breakdown, dedicated CGST/SGST/IGST tax summary & bank wire details",
+    },
+    {
+      id: "INDUSTRIAL",
+      name: "Precision Job Work",
+      desc: "Engineered for turning, CNC, lathe, and component job work with drawing specs & QC stamp",
+    },
+    {
+      id: "MINIMAL",
+      name: "Clean Monochrome",
+      desc: "High-contrast ink-saving black & white design for fast laser and dot-matrix printers",
     },
     {
       id: "THERMAL",
       name: "POS Thermal Receipt",
-      desc: "Monospace compact layout, auto-cut cutter marks, barcode & dynamic QR footer",
+      desc: "Monospace compact layout, auto-cut marks, item list, and dynamic UPI QR code",
     },
   ];
 

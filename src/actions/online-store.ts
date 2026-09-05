@@ -164,6 +164,12 @@ export async function createDirectOnlineOrderAction(data: {
   revalidatePath("/grow/online-store");
   revalidatePath("/sale-orders");
 
+  const payeeVpa = "9483374137@okaxis";
+  const cleanName = (catalog.companyName || "Merchant").trim().replace(/[^a-zA-Z0-9 ]/g, "");
+  const cleanOrder = saleOrder.invoiceNumber.replace(/[^a-zA-Z0-9]/g, "");
+  const amountStr = saleOrder.total.toFixed(2);
+  const upiPayUrl = `upi://pay?pa=${payeeVpa}&pn=${cleanName}&am=${amountStr}&cu=INR&tn=Order_${cleanOrder}`;
+
   return {
     success: true,
     orderId: saleOrder.invoiceNumber,
@@ -171,7 +177,8 @@ export async function createDirectOnlineOrderAction(data: {
     customerName: data.customerName,
     companyName: catalog.companyName,
     paymentMethod: data.paymentMethod,
-    upiPayUrl: `upi://pay?pa=9483374137@okaxis&pn=${encodeURIComponent(catalog.companyName)}&am=${saleOrder.total.toFixed(2)}&cu=INR&tn=Order%20${saleOrder.invoiceNumber}`,
+    upiPayUrl,
+    upiId: payeeVpa,
   };
 }
 

@@ -70,16 +70,18 @@ export async function getAttendanceRecords(month?: string) {
 
   const where: {
     employee: { organizationId: string };
-    date?: { gte: Date; lte: Date };
+    date?: { gte: Date; lte?: Date; lt?: Date };
   } = {
     employee: { organizationId: org.id },
   };
 
   if (month) {
     const [year, monthNum] = month.split("-").map(Number);
-    const start = new Date(year, monthNum - 1, 1);
-    const end = new Date(year, monthNum, 0, 23, 59, 59);
-    where.date = { gte: start, lte: end };
+    const start = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0));
+    const nextMonthYear = monthNum === 12 ? year + 1 : year;
+    const nextMonth = monthNum === 12 ? 0 : monthNum;
+    const end = new Date(Date.UTC(nextMonthYear, nextMonth, 1, 0, 0, 0));
+    where.date = { gte: start, lt: end };
   }
 
   return db.attendanceRecord.findMany({

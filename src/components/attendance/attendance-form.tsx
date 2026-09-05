@@ -171,7 +171,11 @@ export function AttendanceForm({
                 }}
               >
                 <SelectTrigger className="w-full h-9 text-sm">
-                  <SelectValue placeholder="Choose employee..." />
+                  <SelectValue placeholder="Choose employee...">
+                    {selectedEmployee
+                      ? `${selectedEmployee.name}${selectedEmployee.position ? ` (${selectedEmployee.position})` : ""}`
+                      : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {employees.map((emp) => (

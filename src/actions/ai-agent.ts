@@ -151,11 +151,17 @@ export async function processAiUserQuery(
   // Synthesize natural language answer
   const legacyInsight = await askBusinessAi(query);
 
+  let formattedContent = `${legacyInsight.headline}\n\n${legacyInsight.summary}`;
+  if (legacyInsight.metrics && legacyInsight.metrics.length > 0) {
+    const metricsStr = legacyInsight.metrics.map((m) => `• ${m.label}: ${m.value}`).join("\n");
+    formattedContent += `\n\nKey Metrics:\n${metricsStr}`;
+  }
+
   return {
     message: {
       id: Math.random().toString(36).slice(2),
       role: "assistant",
-      content: `${legacyInsight.headline}\n\n${legacyInsight.summary}`,
+      content: formattedContent,
       createdAt: new Date().toISOString(),
     },
     executedTools: [{ toolName, args, result: toolResult }],

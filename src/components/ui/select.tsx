@@ -6,7 +6,44 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type SelectContextValue = {
+  itemsMap: React.MutableRefObject<Map<string, React.ReactNode>>;
+  registerItem: (value: string, label: React.ReactNode) => void;
+  currentValue?: any;
+};
+
+const SelectContext = React.createContext<SelectContextValue | null>(null);
+
+function Select<Value = any, Multiple extends boolean = false>({
+  value,
+  defaultValue,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const itemsMap = React.useRef(new Map<string, React.ReactNode>());
+  const [, setTick] = React.useState(0);
+
+  const registerItem = React.useCallback((val: string, label: React.ReactNode) => {
+    if (!itemsMap.current.has(val)) {
+      itemsMap.current.set(val, label);
+      setTick((t) => t + 1);
+    }
+  }, []);
+
+  return (
+    <SelectContext.Provider
+      value={{
+        itemsMap,
+        registerItem,
+        currentValue: value ?? defaultValue,
+      }}
+    >
+      <SelectPrimitive.Root<Value, Multiple> value={value} defaultValue={defaultValue} {...props}>
+        {children}
+      </SelectPrimitive.Root>
+    </SelectContext.Provider>
+  );
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -18,14 +55,37 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+function SelectValue({ className, children, placeholder, ...props }: SelectPrimitive.Value.Props) {
+  const ctx = React.useContext(SelectContext);
+
+  if (children !== undefined && children !== null) {
+    return (
+      <SelectPrimitive.Value
+        data-slot="select-value"
+        className={cn("flex flex-1 text-left", className)}
+        placeholder={placeholder}
+        {...props}
+      >
+        {children}
+      </SelectPrimitive.Value>
+    );
+  }
+
+  const registeredLabel =
+    ctx?.currentValue !== undefined && ctx?.currentValue !== null
+      ? ctx.itemsMap.current.get(String(ctx.currentValue))
+      : undefined;
+
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
+      placeholder={placeholder}
       {...props}
-    />
-  )
+    >
+      {registeredLabel || undefined}
+    </SelectPrimitive.Value>
+  );
 }
 
 function SelectTrigger({
@@ -116,11 +176,20 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  value,
   ...props
 }: SelectPrimitive.Item.Props) {
+  const ctx = React.useContext(SelectContext);
+  React.useEffect(() => {
+    if (ctx && value !== undefined && value !== null) {
+      ctx.registerItem(String(value), children);
+    }
+  }, [ctx, value, children]);
+
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
+      value={value}
       className={cn(
         "relative flex w-full cursor-pointer items-center gap-1.5 rounded-md py-1.5 pr-8 pl-2 text-xs outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className

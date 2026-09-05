@@ -6,6 +6,8 @@ import { AttendanceForm } from "@/components/attendance/attendance-form";
 import { PayslipDialog } from "@/components/attendance/payslip-dialog";
 import { DeleteAttendanceButton } from "@/components/attendance/delete-attendance-button";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
+import { MonthFilter } from "@/components/attendance/month-filter";
+import { CctvViewerModal } from "@/components/attendance/cctv-viewer-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,23 +81,8 @@ export default async function AttendancePage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <form className="flex items-center gap-2">
-            <div>
-              <input
-                id="month"
-                name="month"
-                type="month"
-                defaultValue={month}
-                className="flex h-9 rounded-lg border border-input bg-card px-3 text-xs font-medium shadow-xs"
-              />
-            </div>
-            <button
-              type="submit"
-              className="h-9 rounded-lg bg-secondary hover:bg-secondary/80 px-3 text-xs font-semibold text-secondary-foreground shadow-xs transition-all active:scale-[0.98]"
-            >
-              Filter Month
-            </button>
-          </form>
+          <MonthFilter defaultValue={month} />
+          <CctvViewerModal />
           <EmployeeFormDialog
             trigger={
               <Button size="sm" className="h-9 text-xs font-bold gap-1.5 shadow-xs">

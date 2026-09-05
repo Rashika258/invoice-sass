@@ -20,7 +20,11 @@ export async function createCustomer(data: CustomerInput) {
       email: parsed.email || null,
     },
   });
-  revalidatePath("/customers"); revalidatePath("/invoices/new"); revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  revalidatePath("/invoices/new");
+  revalidatePath("/purchases");
+  revalidatePath("/purchases/new");
+  revalidatePath("/dashboard");
   return customer;
 }
 
@@ -29,7 +33,10 @@ export async function updateCustomer(id: string, data: CustomerInput) {
   const organization = await requireOrganization();
   const result = await db.customer.updateMany({ where: { id, organizationId: organization.id }, data: { ...parsed, email: parsed.email || null } });
   if (!result.count) throw new Error("Customer not found");
-  revalidatePath("/customers"); revalidatePath("/invoices");
+  revalidatePath("/customers");
+  revalidatePath("/invoices");
+  revalidatePath("/purchases");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteCustomer(id: string) {

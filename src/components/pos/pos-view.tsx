@@ -60,6 +60,10 @@ export function PosView({
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(
     customers[0]?.id || "",
   );
+  const selectedCustomer = useMemo(
+    () => customers.find((c) => c.id === selectedCustomerId),
+    [customers, selectedCustomerId],
+  );
   const [paymentMode, setPaymentMode] = useState<"CASH" | "UPI" | "CARD">("CASH");
   const [amountTendered, setAmountTendered] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -276,7 +280,11 @@ export function PosView({
               <div className="mt-2.5">
                 <Select value={selectedCustomerId} onValueChange={(val) => val && setSelectedCustomerId(val)}>
                   <SelectTrigger className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium">
-                    <SelectValue placeholder="Select Customer" />
+                    <SelectValue placeholder="Select Customer">
+                      {selectedCustomer
+                        ? `${selectedCustomer.name}${selectedCustomer.phone ? ` (${selectedCustomer.phone})` : ""}`
+                        : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {customers.map((c) => (

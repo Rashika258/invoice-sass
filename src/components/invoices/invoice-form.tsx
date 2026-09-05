@@ -258,6 +258,11 @@ export function InvoiceForm({
   const meta = DOCUMENT_META[documentType];
   const isPurchase = meta.isPurchase;
 
+  const [partyList, setPartyList] = useState<Customer[]>(customers);
+  useEffect(() => {
+    setPartyList(customers);
+  }, [customers]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerId, setCustomerId] = useState(initialData?.customerId ?? "");
   const [issueDate, setIssueDate] = useState(
@@ -288,7 +293,7 @@ export function InvoiceForm({
     initialData?.items?.length ? initialData.items : [emptyLineItem(defaultTaxRate)],
   );
 
-  const selectedParty = customers.find((party) => party.id === customerId);
+  const selectedParty = partyList.find((party) => party.id === customerId);
   const supplyState = placeOfSupply || selectedParty?.state || companyState || "";
   const isInterState = !statesMatch(companyState, supplyState);
 
@@ -415,7 +420,7 @@ export function InvoiceForm({
     }
   };
 
-  const parties = customers.filter((party) =>
+  const parties = partyList.filter((party) =>
     isPurchase
       ? party.partyType === "SUPPLIER" || party.partyType === "BOTH"
       : party.partyType === "CUSTOMER" || party.partyType === "BOTH",
@@ -516,6 +521,19 @@ export function InvoiceForm({
                   </SelectContent>
                 </Select>
                 <CustomerFormDialog
+                  defaultPartyType={isPurchase ? "SUPPLIER" : "CUSTOMER"}
+                  onSuccess={(newParty) => {
+                    if (newParty) {
+                      setPartyList((prev) => {
+                        const exists = prev.some((p) => p.id === newParty.id);
+                        return exists
+                          ? prev.map((p) => (p.id === newParty.id ? newParty : p))
+                          : [newParty, ...prev];
+                      });
+                      setCustomerId(newParty.id);
+                    }
+                    router.refresh();
+                  }}
                   trigger={
                     <Button type="button" variant="outline" size="icon" className="size-9 shrink-0" title="Add New Party">
                       <UserPlus className="size-4" />

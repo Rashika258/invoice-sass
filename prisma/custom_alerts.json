@@ -34,7 +34,7 @@
       "monthlyDay": 15,
       "actionHref": "/expenses",
       "actionLabel": "Record Utility Expense",
-      "isDismissed": false,
+      "isDismissed": true,
       "createdAt": "2026-09-04T14:54:32.543Z",
       "notifyWhatsApp": true
     }

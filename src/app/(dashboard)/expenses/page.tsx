@@ -33,7 +33,12 @@ export default async function ExpensesPage() {
         </div>
         <ExpenseFormDialog
           accounts={bankAccounts}
-          trigger={<Button><Plus className="mr-2 h-4 w-4" />Add Expense</Button>}
+          trigger={
+            <Button className="gap-1.5 font-bold shadow-xs">
+              <Plus className="size-4" />
+              <span>Add Expense</span>
+            </Button>
+          }
         />
       </div>
       <Card>

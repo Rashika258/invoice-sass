@@ -131,7 +131,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   overtimeMultiplier: 1.5,
 
   // Print defaults
-  printTemplate: "MODERN",
+  printTemplate: "CLASSIC",
   printerType: "A4",
   showCompanyLogo: true,
   printUpiQrOnBill: true,

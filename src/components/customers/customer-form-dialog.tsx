@@ -32,17 +32,28 @@ import { Textarea } from "@/components/ui/textarea";
 type CustomerFormDialogProps = {
   customer?: Customer;
   trigger?: React.ReactNode;
-  onSuccess?: () => void;
+  defaultPartyType?: "CUSTOMER" | "SUPPLIER" | "BOTH";
+  onSuccess?: (customer?: Customer) => void;
 };
 
 export function CustomerFormDialog({
   customer,
   trigger,
+  defaultPartyType,
   onSuccess,
 }: CustomerFormDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [partyType, setPartyType] = useState<string>(customer?.partyType ?? "CUSTOMER");
+  const [partyType, setPartyType] = useState<string>(
+    customer?.partyType ?? defaultPartyType ?? "CUSTOMER"
+  );
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen && !customer) {
+      setPartyType(defaultPartyType ?? "CUSTOMER");
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -60,7 +71,7 @@ export function CustomerFormDialog({
       country: String(formData.get("country") ?? ""),
       taxId: String(formData.get("taxId") ?? ""),
       notes: String(formData.get("notes") ?? ""),
-      partyType: String(formData.get("partyType") ?? "CUSTOMER") as
+      partyType: String(formData.get("partyType") ?? (defaultPartyType ?? "CUSTOMER")) as
         | "CUSTOMER"
         | "SUPPLIER"
         | "BOTH",
@@ -71,13 +82,14 @@ export function CustomerFormDialog({
       if (customer) {
         await updateCustomer(customer.id, data);
         toast.success("Party updated");
+        setOpen(false);
+        onSuccess?.({ ...customer, ...data });
       } else {
-        await createCustomer(data);
-        toast.success("Party created");
+        const created = await createCustomer(data);
+        toast.success(data.partyType === "SUPPLIER" ? "Supplier created" : "Party created");
+        setOpen(false);
+        onSuccess?.(created);
       }
-
-      setOpen(false);
-      onSuccess?.();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
     } finally {
@@ -86,7 +98,7 @@ export function CustomerFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           (trigger ?? (
@@ -123,7 +135,15 @@ export function CustomerFormDialog({
               <input type="hidden" name="partyType" value={partyType} />
               <Select value={partyType} onValueChange={(val) => val && setPartyType(val)}>
                 <SelectTrigger className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                  <SelectValue placeholder="Select Party Type" />
+                  <SelectValue placeholder="Select Party Type">
+                    {partyType === "CUSTOMER"
+                      ? "Customer"
+                      : partyType === "SUPPLIER"
+                        ? "Supplier"
+                        : partyType === "BOTH"
+                          ? "Customer & Supplier"
+                          : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CUSTOMER">Customer</SelectItem>

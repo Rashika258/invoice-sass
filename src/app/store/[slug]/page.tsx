@@ -535,28 +535,55 @@ export default function PublicStorePage({
               </div>
 
               {confirmedOrder.paymentMethod === "UPI" && (
-                <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-center space-y-2">
-                  <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    Scan UPI QR Code to Pay
-                  </p>
+                <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 text-center space-y-3">
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    <QrCode className="size-4" />
+                    <span>Scan UPI QR Code to Pay</span>
+                  </div>
+
                   <div className="flex justify-center py-1">
-                    <div className="p-2 bg-white rounded-xl border shadow-xs inline-block">
+                    <div className="p-2.5 bg-white rounded-xl border shadow-xs inline-block">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
                           confirmedOrder.upiPayUrl
-                        )}`}
+                        )}&margin=6`}
                         alt="UPI Payment QR"
-                        className="size-32"
+                        className="size-36 object-contain"
                       />
                     </div>
                   </div>
-                  <a
-                    href={confirmedOrder.upiPayUrl}
-                    className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
-                  >
-                    <span>Click to Pay with Google Pay / PhonePe</span>
-                    <ExternalLink className="size-3" />
-                  </a>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <span>UPI ID:</span>
+                      <code className="font-mono font-bold text-foreground bg-muted/60 px-1.5 py-0.5 rounded text-[11px]">
+                        {confirmedOrder.upiId || "9483374137@okaxis"}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(confirmedOrder.upiId || "9483374137@okaxis");
+                            toast.success("UPI ID copied to clipboard!");
+                          }
+                        }}
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                        title="Copy UPI ID"
+                      >
+                        <Copy className="size-3.5" />
+                      </button>
+                    </div>
+
+                    <div>
+                      <a
+                        href={confirmedOrder.upiPayUrl}
+                        className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                      >
+                        <span>Click to Pay with Google Pay / PhonePe / Paytm</span>
+                        <ExternalLink className="size-3" />
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
