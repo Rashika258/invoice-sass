@@ -440,11 +440,7 @@ export function InvoiceForm({
                 {invoiceId ? `Edit ${meta.label}` : `New ${meta.label}`}
               </h1>
               <Badge
-                className={
-                  isPurchase
-                    ? "bg-[#1976D2] hover:bg-[#1976D2] text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
-                    : "bg-primary hover:bg-primary text-primary-foreground font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
-                }
+                className="bg-brand hover:bg-brand text-white font-medium text-[10px] px-2 py-0.5 rounded-full shadow-xs"
               >
                 {meta.label.toUpperCase()}
               </Badge>
@@ -462,11 +458,7 @@ export function InvoiceForm({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className={
-              isPurchase
-                ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
-                : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
-            }
+            className="bg-brand hover:bg-brand/90 text-white font-medium shadow-xs px-4 h-8 text-xs rounded-lg active:scale-[0.98] transition-all"
           >
             {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
           </Button>
@@ -571,7 +563,7 @@ export function InvoiceForm({
                 value={placeOfSupply}
                 onChange={(e) => setPlaceOfSupply(e.target.value)}
                 placeholder={selectedParty?.state || companyState || "E.g. Maharashtra"}
-                className="h-8 text-xs"
+                className="h-9 text-xs"
               />
             </div>
 
@@ -586,7 +578,7 @@ export function InvoiceForm({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -939,11 +931,7 @@ export function InvoiceForm({
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className={
-                    isPurchase
-                      ? "bg-[#1976D2] hover:bg-[#1565C0] text-white font-bold h-10 px-6 shadow-sm"
-                      : "bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 shadow-sm"
-                  }
+                  className="bg-brand hover:bg-brand/90 text-white font-bold h-10 px-6 shadow-sm"
                 >
                   {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
                 </Button>

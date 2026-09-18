@@ -20,7 +20,8 @@ export type TemplateId =
   | "GST_TAX"
   | "MINIMAL"
   | "INDUSTRIAL"
-  | "THERMAL";
+  | "THERMAL"
+  | "TRADITIONAL";
 
 export interface InvoiceTemplateProps {
   invoice: Invoice & { customer: Customer; items: InvoiceItem[] };
@@ -1168,6 +1169,373 @@ function ThermalTemplate({ invoice, currency = "INR", className = "" }: InvoiceT
 }
 
 /* =========================================================================
+   7. TEMPLATE: TRADITIONAL INDIAN BILL BOOK (Generic – uses your business details)
+   Replicates the classic printed bill book format used across Indian SMBs.
+   - Boxed header with logo | company name | phone
+   - State / Code / GSTIN row
+   - Party (To / M/s) section with dotted lines | Invoice meta grid (right)
+   - Open items table with watermark company initial badge
+   - Bottom: Rupees in words | Terms | Totals in Rs / Ps split | Signatures
+   ========================================================================= */
+function TraditionalTemplate({
+  invoice,
+  className = "",
+  copyType = "ORIGINAL",
+  logoUrl,
+}: InvoiceTemplateProps) {
+  const isInterState = invoice.isInterState;
+  const isPurchase = invoice.documentType === "PURCHASE";
+  const docTitle = isPurchase ? "PURCHASE BILL" : "TAX INVOICE";
+
+  const companyName = invoice.companyName || "Your Business Name";
+  const companyAddress = invoice.companyAddress || "Your Business Address, City – PIN.";
+  const companyPhone1 = invoice.companyPhone || "";
+  const companyState = invoice.companyState || "";
+  const companyGstin = invoice.companyTaxId || "";
+  const stateCode = companyGstin ? companyGstin.substring(0, 2) : "";
+
+  const customerName = invoice.customer?.name || "";
+  const customerAddress = invoice.customer?.address || "";
+  const customerCityState = [invoice.customer?.city, invoice.customer?.state, invoice.customer?.zipCode]
+    .filter(Boolean)
+    .join(", ");
+  const customerGstin = invoice.customer?.taxId || "";
+  const despatchDetails = invoice.placeOfSupply || invoice.customer?.state || "";
+  const formattedDate = format(new Date(invoice.issueDate), "dd-MM-yyyy");
+
+  const subtotalSplit = splitRupeesPaise(invoice.subtotal);
+  const totalSplit = splitRupeesPaise(invoice.total);
+  const effectiveTaxRate = invoice.taxRate || 18;
+  const halfTaxRate = effectiveTaxRate / 2;
+
+  const cgstSplit = !isInterState && invoice.cgstAmount > 0
+    ? splitRupeesPaise(invoice.cgstAmount)
+    : { rs: "—", ps: "—" };
+  const sgstSplit = !isInterState && invoice.sgstAmount > 0
+    ? splitRupeesPaise(invoice.sgstAmount)
+    : { rs: "—", ps: "—" };
+  const igstSplit = isInterState && invoice.igstAmount > 0
+    ? splitRupeesPaise(invoice.igstAmount)
+    : { rs: "—", ps: "—" };
+
+  // Company initial for watermark
+  const initial = companyName.trim().charAt(0).toUpperCase();
+
+  return (
+    <article
+      style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
+      className={`mx-auto w-full max-w-[210mm] bg-white p-3 sm:p-5 text-black font-sans leading-tight shadow-xl border border-black print:max-w-none print:p-0 print:border-none print:shadow-none ${className}`}
+    >
+      <div className="border-[1.5px] border-black bg-white">
+        {/* ── HEADER ── */}
+        <div className="flex border-b-[1.5px] border-black">
+          {/* Logo / Initial Box */}
+          <div className="w-[100px] shrink-0 border-r-[1.5px] border-black flex items-center justify-center p-2 bg-white">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="logo" className="w-20 h-20 object-contain" />
+            ) : (
+              <div className="w-20 h-20 rounded-full border-2 border-black flex items-center justify-center">
+                <span
+                  className="text-4xl font-black text-black"
+                  style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+                >
+                  {initial}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Company Name & Address */}
+          <div className="flex-1 p-2 sm:p-3 text-center flex flex-col justify-center">
+            <div className="text-[10px] sm:text-xs font-black tracking-widest uppercase text-black">
+              {docTitle}
+            </div>
+            <h1
+              className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-black"
+              style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+            >
+              {companyName}
+            </h1>
+            <p className="text-[9.5px] sm:text-[10.5px] text-black font-semibold mt-1">
+              {companyAddress}
+            </p>
+          </div>
+
+          {/* Phone */}
+          {companyPhone1 && (
+            <div className="w-[130px] shrink-0 border-l-[1.5px] border-black p-2 text-right text-[11px] font-bold flex flex-col justify-start">
+              <div>
+                <span className="font-extrabold">Mob :</span> {companyPhone1}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── STATE / CODE / GSTIN / COPIES ── */}
+        <div className="grid grid-cols-12 border-b-[1.5px] border-black text-[11px] font-bold divide-x-[1.5px] divide-black bg-white items-center">
+          <div className="col-span-3 px-3 py-1">
+            State : <span className="font-extrabold">{companyState}</span>
+          </div>
+          <div className="col-span-2 px-3 py-1">
+            Code : <span className="font-extrabold">{stateCode}</span>
+          </div>
+          <div className="col-span-4 px-3 py-1">
+            GSTIN : <span className="font-mono font-black tracking-wider">{companyGstin}</span>
+          </div>
+          <div className="col-span-3 px-2 py-0.5 text-[9px] sm:text-[9.5px] leading-tight flex flex-col justify-center">
+            <div className={copyType === "ORIGINAL" ? "font-black underline" : ""}>
+              Original for Recipient
+            </div>
+            <div className={copyType === "DUPLICATE" ? "font-black underline" : ""}>
+              Duplicate for Supplier / Transporter
+            </div>
+            <div className={copyType === "TRIPLICATE" ? "font-black underline" : ""}>
+              Triplicate for Supplier
+            </div>
+          </div>
+        </div>
+
+        {/* ── PARTY DETAILS (left) + INVOICE META (right) ── */}
+        <div className="flex border-b-[1.5px] border-black divide-x-[1.5px] divide-black">
+          {/* Party */}
+          <div className="flex-1 p-2 sm:p-2.5 text-[11px] flex flex-col justify-between space-y-1">
+            <div>
+              <div className="font-bold text-xs">To,</div>
+              <div className="flex items-baseline min-h-[20px] border-b border-dotted border-black/80">
+                <span className="font-bold mr-1 shrink-0">M/s.</span>
+                <span className="font-extrabold text-xs sm:text-sm flex-1 truncate">{customerName}</span>
+              </div>
+              <div className="min-h-[19px] border-b border-dotted border-black/80 flex items-center">
+                <span className="font-medium">{customerAddress}</span>
+              </div>
+              <div className="min-h-[19px] border-b border-dotted border-black/80 flex items-center">
+                <span className="font-medium">{customerCityState}</span>
+              </div>
+            </div>
+            <div className="pt-0.5 space-y-1">
+              <div className="flex items-baseline min-h-[19px] border-b border-dotted border-black/80">
+                <span className="font-bold mr-1 shrink-0">Party&apos;s GSTIN :</span>
+                <span className="font-mono font-bold">{customerGstin}</span>
+              </div>
+              <div className="flex items-baseline min-h-[19px] border-b border-dotted border-black/80">
+                <span className="font-bold mr-1 shrink-0">Despatch Details :</span>
+                <span className="font-medium">{despatchDetails}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Invoice Meta Grid */}
+          <div className="w-[290px] sm:w-[320px] shrink-0 flex flex-col divide-y-[1.5px] divide-black text-[10.5px] sm:text-[11px]">
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Invoice No.</span>
+                <span className="font-mono font-black text-sm tracking-wider">{invoice.invoiceNumber}</span>
+              </div>
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Date :</span>
+                <span className="font-mono font-bold">{formattedDate}</span>
+              </div>
+            </div>
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">D.C. No.</span>
+                <span className="font-mono">{invoice.orderNumber || ""}</span>
+              </div>
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Date :</span>
+                <span className="font-mono">{invoice.orderNumber ? formattedDate : ""}</span>
+              </div>
+            </div>
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Party&apos;s Order No.</span>
+                <span className="font-mono">{invoice.orderNumber || ""}</span>
+              </div>
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Date :</span>
+                <span className="font-mono">{invoice.orderNumber ? formattedDate : ""}</span>
+              </div>
+            </div>
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">E-way Bill</span>
+                <span className="font-mono truncate">{invoice.ewayBill || ""}</span>
+              </div>
+              <div className="w-1/2 px-2 flex items-center justify-between">
+                <span className="font-bold">Vehicle No.</span>
+                <span className="font-mono font-bold truncate">{invoice.vehicleNumber || ""}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── ITEMS TABLE ── */}
+        {/* Header */}
+        <div className="border-b-[1.5px] border-black flex text-[11px] font-extrabold text-center uppercase divide-x-[1.5px] divide-black bg-white">
+          <div className="w-[42px] shrink-0 p-1 flex items-center justify-center leading-tight">
+            Sl.<br />No.
+          </div>
+          <div className="flex-1 p-1 px-3 flex items-center justify-center tracking-wider">
+            DESCRIPTION
+          </div>
+          <div className="w-[70px] shrink-0 p-1 flex items-center justify-center">HSN Code</div>
+          <div className="w-[50px] shrink-0 p-1 flex items-center justify-center">Qty</div>
+          <div className="w-[70px] shrink-0 p-1 flex items-center justify-center">Rate</div>
+          <div className="w-[106px] shrink-0 flex flex-col divide-y-[1.5px] divide-black">
+            <div className="py-0.5 text-center">Amount</div>
+            <div className="flex divide-x-[1.5px] divide-black font-bold text-[10px]">
+              <div className="w-[70px] text-center">Rs.</div>
+              <div className="w-[36px] text-center">Ps.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Body with watermark */}
+        <div className="relative min-h-[440px] flex divide-x-[1.5px] divide-black bg-white">
+          {/* Watermark initial badge */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+            <div className="w-72 h-72 rounded-full border-[3px] border-blue-400/20 flex items-center justify-center opacity-[0.12]">
+              <span
+                className="text-[180px] font-black text-blue-500 leading-none"
+                style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+              >
+                {initial}
+              </span>
+            </div>
+          </div>
+
+          {/* Sl. No. */}
+          <div className="w-[42px] shrink-0 flex flex-col text-center font-mono font-semibold text-[11px] z-10 pt-1">
+            {invoice.items.map((_, idx) => (
+              <div key={idx} className="h-6 flex items-center justify-center">{idx + 1}</div>
+            ))}
+          </div>
+          {/* Description */}
+          <div className="flex-1 flex flex-col justify-between text-[11px] z-10 p-1 px-2">
+            <div className="space-y-0">
+              {invoice.items.map((item) => (
+                <div key={item.id} className="h-6 flex items-center font-bold truncate">{item.description}</div>
+              ))}
+            </div>
+            <div className="text-right pr-2 pb-0.5 font-black text-[10.5px] tracking-wide">E. &amp; O. E.</div>
+          </div>
+          {/* HSN */}
+          <div className="w-[70px] shrink-0 flex flex-col text-center font-mono text-[11px] z-10 pt-1">
+            {invoice.items.map((item) => (
+              <div key={item.id} className="h-6 flex items-center justify-center">{item.hsn || "—"}</div>
+            ))}
+          </div>
+          {/* Qty */}
+          <div className="w-[50px] shrink-0 flex flex-col text-center font-mono font-bold text-[11px] z-10 pt-1">
+            {invoice.items.map((item) => (
+              <div key={item.id} className="h-6 flex items-center justify-center">{item.quantity}</div>
+            ))}
+          </div>
+          {/* Rate */}
+          <div className="w-[70px] shrink-0 flex flex-col text-right font-mono text-[11px] z-10 pt-1 pr-2">
+            {invoice.items.map((item) => {
+              const s = splitRupeesPaise(item.unitPrice);
+              return (
+                <div key={item.id} className="h-6 flex items-center justify-end">{s.rs}.{s.ps}</div>
+              );
+            })}
+          </div>
+          {/* Amount Rs. / Ps. */}
+          <div className="w-[106px] shrink-0 flex divide-x-[1.5px] divide-black font-mono text-[11px] z-10 pt-1">
+            <div className="w-[70px] flex flex-col text-right pr-2 font-bold">
+              {invoice.items.map((item) => {
+                const s = splitRupeesPaise(item.amount);
+                return <div key={item.id} className="h-6 flex items-center justify-end">{s.rs}</div>;
+              })}
+            </div>
+            <div className="w-[36px] flex flex-col text-center font-medium">
+              {invoice.items.map((item) => {
+                const s = splitRupeesPaise(item.amount);
+                return <div key={item.id} className="h-6 flex items-center justify-center">{s.ps}</div>;
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOTTOM SECTION ── */}
+        <div className="flex border-t-[1.5px] border-black divide-x-[1.5px] divide-black">
+          {/* Left: words + terms + receiver sig */}
+          <div className="flex-1 p-2.5 flex flex-col justify-between space-y-2">
+            <div>
+              <div className="text-[11px] font-bold leading-normal">
+                <span>Rupees in words : </span>
+                <span className="font-extrabold italic">
+                  {numberToWordsIndian(invoice.total).replace(/^Rupees\s+/i, "")}
+                </span>
+              </div>
+              <div className="border-b border-dotted border-black mt-2 min-h-[12px]" />
+              <div className="border-b border-dotted border-black mt-2 min-h-[12px]" />
+            </div>
+            <div className="space-y-1 text-[10.5px] font-bold text-black pt-1">
+              <p>Interest @ 18% Per Annum will be charged on all invoices not paid within due date.</p>
+              <p>Material once sold will not be taken back.</p>
+            </div>
+            <div className="pt-4 text-[11px] font-bold">Receiver Signature</div>
+          </div>
+
+          {/* Right: Totals */}
+          <div className="w-[296px] shrink-0 flex flex-col divide-y-[1.5px] divide-black text-[11px]">
+            {/* Total Amount */}
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-[190px] px-2 font-bold text-left">Total Amount</div>
+              <div className="w-[70px] px-1 text-right pr-2 font-mono font-bold">{subtotalSplit.rs}</div>
+              <div className="w-[36px] text-center font-mono">{subtotalSplit.ps}</div>
+            </div>
+            {/* CGST */}
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-[190px] px-2 font-bold text-left">
+                CGST @ {!isInterState ? `${halfTaxRate}%` : ""}
+              </div>
+              <div className="w-[70px] px-1 text-right pr-2 font-mono font-bold">{cgstSplit.rs}</div>
+              <div className="w-[36px] text-center font-mono">{cgstSplit.ps}</div>
+            </div>
+            {/* SGST */}
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-[190px] px-2 font-bold text-left">
+                SGST @ {!isInterState ? `${halfTaxRate}%` : ""}
+              </div>
+              <div className="w-[70px] px-1 text-right pr-2 font-mono font-bold">{sgstSplit.rs}</div>
+              <div className="w-[36px] text-center font-mono">{sgstSplit.ps}</div>
+            </div>
+            {/* IGST */}
+            <div className="flex divide-x-[1.5px] divide-black h-7 items-center">
+              <div className="w-[190px] px-2 font-bold text-left">
+                IGST @ {isInterState ? `${effectiveTaxRate}%` : ""}
+              </div>
+              <div className="w-[70px] px-1 text-right pr-2 font-mono font-bold">{igstSplit.rs}</div>
+              <div className="w-[36px] text-center font-mono">{igstSplit.ps}</div>
+            </div>
+            {/* Grand Total */}
+            <div className="flex divide-x-[1.5px] divide-black h-8 items-center bg-zinc-50/50">
+              <div className="w-[190px] px-2 font-black text-xs text-left">Grand Total</div>
+              <div className="w-[70px] px-1 text-right pr-2 font-mono font-black text-xs">{totalSplit.rs}</div>
+              <div className="w-[36px] text-center font-mono font-black text-xs">{totalSplit.ps}</div>
+            </div>
+
+            {/* Company name + auth sig */}
+            <div className="p-2 pt-2.5 flex flex-col justify-between min-h-[90px] text-center">
+              <div
+                className="font-bold text-xs sm:text-[13px] text-black italic"
+                style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
+              >
+                For {companyName}
+              </div>
+              <div className="pt-8 text-[10.5px] font-bold text-black">Authorised Signatory</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* =========================================================================
    MAIN EXPORT SWITCHER
    ========================================================================= */
 export function InvoiceTemplate({
@@ -1201,6 +1569,17 @@ export function InvoiceTemplate({
     case "THERMAL":
     case "THERMAL_POS":
       return <ThermalTemplate invoice={invoice} currency={currency} logoUrl={logoUrl} className={className} />;
+
+    case "TRADITIONAL":
+      return (
+        <TraditionalTemplate
+          invoice={invoice}
+          currency={currency}
+          logoUrl={logoUrl}
+          className={className}
+          copyType={copyType}
+        />
+      );
 
     case "CLASSIC":
     case "SMEW_CLASSIC":

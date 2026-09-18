@@ -87,6 +87,14 @@ const TEMPLATE_CONFIGS = [
     badgeColor: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300",
     icon: Receipt,
   },
+  {
+    id: "TRADITIONAL" as TemplateId,
+    name: "Traditional Bill Book",
+    subtitle: "Classic Indian GST bill book format with your business details & watermark",
+    badge: "Indian Standard",
+    badgeColor: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300 border-orange-300",
+    icon: FileText,
+  },
 ];
 
 export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewProps) {
@@ -270,7 +278,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
         </div>
 
         {/* Template Buttons Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {TEMPLATE_CONFIGS.map((t) => {
             const Icon = t.icon;
             const isSelected = selectedTemplate === t.id;
@@ -305,7 +313,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
         </div>
 
         {/* Copy Type Selector for Sri Manjunatha Authentic Template */}
-        {selectedTemplate === "CLASSIC" && (
+        {(selectedTemplate === "CLASSIC" || selectedTemplate === "TRADITIONAL") && (
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs">
             <span className="text-muted-foreground font-semibold flex items-center gap-1.5">
               <Copy className="size-3.5 text-red-600" />
