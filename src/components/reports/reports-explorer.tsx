@@ -18,6 +18,8 @@ import {
   Receipt,
   Scale,
   Search,
+  Sparkles,
+  TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
@@ -193,6 +195,12 @@ export function ReportsExplorer({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link href="/analytics">
+              <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs">
+                <TrendingUp className="size-3.5" />
+                Interactive Analytics &amp; Graphs
+              </Button>
+            </Link>
             <DateRangePicker
               startDate={startDate}
               endDate={endDate}

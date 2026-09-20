@@ -16,7 +16,7 @@ import {
 import { getAvailableCompanies } from "@/actions/companies";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 

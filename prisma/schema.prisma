@@ -98,6 +98,9 @@ model Organization {
   auditLogs     AuditLog[]
   notifications Notification[]
   recurringInvoices RecurringInvoice[]
+  stockMovements StockMovementLog[]
+  appointments  Appointment[]
+  prescriptions PrescriptionAttachment[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 }
@@ -174,6 +177,7 @@ model Customer {
   openingBalance  Float        @default(0)
   invoices        Invoice[]
   payments        Payment[]
+  appointments    Appointment[]
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -198,6 +202,7 @@ model Item {
   isPublic       Boolean          @default(false)
   batches        InventoryBatch[]
   serialNumbers  SerialNumber[]
+  stockMovements StockMovementLog[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -243,6 +248,7 @@ model Invoice {
   paidAmount     Float         @default(0)
   items          InvoiceItem[]
   payments       Payment[]
+  prescriptions  PrescriptionAttachment[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -340,6 +346,7 @@ model Employee {
   overtimeRate   Float
   attendance     AttendanceRecord[]
   payrolls       PayrollRecord[]
+  appointments   Appointment[]
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
@@ -575,5 +582,56 @@ model PayrollRecord {
   updatedAt     DateTime @updatedAt
 
   @@index([employeeId])
+}
+
+model StockMovementLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  itemId         String
+  item           Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  movementType   String       // "SALE" | "PURCHASE" | "MANUAL_ADJUSTMENT" | "RETURN"
+  quantityChange Float
+  balanceAfter   Float
+  referenceNo    String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, itemId])
+  @@index([createdAt])
+}
+
+model Appointment {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customerId     String
+  customer       Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  employeeId     String?
+  employee       Employee?    @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  serviceName    String
+  appointmentDate DateTime
+  status         String       @default("SCHEDULED") // "SCHEDULED" | "COMPLETED" | "CANCELLED"
+  notes          String?
+  amount         Float        @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, appointmentDate])
+}
+
+model PrescriptionAttachment {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceId      String?
+  invoice        Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  doctorName     String?
+  patientName    String?
+  fileUrl        String
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
 }
 

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -106,7 +107,7 @@ export function CustomerFormDialog({
           )) as React.ReactElement
         }
       />
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader>
           <DialogTitle>
             {customer ? "Edit Party" : "Add Party"}
@@ -118,129 +119,131 @@ export function CustomerFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={customer?.name}
-              required
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogBody>
             <div className="space-y-2">
-              <Label htmlFor="partyType">Party type</Label>
-              <input type="hidden" name="partyType" value={partyType} />
-              <Select value={partyType} onValueChange={(val) => val && setPartyType(val)}>
-                <SelectTrigger className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                  <SelectValue placeholder="Select Party Type">
-                    {partyType === "CUSTOMER"
-                      ? "Customer"
-                      : partyType === "SUPPLIER"
-                        ? "Supplier"
-                        : partyType === "BOTH"
-                          ? "Customer & Supplier"
-                          : undefined}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CUSTOMER">Customer</SelectItem>
-                  <SelectItem value="SUPPLIER">Supplier</SelectItem>
-                  <SelectItem value="BOTH">Customer &amp; Supplier</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="openingBalance">Opening balance</Label>
+              <Label htmlFor="name">Name *</Label>
               <Input
-                id="openingBalance"
-                name="openingBalance"
-                type="number"
-                step="0.01"
-                defaultValue={customer?.openingBalance ?? 0}
+                id="name"
+                name="name"
+                defaultValue={customer?.name}
+                required
               />
             </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="partyType">Party type</Label>
+                <input type="hidden" name="partyType" value={partyType} />
+                <Select value={partyType} onValueChange={(val) => val && setPartyType(val)}>
+                  <SelectTrigger className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                    <SelectValue placeholder="Select Party Type">
+                      {partyType === "CUSTOMER"
+                        ? "Customer"
+                        : partyType === "SUPPLIER"
+                          ? "Supplier"
+                          : partyType === "BOTH"
+                            ? "Customer & Supplier"
+                            : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CUSTOMER">Customer</SelectItem>
+                    <SelectItem value="SUPPLIER">Supplier</SelectItem>
+                    <SelectItem value="BOTH">Customer &amp; Supplier</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="openingBalance">Opening balance</Label>
+                <Input
+                  id="openingBalance"
+                  name="openingBalance"
+                  type="number"
+                  step="0.01"
+                  defaultValue={customer?.openingBalance ?? 0}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  defaultValue={customer?.email ?? ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  defaultValue={customer?.phone ?? ""}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="address">Address</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                defaultValue={customer?.email ?? ""}
+                id="address"
+                name="address"
+                defaultValue={customer?.address ?? ""}
               />
             </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input id="city" name="city" defaultValue={customer?.city ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  name="state"
+                  defaultValue={customer?.state ?? ""}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="zipCode">Zip Code</Label>
+                <Input
+                  id="zipCode"
+                  name="zipCode"
+                  defaultValue={customer?.zipCode ?? ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  name="country"
+                  defaultValue={customer?.country ?? ""}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                defaultValue={customer?.phone ?? ""}
+              <Label htmlFor="taxId">GSTIN</Label>
+              <Input id="taxId" name="taxId" defaultValue={customer?.taxId ?? ""} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                defaultValue={customer?.notes ?? ""}
+                rows={3}
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              name="address"
-              defaultValue={customer?.address ?? ""}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" defaultValue={customer?.city ?? ""} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                name="state"
-                defaultValue={customer?.state ?? ""}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="zipCode">Zip Code</Label>
-              <Input
-                id="zipCode"
-                name="zipCode"
-                defaultValue={customer?.zipCode ?? ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                name="country"
-                defaultValue={customer?.country ?? ""}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="taxId">GSTIN</Label>
-            <Input id="taxId" name="taxId" defaultValue={customer?.taxId ?? ""} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              defaultValue={customer?.notes ?? ""}
-              rows={3}
-            />
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

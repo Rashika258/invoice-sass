@@ -30,7 +30,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -490,78 +492,79 @@ export function CashBankHub({
 
       {/* Inter-Bank Transfer Dialog */}
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md p-0">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <ArrowLeftRight className="size-4 text-primary" />
               Transfer Money Between Accounts
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleTransfer} className="space-y-4 pt-2 text-xs">
-            <div className="space-y-1">
-              <Label>Transfer From *</Label>
-              <Select value={transferFrom} onValueChange={(val) => val && setTransferFrom(val)}>
-                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                  <SelectValue placeholder="Select Account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id} className="text-xs">
-                      {a.name} (Balance: ₹{a.balance || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label>Transfer To *</Label>
-              <Select value={transferTo} onValueChange={(val) => val && setTransferTo(val)}>
-                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                  <SelectValue placeholder="Select Account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id} className="text-xs">
-                      {a.name} (Balance: ₹{a.balance || 0})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleTransfer} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <DialogBody>
               <div className="space-y-1">
-                <Label>Amount (₹) *</Label>
-                <Input
-                  type="number"
-                  value={transferAmount}
-                  onChange={(e) => setTransferAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="h-8 text-xs font-mono"
-                  required
-                />
+                <Label>Transfer From *</Label>
+                <Select value={transferFrom} onValueChange={(val) => val && setTransferFrom(val)}>
+                  <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                    <SelectValue placeholder="Select Account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id} className="text-xs">
+                        {a.name} (Balance: ₹{a.balance || 0})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
-                <Label>Date</Label>
-                <Input
-                  type="date"
-                  value={transferDate}
-                  onChange={(e) => setTransferDate(e.target.value)}
-                  className="h-8 text-xs font-sans"
-                />
+                <Label>Transfer To *</Label>
+                <Select value={transferTo} onValueChange={(val) => val && setTransferTo(val)}>
+                  <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                    <SelectValue placeholder="Select Account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id} className="text-xs">
+                        {a.name} (Balance: ₹{a.balance || 0})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Amount (₹) *</Label>
+                  <Input
+                    type="number"
+                    value={transferAmount}
+                    onChange={(e) => setTransferAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="h-8 text-xs font-mono"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Date</Label>
+                  <Input
+                    type="date"
+                    value={transferDate}
+                    onChange={(e) => setTransferDate(e.target.value)}
+                    className="h-8 text-xs font-sans"
+                  />
+                </div>
+              </div>
+            </DialogBody>
+            <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="sm" className="bg-primary text-primary-foreground font-bold">
                 Confirm Transfer
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

@@ -206,9 +206,9 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
           )) as React.ReactElement
         }
       />
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 border border-border shadow-2xl rounded-2xl bg-card">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden p-0 border border-border shadow-2xl rounded-2xl bg-card">
         {/* Top Header matching media_1788527376142.png */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/80 shrink-0 bg-card z-10">
           <div className="flex items-center gap-4">
             <h2 className="text-base font-bold text-foreground">
               {item ? "Edit Item" : "Add Item"}
@@ -258,7 +258,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
         </div>
 
         {/* Content Body */}
-        <div className="p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {/* Row 1: Item Name, HSN, Select Unit, Add Item Image */}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             {/* Item Name */}

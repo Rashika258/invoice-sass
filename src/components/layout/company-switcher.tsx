@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -224,7 +225,7 @@ export function CompanySwitcher({
 
       {/* Add New Company Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md p-0">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Building2 className="size-4 text-primary" />
@@ -235,62 +236,64 @@ export function CompanySwitcher({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateCompany} className="space-y-3 py-2">
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold">Company / Firm Legal Name *</Label>
-              <Input
-                placeholder="e.g. Sri Manjunatha Agro Tech or Omkar Enterprises"
-                value={newCompanyName}
-                onChange={(e) => setNewCompanyName(e.target.value)}
-                className="h-9 text-xs"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleCreateCompany} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <DialogBody>
               <div className="space-y-1">
-                <Label className="text-xs">GSTIN (Optional)</Label>
+                <Label className="text-xs font-semibold">Company / Firm Legal Name *</Label>
                 <Input
-                  placeholder="29AAAAA0000A1Z5"
-                  value={newGstin}
-                  onChange={(e) => setNewGstin(e.target.value)}
-                  className="h-9 text-xs font-mono uppercase"
-                  maxLength={15}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs">Phone Number</Label>
-                <Input
-                  placeholder="94480 12345"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  className="h-9 text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Address</Label>
-                <Input
-                  placeholder="Industrial Area, Peenya"
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
+                  placeholder="e.g. Sri Manjunatha Agro Tech or Omkar Enterprises"
+                  value={newCompanyName}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
                   className="h-9 text-xs"
+                  required
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">State</Label>
-                <Input
-                  placeholder="Karnataka"
-                  value={newState}
-                  onChange={(e) => setNewState(e.target.value)}
-                  className="h-9 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">GSTIN (Optional)</Label>
+                  <Input
+                    placeholder="29AAAAA0000A1Z5"
+                    value={newGstin}
+                    onChange={(e) => setNewGstin(e.target.value)}
+                    className="h-9 text-xs font-mono uppercase"
+                    maxLength={15}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Phone Number</Label>
+                  <Input
+                    placeholder="94480 12345"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    className="h-9 text-xs font-mono"
+                  />
+                </div>
               </div>
-            </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Address</Label>
+                  <Input
+                    placeholder="Industrial Area, Peenya"
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">State</Label>
+                  <Input
+                    placeholder="Karnataka"
+                    value={newState}
+                    onChange={(e) => setNewState(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+              </div>
+            </DialogBody>
 
             <DialogFooter className="pt-3">
               <Button

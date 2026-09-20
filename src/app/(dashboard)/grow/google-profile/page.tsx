@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Copy, ExternalLink, Globe, Star, ThumbsUp } from "lucide-react";
 import { getCompanyProfile } from "@/actions/settings";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 

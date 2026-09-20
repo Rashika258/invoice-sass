@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -75,7 +76,7 @@ export function EmployeeFormDialog({
           )) as React.ReactElement
         }
       />
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader>
           <DialogTitle>{employee ? "Edit Employee" : "Add Employee"}</DialogTitle>
           <DialogDescription>
@@ -85,75 +86,77 @@ export function EmployeeFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-xs font-semibold">Full Name *</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="e.g. Rahul Sharma"
-              defaultValue={employee?.name}
-              required
-              className="h-9 text-sm"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-xs font-semibold">Email Address (Optional, for digital salary slips)</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="rahul@company.com"
-              defaultValue={employee?.email ?? ""}
-              className="h-9 text-sm"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="position" className="text-xs font-semibold">Position / Designation</Label>
-            <Input
-              id="position"
-              name="position"
-              placeholder="e.g. Billing Staff, Store Manager, Sales Executive"
-              defaultValue={employee?.position ?? ""}
-              className="h-9 text-sm"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogBody>
             <div className="space-y-1.5">
-              <Label htmlFor="hourlyRate" className="text-xs font-semibold">Hourly Rate (₹)</Label>
+              <Label htmlFor="name" className="text-xs font-semibold">Full Name *</Label>
               <Input
-                id="hourlyRate"
-                name="hourlyRate"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Base rate per 8-hour workday"
-                defaultValue={employee?.hourlyRate ?? 0}
+                id="name"
+                name="name"
+                placeholder="e.g. Rahul Sharma"
+                defaultValue={employee?.name}
                 required
-                className="h-9 text-sm font-mono"
+                className="h-9 text-sm"
               />
-              <p className="text-[10px] text-muted-foreground">Base rate per 8-hour workday</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="overtimeRate" className="text-xs font-semibold">Overtime (OT) Rate (₹/hr)</Label>
+              <Label htmlFor="email" className="text-xs font-semibold">Email Address (Optional, for digital salary slips)</Label>
               <Input
-                id="overtimeRate"
-                name="overtimeRate"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Rate applied for hours worked beyond 8 hours"
-                defaultValue={employee?.overtimeRate ?? 0}
-                required
-                className="h-9 text-sm font-mono"
+                id="email"
+                name="email"
+                type="email"
+                placeholder="rahul@company.com"
+                defaultValue={employee?.email ?? ""}
+                className="h-9 text-sm"
               />
-              <p className="text-[10px] text-muted-foreground">Rate applied for hours worked beyond 8 hours</p>
             </div>
-          </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="position" className="text-xs font-semibold">Position / Designation</Label>
+              <Input
+                id="position"
+                name="position"
+                placeholder="e.g. Billing Staff, Store Manager, Sales Executive"
+                defaultValue={employee?.position ?? ""}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="hourlyRate" className="text-xs font-semibold">Hourly Rate (₹)</Label>
+                <Input
+                  id="hourlyRate"
+                  name="hourlyRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Base rate per 8-hour workday"
+                  defaultValue={employee?.hourlyRate ?? 0}
+                  required
+                  className="h-9 text-sm font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">Base rate per 8-hour workday</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="overtimeRate" className="text-xs font-semibold">Overtime (OT) Rate (₹/hr)</Label>
+                <Input
+                  id="overtimeRate"
+                  name="overtimeRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Rate applied for hours worked beyond 8 hours"
+                  defaultValue={employee?.overtimeRate ?? 0}
+                  required
+                  className="h-9 text-sm font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">Rate applied for hours worked beyond 8 hours</p>
+              </div>
+            </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-8 text-xs">

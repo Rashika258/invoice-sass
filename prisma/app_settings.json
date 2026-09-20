@@ -29,7 +29,7 @@
   "standardShiftHours": 8,
   "overtimeMultiplier": 1.5,
   "printTemplate": "GST_TAX",
-  "printerType": "THERMAL_3INCH",
+  "printerType": "A4",
   "showCompanyLogo": true,
   "printUpiQrOnBill": true,
   "showBankDetails": true,

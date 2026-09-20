@@ -48,6 +48,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -246,7 +247,7 @@ export function AlertsManagerView({
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md p-0">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold flex items-center gap-2">
                   <Bell className="size-4 text-brand" />
@@ -257,127 +258,129 @@ export function AlertsManagerView({
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleCreateAlert} className="space-y-3 py-2">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold">Alert Title *</Label>
-                  <Input
-                    placeholder="e.g. Order raw steel plates from Jindal"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="h-9 text-xs"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Details / Instructions</Label>
-                  <Input
-                    placeholder="e.g. Check fabrication floor inventory and place bulk advance order"
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    className="h-9 text-xs"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleCreateAlert} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <DialogBody>
                   <div className="space-y-1">
-                    <Label className="text-xs">Category</Label>
-                    <Select
-                      value={newCategory}
-                      onValueChange={(val) => {
-                        if (val) setNewCategory(val as AlertCategory);
-                      }}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PAYDAY">💰 Staff Pay Day / Salary</SelectItem>
-                        <SelectItem value="STOCK">📦 Stock &amp; Inventory</SelectItem>
-                        <SelectItem value="PAYMENT">⏳ Payment Collection</SelectItem>
-                        <SelectItem value="GST_TAX">🏛️ GST / Tax Deadline</SelectItem>
-                        <SelectItem value="CUSTOM">🔔 General Business</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Priority</Label>
-                    <Select
-                      value={newPriority}
-                      onValueChange={(val) => {
-                        if (val) setNewPriority(val as AlertPriority);
-                      }}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CRITICAL">Critical (Immediate)</SelectItem>
-                        <SelectItem value="HIGH">High Priority</SelectItem>
-                        <SelectItem value="MEDIUM">Medium</SelectItem>
-                        <SelectItem value="LOW">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Frequency</Label>
-                    <Select
-                      value={newRecurrence}
-                      onValueChange={(val) => {
-                        if (val) setNewRecurrence(val as any);
-                      }}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ONCE">One-Time Only</SelectItem>
-                        <SelectItem value="DAILY">Daily Reminder</SelectItem>
-                        <SelectItem value="WEEKLY">Weekly</SelectItem>
-                        <SelectItem value="MONTHLY">Monthly on Day X</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {newRecurrence === "MONTHLY" && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">Day of Month (1 - 31)</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        value={newMonthlyDay}
-                        onChange={(e) => setNewMonthlyDay(Number(e.target.value))}
-                        className="h-9 text-xs font-mono"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Direct Link / Route (Optional)</Label>
+                    <Label className="text-xs font-semibold">Alert Title *</Label>
                     <Input
-                      placeholder="e.g. /items or /attendance"
-                      value={newActionHref}
-                      onChange={(e) => setNewActionHref(e.target.value)}
-                      className="h-9 text-xs font-mono"
+                      placeholder="e.g. Order raw steel plates from Jindal"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      className="h-9 text-xs"
+                      required
                     />
                   </div>
+
                   <div className="space-y-1">
-                    <Label className="text-xs">Action Button Label</Label>
+                    <Label className="text-xs">Details / Instructions</Label>
                     <Input
-                      placeholder="e.g. View Items"
-                      value={newActionLabel}
-                      onChange={(e) => setNewActionLabel(e.target.value)}
+                      placeholder="e.g. Check fabrication floor inventory and place bulk advance order"
+                      value={newDesc}
+                      onChange={(e) => setNewDesc(e.target.value)}
                       className="h-9 text-xs"
                     />
                   </div>
-                </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Category</Label>
+                      <Select
+                        value={newCategory}
+                        onValueChange={(val) => {
+                          if (val) setNewCategory(val as AlertCategory);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PAYDAY">💰 Staff Pay Day / Salary</SelectItem>
+                          <SelectItem value="STOCK">📦 Stock &amp; Inventory</SelectItem>
+                          <SelectItem value="PAYMENT">⏳ Payment Collection</SelectItem>
+                          <SelectItem value="GST_TAX">🏛️ GST / Tax Deadline</SelectItem>
+                          <SelectItem value="CUSTOM">🔔 General Business</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">Priority</Label>
+                      <Select
+                        value={newPriority}
+                        onValueChange={(val) => {
+                          if (val) setNewPriority(val as AlertPriority);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CRITICAL">Critical (Immediate)</SelectItem>
+                          <SelectItem value="HIGH">High Priority</SelectItem>
+                          <SelectItem value="MEDIUM">Medium</SelectItem>
+                          <SelectItem value="LOW">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Frequency</Label>
+                      <Select
+                        value={newRecurrence}
+                        onValueChange={(val) => {
+                          if (val) setNewRecurrence(val as any);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ONCE">One-Time Only</SelectItem>
+                          <SelectItem value="DAILY">Daily Reminder</SelectItem>
+                          <SelectItem value="WEEKLY">Weekly</SelectItem>
+                          <SelectItem value="MONTHLY">Monthly on Day X</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {newRecurrence === "MONTHLY" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Day of Month (1 - 31)</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={31}
+                          value={newMonthlyDay}
+                          onChange={(e) => setNewMonthlyDay(Number(e.target.value))}
+                          className="h-9 text-xs font-mono"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Direct Link / Route (Optional)</Label>
+                      <Input
+                        placeholder="e.g. /items or /attendance"
+                        value={newActionHref}
+                        onChange={(e) => setNewActionHref(e.target.value)}
+                        className="h-9 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Action Button Label</Label>
+                      <Input
+                        placeholder="e.g. View Items"
+                        value={newActionLabel}
+                        onChange={(e) => setNewActionLabel(e.target.value)}
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                  </div>
+                </DialogBody>
 
                 <DialogFooter className="pt-2">
                   <Button

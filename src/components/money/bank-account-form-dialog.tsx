@@ -7,7 +7,9 @@ import { createBankAccount, deleteBankAccount, updateBankAccount } from "@/actio
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -63,43 +65,45 @@ export function BankAccountFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent>
+      <DialogContent className="sm:max-w-md p-0">
         <DialogHeader>
           <DialogTitle>{account ? "Edit account" : "Add cash / bank account"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input id="name" name="name" defaultValue={account?.name} required />
-          </div>
-          <div className="space-y-2">
-            <Label>Type</Label>
-            <Select value={accountType} onValueChange={(value) => { if (value === "CASH" || value === "BANK") setAccountType(value); }}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CASH">Cash</SelectItem>
-                <SelectItem value="BANK">Bank</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogBody>
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account no.</Label>
-              <Input id="accountNumber" name="accountNumber" defaultValue={account?.accountNumber ?? ""} />
+              <Label htmlFor="name">Name *</Label>
+              <Input id="name" name="name" defaultValue={account?.name} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ifsc">IFSC</Label>
-              <Input id="ifsc" name="ifsc" defaultValue={account?.ifsc ?? ""} />
+              <Label>Type</Label>
+              <Select value={accountType} onValueChange={(value) => { if (value === "CASH" || value === "BANK") setAccountType(value); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CASH">Cash</SelectItem>
+                  <SelectItem value="BANK">Bank</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="openingBalance">Opening balance</Label>
-            <Input id="openingBalance" name="openingBalance" type="number" step="0.01" defaultValue={account?.openingBalance ?? 0} />
-          </div>
-          <div className="flex justify-end gap-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="accountNumber">Account no.</Label>
+                <Input id="accountNumber" name="accountNumber" defaultValue={account?.accountNumber ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ifsc">IFSC</Label>
+                <Input id="ifsc" name="ifsc" defaultValue={account?.ifsc ?? ""} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="openingBalance">Opening balance</Label>
+              <Input id="openingBalance" name="openingBalance" type="number" step="0.01" defaultValue={account?.openingBalance ?? 0} />
+            </div>
+          </DialogBody>
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

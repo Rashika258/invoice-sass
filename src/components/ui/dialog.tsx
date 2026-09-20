@@ -53,7 +53,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-card dark:bg-zinc-950 p-6 text-sm text-foreground dark:text-zinc-100 border border-border dark:border-zinc-800 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 shadow-2xl overflow-hidden",
+          "fixed top-1/2 left-1/2 z-50 flex flex-col w-full max-w-[calc(100%-2rem)] max-h-[90vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card dark:bg-zinc-950 text-sm text-foreground dark:text-zinc-100 border border-border dark:border-zinc-800 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 shadow-2xl overflow-hidden p-0",
           className
         )}
         {...props}
@@ -65,7 +65,7 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground dark:hover:text-white rounded-lg size-7 p-0"
+                className="absolute top-4 right-4 z-20 text-muted-foreground hover:text-foreground dark:hover:text-white rounded-lg size-7 p-0"
                 size="icon-sm"
               />
             }
@@ -83,7 +83,17 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-1.5 text-left", className)}
+      className={cn("flex flex-col gap-1.5 p-6 pb-4 shrink-0 border-b border-border/60 bg-card z-10 text-left", className)}
+      {...props}
+    />
+  )
+}
+
+function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-body"
+      className={cn("flex-1 overflow-y-auto p-6 space-y-4", className)}
       {...props}
     />
   )
@@ -101,7 +111,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-6 -mb-6 mt-4 flex flex-col-reverse gap-2 border-t border-border dark:border-zinc-800/80 bg-muted/30 dark:bg-zinc-900/40 p-4 px-6 sm:flex-row sm:justify-end rounded-b-2xl",
+        "shrink-0 mt-0 flex flex-col-reverse gap-2 border-t border-border dark:border-zinc-800/80 bg-muted/30 dark:bg-zinc-900/40 p-4 px-6 sm:flex-row sm:justify-end rounded-b-2xl z-10",
         className
       )}
       {...props}
@@ -147,6 +157,7 @@ function DialogDescription({
 
 export {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,

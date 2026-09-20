@@ -24,7 +24,8 @@ import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactio
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
 import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Card,
   CardContent,

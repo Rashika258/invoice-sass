@@ -79,6 +79,7 @@ const navConfig: NavGroup[] = [
     collapsible: false,
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/analytics", label: "Analytics & Graphs", icon: TrendingUp, badge: "GRAPHS" },
       { href: "/alerts", label: "Alerts & Reminders", icon: Bell, badge: "LIVE" },
     ],
   },
@@ -197,6 +198,7 @@ const navConfig: NavGroup[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
+      { href: "/analytics", label: "Analytics & Graphs", icon: TrendingUp, badge: "GRAPHS" },
       { href: "/reports", label: "Reports Directory", icon: BarChart3 },
       { href: "/ca-portal", label: "CA & Tax Portal", icon: FileSpreadsheet, badge: "AUDIT" },
       { href: "/compliance", label: "GST & DPDP Compliance", icon: CheckCircle2, badge: "GOVT" },

@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -221,7 +222,7 @@ export function ComplianceView({ initialData }: { initialData: ComplianceSummary
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md p-0">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold flex items-center gap-2">
                   <Lock className="size-4 text-emerald-600" />
@@ -232,88 +233,90 @@ export function ComplianceView({ initialData }: { initialData: ComplianceSummary
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleCreateConsent} className="space-y-3.5 py-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Entity Type</Label>
-                    <Select
-                      value={entityType}
-                      onValueChange={(val) => {
-                        if (val === "CUSTOMER" || val === "EMPLOYEE") setEntityType(val);
-                      }}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CUSTOMER">Customer / Client</SelectItem>
-                        <SelectItem value="EMPLOYEE">Employee / Staff</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <form onSubmit={handleCreateConsent} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <DialogBody>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Entity Type</Label>
+                      <Select
+                        value={entityType}
+                        onValueChange={(val) => {
+                          if (val === "CUSTOMER" || val === "EMPLOYEE") setEntityType(val);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CUSTOMER">Customer / Client</SelectItem>
+                          <SelectItem value="EMPLOYEE">Employee / Staff</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">Purpose</Label>
+                      <Select
+                        value={purpose}
+                        onValueChange={(val) => {
+                          if (val) setPurpose(val as DpdpConsentPurpose);
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TRANSACTIONAL_INVOICES">Transactional Invoices</SelectItem>
+                          <SelectItem value="PAYMENT_REMINDERS">Payment Reminders (UPI)</SelectItem>
+                          <SelectItem value="MARKETING_OFFERS">Marketing / Catalog</SelectItem>
+                          <SelectItem value="BIOMETRIC_ATTENDANCE">Biometrics (Face/Finger)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Purpose</Label>
-                    <Select
-                      value={purpose}
-                      onValueChange={(val) => {
-                        if (val) setPurpose(val as DpdpConsentPurpose);
-                      }}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TRANSACTIONAL_INVOICES">Transactional Invoices</SelectItem>
-                        <SelectItem value="PAYMENT_REMINDERS">Payment Reminders (UPI)</SelectItem>
-                        <SelectItem value="MARKETING_OFFERS">Marketing / Catalog</SelectItem>
-                        <SelectItem value="BIOMETRIC_ATTENDANCE">Biometrics (Face/Finger)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-xs">Name</Label>
+                    <Input
+                      placeholder="e.g. Ramesh Hardware or Anand Kumar"
+                      value={entityName}
+                      onChange={(e) => setEntityName(e.target.value)}
+                      className="h-9 text-xs"
+                      required
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs">Name</Label>
-                  <Input
-                    placeholder="e.g. Ramesh Hardware or Anand Kumar"
-                    value={entityName}
-                    onChange={(e) => setEntityName(e.target.value)}
-                    className="h-9 text-xs"
-                    required
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Phone / Email</Label>
+                    <Input
+                      placeholder="+91 98765 43210"
+                      value={contact}
+                      onChange={(e) => setContact(e.target.value)}
+                      className="h-9 text-xs"
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs">Phone / Email</Label>
-                  <Input
-                    placeholder="+91 98765 43210"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    className="h-9 text-xs"
-                    required
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Channel / Verification Method</Label>
+                    <Input
+                      placeholder="e.g. WhatsApp Opt-in, Store Counter, Biometric Kiosk"
+                      value={channel}
+                      onChange={(e) => setChannel(e.target.value)}
+                      className="h-9 text-xs"
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs">Channel / Verification Method</Label>
-                  <Input
-                    placeholder="e.g. WhatsApp Opt-in, Store Counter, Biometric Kiosk"
-                    value={channel}
-                    onChange={(e) => setChannel(e.target.value)}
-                    className="h-9 text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs">Audit Notes (Optional)</Label>
-                  <Input
-                    placeholder="e.g. Authorized digital invoice PDF and WhatsApp UPI payment notifications"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="h-9 text-xs"
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Audit Notes (Optional)</Label>
+                    <Input
+                      placeholder="e.g. Authorized digital invoice PDF and WhatsApp UPI payment notifications"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                </DialogBody>
 
                 <DialogFooter className="pt-2">
                   <Button

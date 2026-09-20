@@ -8,6 +8,7 @@ import { createPayment, deletePayment } from "@/actions/money";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -78,7 +79,7 @@ export function PaymentFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader>
           <DialogTitle>{direction === "IN" ? "Record Payment In" : "Record Payment Out"}</DialogTitle>
           <DialogDescription>
@@ -87,89 +88,91 @@ export function PaymentFormDialog({
               : "Record a payment made to a supplier or vendor from cash or bank."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Party</Label>
-            <Select value={partyId} onValueChange={(value) => { if (value) { setPartyId(value); setInvoiceId(""); } }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select party">
-                  {parties.find((p) => p.id === partyId)?.name || "Select party"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {parties.map((party) => (
-                  <SelectItem key={party.id} value={party.id}>{party.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Link to bill</Label>
-            <Select value={invoiceId} onValueChange={(value) => value && setInvoiceId(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Optional bill link">
-                  {linkedInvoices.find((i) => i.id === invoiceId)?.invoiceNumber || "Optional bill link"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {linkedInvoices.map((invoice) => (
-                  <SelectItem key={invoice.id} value={invoice.id}>
-                    {invoice.invoiceNumber} · due {Math.max(invoice.total - invoice.paidAmount, 0)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <DialogBody>
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
-              <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
-            </div>
-            <div className="space-y-2">
-              <Label>Date *</Label>
-              <DatePicker value={date} onChange={setDate} />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Mode</Label>
-              <Select value={mode} onValueChange={(value) => {
-                if (value === "CASH" || value === "UPI" || value === "BANK" || value === "CHEQUE" || value === "CARD") setMode(value);
-              }}>
-                <SelectTrigger><SelectValue placeholder="Mode">{mode}</SelectValue></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">Cash</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
-                  <SelectItem value="BANK">Bank</SelectItem>
-                  <SelectItem value="CHEQUE">Cheque</SelectItem>
-                  <SelectItem value="CARD">Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Received in / Paid from</Label>
-              <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
+              <Label>Party</Label>
+              <Select value={partyId} onValueChange={(value) => { if (value) { setPartyId(value); setInvoiceId(""); } }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select account">
-                    {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                  <SelectValue placeholder="Select party">
+                    {parties.find((p) => p.id === partyId)?.name || "Select party"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                  {parties.map((party) => (
+                    <SelectItem key={party.id} value={party.id}>{party.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reference">Reference / UTR</Label>
-            <Input id="reference" name="reference" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" rows={2} />
-          </div>
+            <div className="space-y-2">
+              <Label>Link to bill</Label>
+              <Select value={invoiceId} onValueChange={(value) => value && setInvoiceId(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Optional bill link">
+                    {linkedInvoices.find((i) => i.id === invoiceId)?.invoiceNumber || "Optional bill link"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {linkedInvoices.map((invoice) => (
+                    <SelectItem key={invoice.id} value={invoice.id}>
+                      {invoice.invoiceNumber} · due {Math.max(invoice.total - invoice.paidAmount, 0)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount *</Label>
+                <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
+              </div>
+              <div className="space-y-2">
+                <Label>Date *</Label>
+                <DatePicker value={date} onChange={setDate} />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Mode</Label>
+                <Select value={mode} onValueChange={(value) => {
+                  if (value === "CASH" || value === "UPI" || value === "BANK" || value === "CHEQUE" || value === "CARD") setMode(value);
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Mode">{mode}</SelectValue></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CASH">Cash</SelectItem>
+                    <SelectItem value="UPI">UPI</SelectItem>
+                    <SelectItem value="BANK">Bank</SelectItem>
+                    <SelectItem value="CHEQUE">Cheque</SelectItem>
+                    <SelectItem value="CARD">Card</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Received in / Paid from</Label>
+                <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account">
+                      {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reference">Reference / UTR</Label>
+              <Input id="reference" name="reference" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea id="notes" name="notes" rows={2} />
+            </div>
+          </DialogBody>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Payment"}</Button>

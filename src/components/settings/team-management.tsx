@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -127,61 +128,63 @@ export function TeamManagement({
                   </Button>
                 }
               />
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md p-0">
                 <DialogHeader>
                   <DialogTitle className="text-base font-semibold">Add New User to Organization</DialogTitle>
                   <DialogDescription>
                     Invite team members to manage attendance, billing, and GST reports.
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-4 pt-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="memberName" className="text-xs font-semibold">Full Name *</Label>
-                    <Input id="memberName" name="name" placeholder="e.g. Priya Sharma" required className="h-9 text-sm" />
-                  </div>
+                <form onSubmit={handleCreate} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <DialogBody>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="memberName" className="text-xs font-semibold">Full Name *</Label>
+                      <Input id="memberName" name="name" placeholder="e.g. Priya Sharma" required className="h-9 text-sm" />
+                    </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="memberEmail" className="text-xs font-semibold">Email Address *</Label>
-                    <Input id="memberEmail" name="email" type="email" placeholder="priya@company.com" required className="h-9 text-sm" />
-                  </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="memberEmail" className="text-xs font-semibold">Email Address *</Label>
+                      <Input id="memberEmail" name="email" type="email" placeholder="priya@company.com" required className="h-9 text-sm" />
+                    </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="memberPassword" className="text-xs font-semibold">Initial Password *</Label>
-                    <Input id="memberPassword" name="password" type="password" placeholder="At least 6 characters" required minLength={6} className="h-9 text-sm" />
-                  </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="memberPassword" className="text-xs font-semibold">Initial Password *</Label>
+                      <Input id="memberPassword" name="password" type="password" placeholder="At least 6 characters" required minLength={6} className="h-9 text-sm" />
+                    </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Assigned Role</Label>
-                    <Select value={role} onValueChange={(val) => setRole(val as any)}>
-                      <SelectTrigger className="w-full h-9 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ADMIN">Admin (Full Access &amp; Company Settings)</SelectItem>
-                        <SelectItem value="STAFF">Staff / Operator (Attendance, OT &amp; Salary Slips)</SelectItem>
-                        <SelectItem value="SALES_OPERATOR">Sales Operator (POS Counter &amp; Billing Only)</SelectItem>
-                        <SelectItem value="WAREHOUSE_CLERK">Warehouse Clerk (Items &amp; Inventory Only)</SelectItem>
-                        <SelectItem value="CA_AUDITOR">CA Auditor (Accounting &amp; Tax Reports Only)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Assigned Role</Label>
+                      <Select value={role} onValueChange={(val) => setRole(val as any)}>
+                        <SelectTrigger className="w-full h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ADMIN">Admin (Full Access &amp; Company Settings)</SelectItem>
+                          <SelectItem value="STAFF">Staff / Operator (Attendance, OT &amp; Salary Slips)</SelectItem>
+                          <SelectItem value="SALES_OPERATOR">Sales Operator (POS Counter &amp; Billing Only)</SelectItem>
+                          <SelectItem value="WAREHOUSE_CLERK">Warehouse Clerk (Items &amp; Inventory Only)</SelectItem>
+                          <SelectItem value="CA_AUDITOR">CA Auditor (Accounting &amp; Tax Reports Only)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="rounded-lg bg-muted/50 p-2.5 text-[11px] text-muted-foreground">
-                    <p className="font-semibold text-foreground">Role Permissions:</p>
-                    <ul className="list-disc pl-4 mt-1 space-y-0.5">
-                      <li><b>Admin</b>: Access all billing, inventory, banking, reports, and settings.</li>
-                      <li><b>Staff</b>: Log attendance, calculate overtime (OT), and print salary slips.</li>
-                      <li><b>Sales Operator</b>: Create sales invoices &amp; run POS counter.</li>
-                      <li><b>Warehouse Clerk</b>: Manage products, stock quantities, and barcodes.</li>
-                      <li><b>CA Auditor</b>: View ledger accounts, GST returns, and trial balance.</li>
-                    </ul>
-                  </div>
+                    <div className="rounded-lg bg-muted/50 p-2.5 text-[11px] text-muted-foreground">
+                      <p className="font-semibold text-foreground">Role Permissions:</p>
+                      <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                        <li><b>Admin</b>: Access all billing, inventory, banking, reports, and settings.</li>
+                        <li><b>Staff</b>: Log attendance, calculate overtime (OT), and print salary slips.</li>
+                        <li><b>Sales Operator</b>: Create sales invoices &amp; run POS counter.</li>
+                        <li><b>Warehouse Clerk</b>: Manage products, stock quantities, and barcodes.</li>
+                        <li><b>CA Auditor</b>: View ledger accounts, GST returns, and trial balance.</li>
+                      </ul>
+                    </div>
+                  </DialogBody>
 
                   <DialogFooter>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)} className="h-8 text-xs">
+                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                       Cancel
                     </Button>
-                    <Button type="submit" size="sm" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs font-semibold">
+                    <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? "Creating..." : "Create User"}
                     </Button>
                   </DialogFooter>
