@@ -19,9 +19,17 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
-    const result = await loginUser(new FormData(event.currentTarget));
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const result = await loginUser(new FormData(event.currentTarget));
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      if (err?.message?.includes("NEXT_REDIRECT")) {
+        throw err;
+      }
+      setError(err?.message || "An unexpected error occurred during sign in.");
       setIsLoading(false);
     }
   }

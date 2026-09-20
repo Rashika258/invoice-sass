@@ -31,8 +31,9 @@ export async function registerUser(formData: FormData) {
   }
 
   const { name, email, password, companyName } = parsed.data;
+  const normalizedEmail = email.toLowerCase().trim();
 
-  const existing = await db.user.findUnique({ where: { email } });
+  const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
   if (existing) {
     return { error: "An account with this email already exists" };
   }
@@ -41,15 +42,15 @@ export async function registerUser(formData: FormData) {
 
   const user = await db.user.create({
     data: {
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       passwordHash,
       organization: {
         create: {
-          name: companyName,
+          name: companyName.trim(),
           profile: {
             create: {
-              companyName,
+              companyName: companyName.trim(),
               paymentTerms: "Net 30",
               invoicePrefix: "INV",
               nextInvoiceNumber: 1,
@@ -77,7 +78,8 @@ export async function loginUser(formData: FormData) {
   }
 
   const { email, password } = parsed.data;
-  const user = await db.user.findUnique({ where: { email } });
+  const normalizedEmail = email.toLowerCase().trim();
+  const user = await db.user.findUnique({ where: { email: normalizedEmail } });
 
   if (!user) {
     return { error: "Invalid email or password" };
