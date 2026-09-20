@@ -49,7 +49,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -904,7 +906,7 @@ export function SaleTransactionsView({
       {/* WhatsApp / Document Share Modal */}
       {shareDoc && (
         <Dialog open={Boolean(shareDoc)} onOpenChange={() => setShareDoc(null)}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md p-0 overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base">
                 <Share2 className="size-4 text-emerald-600" />
@@ -912,7 +914,7 @@ export function SaleTransactionsView({
               </DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3 text-xs pt-1">
+            <DialogBody className="space-y-3 text-xs">
               <div className="p-3 rounded-lg bg-muted/50 space-y-1">
                 <div className="flex justify-between font-semibold">
                   <span>Customer:</span>
@@ -934,43 +936,42 @@ export function SaleTransactionsView({
                   </span>
                 </div>
               </div>
+            </DialogBody>
 
-              <div className="flex flex-col gap-2 pt-2">
-                <Button
-                  type="button"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-medium"
-                  onClick={() => {
-                    const party = shareDoc.customer?.name || "Customer";
-                    const phone = (shareDoc.customer?.phone || "").replace(
-                      /[^0-9]/g,
-                      "",
-                    );
-                    const msg = `Dear ${party}, thank you for your business with ${companyName}. Your invoice ${shareDoc.invoiceNumber} for ${formatCurrency(shareDoc.total, currency)} is ready.`;
-                    const waUrl = phone
-                      ? `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`
-                      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-                    window.open(waUrl, "_blank");
-                    setShareDoc(null);
-                  }}
-                >
-                  <Share2 className="size-3.5" />
-                  <span>Send via WhatsApp</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    const msg = `Invoice: ${shareDoc.invoiceNumber} | Customer: ${shareDoc.customer?.name || "Customer"} | Total: ${formatCurrency(shareDoc.total, currency)} | Balance: ${formatCurrency(Math.max(shareDoc.total - (shareDoc.paidAmount || 0), 0), currency)}`;
-                    navigator.clipboard.writeText(msg);
-                    toast.success("Details copied to clipboard");
-                    setShareDoc(null);
-                  }}
-                >
-                  Copy Invoice Details
-                </Button>
-              </div>
-            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const msg = `Invoice: ${shareDoc.invoiceNumber} | Customer: ${shareDoc.customer?.name || "Customer"} | Total: ${formatCurrency(shareDoc.total, currency)} | Balance: ${formatCurrency(Math.max(shareDoc.total - (shareDoc.paidAmount || 0), 0), currency)}`;
+                  navigator.clipboard.writeText(msg);
+                  toast.success("Details copied to clipboard");
+                  setShareDoc(null);
+                }}
+              >
+                Copy Invoice Details
+              </Button>
+              <Button
+                type="button"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-medium"
+                onClick={() => {
+                  const party = shareDoc.customer?.name || "Customer";
+                  const phone = (shareDoc.customer?.phone || "").replace(
+                    /[^0-9]/g,
+                    "",
+                  );
+                  const msg = `Dear ${party}, thank you for your business with ${companyName}. Your invoice ${shareDoc.invoiceNumber} for ${formatCurrency(shareDoc.total, currency)} is ready.`;
+                  const waUrl = phone
+                    ? `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`
+                    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                  window.open(waUrl, "_blank");
+                  setShareDoc(null);
+                }}
+              >
+                <Share2 className="size-3.5" />
+                <span>Send via WhatsApp</span>
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

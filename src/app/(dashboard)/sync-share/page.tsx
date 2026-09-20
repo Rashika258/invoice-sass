@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -306,7 +307,7 @@ export default function SyncSharePage() {
 
       {/* Invite Staff Dialog */}
       <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCheck className="size-4 text-primary" />
@@ -316,55 +317,57 @@ export default function SyncSharePage() {
               Create a login account for your staff member. They can log in with their email and password.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddStaff} className="space-y-4 text-xs">
-            <div className="space-y-1">
-              <Label>Staff Full Name *</Label>
-              <Input
-                value={staffName}
-                onChange={(e) => setStaffName(e.target.value)}
-                placeholder="e.g. Ramesh Kumar"
-                className="h-8 text-xs"
-                required
-              />
-            </div>
+          <form onSubmit={handleAddStaff} className="flex flex-col flex-1 overflow-hidden">
+            <DialogBody className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <Label>Staff Full Name *</Label>
+                <Input
+                  value={staffName}
+                  onChange={(e) => setStaffName(e.target.value)}
+                  placeholder="e.g. Ramesh Kumar"
+                  className="h-8 text-xs"
+                  required
+                />
+              </div>
 
-            <div className="space-y-1">
-              <Label>Email Address (Login ID) *</Label>
-              <Input
-                type="email"
-                value={staffEmail}
-                onChange={(e) => setStaffEmail(e.target.value)}
-                placeholder="e.g. ramesh@yourcompany.com"
-                className="h-8 text-xs"
-                required
-              />
-            </div>
+              <div className="space-y-1">
+                <Label>Email Address (Login ID) *</Label>
+                <Input
+                  type="email"
+                  value={staffEmail}
+                  onChange={(e) => setStaffEmail(e.target.value)}
+                  placeholder="e.g. ramesh@yourcompany.com"
+                  className="h-8 text-xs"
+                  required
+                />
+              </div>
 
-            <div className="space-y-1">
-              <Label>Initial Password *</Label>
-              <Input
-                type="password"
-                value={staffPassword}
-                onChange={(e) => setStaffPassword(e.target.value)}
-                placeholder="Minimum 6 characters"
-                className="h-8 text-xs"
-                required
-                minLength={6}
-              />
-            </div>
+              <div className="space-y-1">
+                <Label>Initial Password *</Label>
+                <Input
+                  type="password"
+                  value={staffPassword}
+                  onChange={(e) => setStaffPassword(e.target.value)}
+                  placeholder="Minimum 6 characters"
+                  className="h-8 text-xs"
+                  required
+                  minLength={6}
+                />
+              </div>
 
-            <div className="space-y-1">
-              <Label>Assigned Role</Label>
-              <Select value={staffRole} onValueChange={(val) => val && setStaffRole(val)}>
-                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN" className="text-xs">Admin (Full access)</SelectItem>
-                  <SelectItem value="STAFF" className="text-xs">Staff (Billing &amp; Sales)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1">
+                <Label>Assigned Role</Label>
+                <Select value={staffRole} onValueChange={(val) => val && setStaffRole(val)}>
+                  <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                    <SelectValue placeholder="Select Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ADMIN" className="text-xs">Admin (Full access)</SelectItem>
+                    <SelectItem value="STAFF" className="text-xs">Staff (Billing &amp; Sales)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </DialogBody>
 
             <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={() => setInviteModalOpen(false)}>
