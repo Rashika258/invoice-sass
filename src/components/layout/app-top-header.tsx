@@ -384,7 +384,7 @@ export function AppTopHeader({
                         setSearchOpen(false);
                         router.push(item.href);
                       }}
-                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors text-left"
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors text-left cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5">
                         <Icon className="size-4 text-muted-foreground" />
@@ -421,7 +421,7 @@ export function AppTopHeader({
                   key={btn}
                   type="button"
                   onClick={() => handleCalcButton(btn)}
-                  className="rounded-md bg-muted p-2 hover:bg-muted/80 text-foreground transition-colors"
+                  className="rounded-md bg-muted p-2 hover:bg-muted/80 text-foreground transition-colors cursor-pointer"
                 >
                   {btn}
                 </button>
@@ -431,7 +431,7 @@ export function AppTopHeader({
                   key={btn}
                   type="button"
                   onClick={() => handleCalcButton(btn)}
-                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors cursor-pointer"
                 >
                   {btn}
                 </button>
@@ -441,7 +441,7 @@ export function AppTopHeader({
                   key={btn}
                   type="button"
                   onClick={() => handleCalcButton(btn)}
-                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors cursor-pointer"
                 >
                   {btn}
                 </button>
@@ -451,7 +451,7 @@ export function AppTopHeader({
                   key={btn}
                   type="button"
                   onClick={() => handleCalcButton(btn)}
-                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors"
+                  className="rounded-md bg-card border border-border p-2 hover:bg-accent text-foreground transition-colors cursor-pointer"
                 >
                   {btn}
                 </button>
@@ -461,11 +461,12 @@ export function AppTopHeader({
                   key={btn}
                   type="button"
                   onClick={() => handleCalcButton(btn)}
-                  className={`rounded-md p-2 transition-colors ${
+                  className={cn(
+                    "rounded-md p-2 transition-colors cursor-pointer",
                     btn === "="
-                      ? "col-span-2 bg-primary text-primary-foreground font-bold"
+                      ? "col-span-2 bg-primary text-primary-foreground font-bold hover:bg-primary/90"
                       : "bg-card border border-border hover:bg-accent text-foreground"
-                  }`}
+                  )}
                 >
                   {btn}
                 </button>
