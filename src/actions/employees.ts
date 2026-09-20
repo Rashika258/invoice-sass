@@ -40,13 +40,17 @@ export async function updateEmployee(id: string, data: EmployeeInput) {
   const parsed = employeeSchema.parse(data);
   const org = await requireOrganization();
 
-  await db.employee.updateMany({
+  const result = await db.employee.updateMany({
     where: { id, organizationId: org.id },
     data: {
       ...parsed,
       email: parsed.email || null,
     },
   });
+
+  if (result.count === 0) {
+    throw new Error("Employee not found");
+  }
 
   revalidatePath("/employees");
   revalidatePath("/attendance");
@@ -56,9 +60,13 @@ export async function updateEmployee(id: string, data: EmployeeInput) {
 export async function deleteEmployee(id: string) {
   const org = await requireOrganization();
 
-  await db.employee.deleteMany({
+  const result = await db.employee.deleteMany({
     where: { id, organizationId: org.id },
   });
+
+  if (result.count === 0) {
+    throw new Error("Employee not found");
+  }
 
   revalidatePath("/employees");
   revalidatePath("/attendance");
@@ -76,11 +84,15 @@ export async function getAttendanceRecords(month?: string) {
   };
 
   if (month) {
-    const [year, monthNum] = month.split("-").map(Number);
-    const start = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0));
-    const nextMonthYear = monthNum === 12 ? year + 1 : year;
-    const nextMonth = monthNum === 12 ? 0 : monthNum;
-    const end = new Date(Date.UTC(nextMonthYear, nextMonth, 1, 0, 0, 0));
+    const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(month);
+    if (!match) {
+      throw new Error("Month must use YYYY-MM format");
+    }
+
+    const year = Number(match[1]);
+    const monthNum = Number(match[2]);
+    const start = new Date(Date.UTC(year, monthNum - 1, 1));
+    const end = new Date(Date.UTC(year, monthNum, 1));
     where.date = { gte: start, lt: end };
   }
 
