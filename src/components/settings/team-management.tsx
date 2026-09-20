@@ -44,7 +44,7 @@ type TeamMember = {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "WAREHOUSE_CLERK" | "CA_AUDITOR" | "SALES_OPERATOR" | string;
   createdAt: Date;
 };
 
@@ -257,7 +257,7 @@ export function TeamManagement({
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
+                <TableCell suppressHydrationWarning className="text-xs text-muted-foreground">
                   {format(new Date(member.createdAt), "MMM dd, yyyy")}
                 </TableCell>
                 {isAdmin && (

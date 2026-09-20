@@ -9,6 +9,7 @@ import {
   Check,
   ChevronDown,
   Clock,
+  CreditCard,
   Edit2,
   FileText,
   Fingerprint,
@@ -67,9 +68,11 @@ import { TaxesSettings } from "@/components/settings/sections/taxes-settings";
 import { BrandThemeSettings } from "@/components/settings/sections/brand-theme-settings";
 import { TeamManagement } from "@/components/settings/team-management";
 import { TwoFactorSetupDialog } from "@/components/auth/two-factor-dialog";
+import { PaymentSettingsView } from "@/components/settings/payment-settings-view";
 
 const SETTINGS_SECTIONS = [
   { id: "GENERAL", label: "General Settings", icon: Sliders },
+  { id: "PAYMENT GATEWAY", label: "Payment Gateway", icon: CreditCard },
   { id: "TEAM", label: "Team Members & Roles", icon: UserCheck },
   { id: "BRAND & THEME", label: "Brand & Theme Studio", icon: Palette },
   { id: "ATTENDANCE & BIOMETRIC", label: "Attendance & Biometrics", icon: Fingerprint },
@@ -736,6 +739,11 @@ export function BusinessSettingsView({
               <TwoFactorSetupDialog enabled={totpEnabled} />
             </div>
           </div>
+        )}
+
+        {/* SECTION: PAYMENT GATEWAY & MERCHANT CONFIGURATION */}
+        {activeSection === "PAYMENT GATEWAY" && (
+          <PaymentSettingsView />
         )}
 
         {/* SECTION: ATTENDANCE & BIOMETRIC CONFIGURATION */}
