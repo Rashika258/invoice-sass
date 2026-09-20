@@ -66,6 +66,7 @@ import { TransactionSettings } from "@/components/settings/sections/transaction-
 import { TaxesSettings } from "@/components/settings/sections/taxes-settings";
 import { BrandThemeSettings } from "@/components/settings/sections/brand-theme-settings";
 import { TeamManagement } from "@/components/settings/team-management";
+import { TwoFactorSetupDialog } from "@/components/auth/two-factor-dialog";
 
 const SETTINGS_SECTIONS = [
   { id: "GENERAL", label: "General Settings", icon: Sliders },
@@ -85,16 +86,35 @@ const SETTINGS_SECTIONS = [
 
 const ZOOM_LEVELS = [70, 80, 90, 100, 110, 115, 120, 130];
 
+/**
+ * Apply screen zoom. Uses CSS zoom property but ONLY for non-100% values.
+ * At 100% we always remove zoom to ensure Floating UI (Select/Popover positioning)
+ * works correctly — CSS zoom breaks getBoundingClientRect() coordinates.
+ */
+function applyScreenZoom(zoomLevel: number) {
+  if (typeof document === "undefined") return;
+  if (zoomLevel === 100) {
+    document.documentElement.style.removeProperty("zoom");
+    return;
+  }
+  // Only apply CSS zoom for non-100% — user explicitly chose a different scale
+  (document.documentElement.style as any).zoom = `${zoomLevel}%`;
+}
+
+
+
 export function BusinessSettingsView({
   profile,
   teamMembers = [],
   currentUserId = "",
   isAdmin = true,
+  totpEnabled = false,
 }: {
   profile: any;
   teamMembers?: any[];
   currentUserId?: string;
   isAdmin?: boolean;
+  totpEnabled?: boolean;
 }) {
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState("GENERAL");
@@ -208,15 +228,24 @@ export function BusinessSettingsView({
       setStandardShiftHours(data.standardShiftHours || 8);
       setOvertimeMultiplier(data.overtimeMultiplier || 1.5);
 
-      if (data.screenZoom && typeof document !== "undefined") {
-        (document.documentElement.style as any).zoom = `${data.screenZoom}%`;
+      if (data.screenZoom && data.screenZoom !== 100 && typeof document !== "undefined") {
+        applyScreenZoom(data.screenZoom);
+      } else if (typeof document !== "undefined") {
+        // Remove any previously applied zoom
+        document.documentElement.style.removeProperty("zoom");
+        document.documentElement.style.removeProperty("transform");
       }
     });
   }, []);
 
   const handleApplyZoom = async () => {
     if (typeof document !== "undefined") {
-      (document.documentElement.style as any).zoom = `${zoom}%`;
+      if (zoom === 100) {
+        document.documentElement.style.removeProperty("zoom");
+        document.documentElement.style.removeProperty("transform");
+      } else {
+        applyScreenZoom(zoom);
+      }
     }
     await saveAppSettingsAction({ screenZoom: zoom });
     toast.success(`Screen scale applied: ${zoom}%`);
@@ -692,6 +721,20 @@ export function BusinessSettingsView({
               currentUserId={currentUserId}
               isAdmin={isAdmin}
             />
+
+            {/* 2FA Security for current admin account */}
+            <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+              <div className="space-y-0.5">
+                <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                  <ShieldCheck className="size-4 text-brand" />
+                  <span>Account Security</span>
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Protect your admin account with Two-Factor Authentication (2FA).
+                </p>
+              </div>
+              <TwoFactorSetupDialog enabled={totpEnabled} />
+            </div>
           </div>
         )}
 

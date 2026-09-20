@@ -90,6 +90,21 @@ export const invoiceSchema = z.object({
 
 export const companyProfileSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
+  businessVertical: z
+    .enum([
+      "RETAIL_WHOLESALE",
+      "PHARMACY",
+      "SALON_CLINIC",
+      "RESTAURANT",
+      "GENERAL_SERVICES",
+      "OTHER",
+    ])
+    .optional()
+    .default("RETAIL_WHOLESALE"),
+  enableBatchExpiry: z.coerce.boolean().optional().default(false),
+  enableBarcodes: z.coerce.boolean().optional().default(true),
+  enableStaffCommission: z.coerce.boolean().optional().default(false),
+  defaultItemType: z.enum(["PRODUCT", "SERVICE"]).optional().default("PRODUCT"),
   logoUrl: z.string().optional().or(z.literal("")),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -141,7 +156,7 @@ export const bankAccountSchema = z.object({
 export type CustomerInput = z.infer<typeof customerSchema>;
 export type ItemInput = z.infer<typeof itemSchema>;
 export type InvoiceInput = z.infer<typeof invoiceSchema>;
-export type CompanyProfileInput = z.infer<typeof companyProfileSchema>;
+export type CompanyProfileInput = z.input<typeof companyProfileSchema>;
 export type EmployeeInput = z.infer<typeof employeeSchema>;
 export type AttendanceInput = z.infer<typeof attendanceSchema>;
 export type PaymentInput = z.infer<typeof paymentSchema>;

@@ -20,6 +20,7 @@ export default async function SettingsPage() {
         teamMembers={teamMembers}
         currentUserId={currentUser?.id ?? ""}
         isAdmin={currentUser?.role === "ADMIN"}
+        totpEnabled={(currentUser as any)?.totpEnabled ?? false}
       />
     </Suspense>
   );

@@ -102,31 +102,45 @@ model Organization {
   updatedAt     DateTime         @updatedAt
 }
 
+enum BusinessVertical {
+  RETAIL_WHOLESALE
+  PHARMACY
+  SALON_CLINIC
+  RESTAURANT
+  GENERAL_SERVICES
+  OTHER
+}
+
 model CompanyProfile {
-  id                String       @id @default(cuid())
-  organizationId    String       @unique
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  companyName       String       @default("")
-  email             String?
-  phone             String?
-  address           String?
-  city              String?
-  state             String?
-  zipCode           String?
-  country           String?      @default("India")
-  website           String?
-  taxId             String?
-  logoUrl           String?
-  bankName          String?
-  accountNumber     String?
-  routingNumber     String?
-  paymentTerms      String?
-  invoicePrefix     String       @default("INV")
-  nextInvoiceNumber Int          @default(1)
-  currency          String       @default("INR")
-  defaultTaxRate    Float        @default(18)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id                   String           @id @default(cuid())
+  organizationId       String           @unique
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  companyName          String           @default("")
+  businessVertical     BusinessVertical @default(RETAIL_WHOLESALE)
+  enableBatchExpiry    Boolean          @default(false)
+  enableBarcodes       Boolean          @default(true)
+  enableStaffCommission Boolean         @default(false)
+  defaultItemType      ItemType         @default(PRODUCT)
+  email                String?
+  phone                String?
+  address              String?
+  city                 String?
+  state                String?
+  zipCode              String?
+  country              String?          @default("India")
+  website              String?
+  taxId                String?
+  logoUrl              String?
+  bankName             String?
+  accountNumber        String?
+  routingNumber        String?
+  paymentTerms         String?
+  invoicePrefix        String           @default("INV")
+  nextInvoiceNumber    Int              @default(1)
+  currency             String           @default("INR")
+  defaultTaxRate       Float            @default(18)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 }
 
 model NumberSeries {

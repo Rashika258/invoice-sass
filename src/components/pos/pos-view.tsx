@@ -48,11 +48,19 @@ export function PosView({
   customers,
   currency = "INR",
   companyState,
+  businessVertical = "RETAIL_WHOLESALE",
+  enableBatchExpiry = false,
+  enableBarcodes = true,
+  enableStaffCommission = false,
 }: {
   items: Item[];
   customers: Customer[];
   currency?: string;
   companyState?: string | null;
+  businessVertical?: string;
+  enableBatchExpiry?: boolean;
+  enableBarcodes?: boolean;
+  enableStaffCommission?: boolean;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<POSCartItem[]>([]);
@@ -199,10 +207,26 @@ export function PosView({
             <Badge className="bg-rose-600 text-white font-semibold text-[10px]">
               Fast Counter
             </Badge>
+            <Badge variant="outline" className="text-[10px] font-medium border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
+              {businessVertical === "PHARMACY" && "Pharmacy / Rx Mode"}
+              {businessVertical === "SALON_CLINIC" && "Salon & Spa Services"}
+              {businessVertical === "RESTAURANT" && "Restaurant Cafe Billing"}
+              {businessVertical === "GENERAL_SERVICES" && "Services & Consulting"}
+              {businessVertical === "RETAIL_WHOLESALE" && "Retail & Wholesale POS"}
+            </Badge>
           </h1>
         </div>
-        <div className="text-xs text-muted-foreground">
-          Press items to add · Instant GST bill generation
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {enableBatchExpiry && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+              • Batch/Expiry Enabled
+            </span>
+          )}
+          {enableBarcodes && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              • Barcode Scanner Ready
+            </span>
+          )}
         </div>
       </div>
 

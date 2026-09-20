@@ -18,6 +18,10 @@ export default async function PosPage() {
       customers={customers}
       currency={profile?.currency ?? "INR"}
       companyState={profile?.state}
+      businessVertical={profile?.businessVertical ?? "RETAIL_WHOLESALE"}
+      enableBatchExpiry={profile?.enableBatchExpiry ?? false}
+      enableBarcodes={profile?.enableBarcodes ?? true}
+      enableStaffCommission={profile?.enableStaffCommission ?? false}
     />
   );
 }

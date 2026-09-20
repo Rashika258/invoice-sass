@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -75,16 +75,31 @@ export default function SyncSharePage() {
   const [syncEnabled, setSyncEnabled] = useState(true);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [staffName, setStaffName] = useState("");
-  const [staffPhone, setStaffPhone] = useState("");
-  const [staffRole, setStaffRole] = useState("BILLER");
-
-  const [staffList, setStaffList] = useState([
-    { id: "1", name: "Suresh Kumar", phone: "9845012345", role: "Billing Operator", active: true },
-    { id: "2", name: "Pooja Hegde", phone: "9876543210", role: "Senior Accountant", active: true },
-    { id: "3", name: "Ramesh Gowda", phone: "9481234567", role: "Field Salesman", active: false },
-  ]);
+  const [staffEmail, setStaffEmail] = useState("");
+  const [staffPassword, setStaffPassword] = useState("");
+  const [staffRole, setStaffRole] = useState("STAFF");
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [loadingStaff, setLoadingStaff] = useState(true);
+  const [addingStaff, setAddingStaff] = useState(false);
 
   const slide = CAROUSEL_SLIDES[slideIndex];
+
+  const loadTeam = async () => {
+    setLoadingStaff(true);
+    try {
+      const { getTeamMembers } = await import("@/actions/team");
+      const members = await getTeamMembers();
+      setStaffList(members);
+    } catch {
+      // Not admin or error — show empty
+    } finally {
+      setLoadingStaff(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTeam();
+  }, []);
 
   const handleNextSlide = () => {
     setSlideIndex((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
@@ -95,30 +110,39 @@ export default function SyncSharePage() {
   };
 
   const handleToggleStaff = (id: string) => {
-    setStaffList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, active: !s.active } : s))
-    );
-    toast.success("Staff permission updated");
+    // Toggle access — future: update role or deactivate
+    toast.info("Role management is available in Settings → Team Members.");
   };
 
-  const handleAddStaff = (e: React.FormEvent) => {
+  const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staffName || !staffPhone) return;
-    setStaffList((prev) => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        name: staffName,
-        phone: staffPhone,
-        role: staffRole === "BILLER" ? "Billing Operator" : staffRole === "ACCOUNTANT" ? "Accountant" : "Salesman",
-        active: true,
-      },
-    ]);
-    toast.success(`Invite sent to ${staffPhone}!`);
-    setInviteModalOpen(false);
-    setStaffName("");
-    setStaffPhone("");
+    if (!staffName || !staffEmail || !staffPassword) return;
+    setAddingStaff(true);
+    try {
+      const { createTeamMember } = await import("@/actions/team");
+      const fd = new FormData();
+      fd.set("name", staffName);
+      fd.set("email", staffEmail);
+      fd.set("password", staffPassword);
+      fd.set("role", staffRole);
+      const result = await createTeamMember(fd);
+      if ((result as any)?.error) {
+        toast.error((result as any).error);
+      } else {
+        toast.success(`Staff member ${staffName} added successfully!`);
+        setInviteModalOpen(false);
+        setStaffName("");
+        setStaffEmail("");
+        setStaffPassword("");
+        await loadTeam();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add staff member.");
+    } finally {
+      setAddingStaff(false);
+    }
   };
+
 
   return (
     <div className="space-y-6">
@@ -226,7 +250,7 @@ export default function SyncSharePage() {
             {syncEnabled ? "Sync Active (Connected)" : "Enable Sync"}
           </Button>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            *You&apos;re logged in with 9483374137
+            *Multi-device real-time collaboration via cloud
           </p>
         </div>
       </div>
@@ -245,33 +269,37 @@ export default function SyncSharePage() {
 
         <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
           <div className="divide-y divide-border/60">
-            {staffList.map((s) => (
-              <div key={s.id} className="flex items-center justify-between p-3.5 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-500 font-bold text-xs">
-                    {s.name[0]}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground">{s.name}</h4>
-                    <p className="font-mono text-[10px] text-muted-foreground">Ph: {s.phone} • Role: {s.role}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleStaff(s.id)}
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
-                      s.active
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s.active ? "Access Enabled" : "Disabled"}
-                  </button>
-                </div>
+            {loadingStaff ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">Loading team...</div>
+            ) : staffList.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No staff members yet. Click &quot;Add Staff&quot; to invite your first team member.
               </div>
-            ))}
+            ) : (
+              staffList.map((s: any) => (
+                <div key={s.id} className="flex items-center justify-between p-3.5 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-500 font-bold text-xs">
+                      {(s.name ?? "?")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground">{s.name}</h4>
+                      <p className="font-mono text-[10px] text-muted-foreground">{s.email} • Role: {s.role}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStaff(s.id)}
+                      className="px-3 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    >
+                      Access Enabled
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -282,10 +310,10 @@ export default function SyncSharePage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserCheck className="size-4 text-primary" />
-              Invite New Staff Member
+              Add New Staff Member
             </DialogTitle>
             <DialogDescription>
-              Assign role permissions and invite staff members to collaborate on sales &amp; billing.
+              Create a login account for your staff member. They can log in with their email and password.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddStaff} className="space-y-4 text-xs">
@@ -301,13 +329,27 @@ export default function SyncSharePage() {
             </div>
 
             <div className="space-y-1">
-              <Label>Mobile Number (For Login &amp; OTP) *</Label>
+              <Label>Email Address (Login ID) *</Label>
               <Input
-                value={staffPhone}
-                onChange={(e) => setStaffPhone(e.target.value)}
-                placeholder="e.g. 9845012345"
-                className="h-8 text-xs font-mono"
+                type="email"
+                value={staffEmail}
+                onChange={(e) => setStaffEmail(e.target.value)}
+                placeholder="e.g. ramesh@yourcompany.com"
+                className="h-8 text-xs"
                 required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>Initial Password *</Label>
+              <Input
+                type="password"
+                value={staffPassword}
+                onChange={(e) => setStaffPassword(e.target.value)}
+                placeholder="Minimum 6 characters"
+                className="h-8 text-xs"
+                required
+                minLength={6}
               />
             </div>
 
@@ -318,9 +360,8 @@ export default function SyncSharePage() {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BILLER" className="text-xs">Billing Operator (Can create Sales &amp; Delivery Challans)</SelectItem>
-                  <SelectItem value="ACCOUNTANT" className="text-xs">Accountant (Full reports, purchases, payments, GST)</SelectItem>
-                  <SelectItem value="SALESMAN" className="text-xs">Field Salesman (Orders, Customers, Payment Collection)</SelectItem>
+                  <SelectItem value="ADMIN" className="text-xs">Admin (Full access)</SelectItem>
+                  <SelectItem value="STAFF" className="text-xs">Staff (Billing &amp; Sales)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -329,8 +370,8 @@ export default function SyncSharePage() {
               <Button type="button" variant="outline" size="sm" onClick={() => setInviteModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                Send Invite
+              <Button type="submit" size="sm" disabled={addingStaff} className="bg-brand hover:bg-brand/90 text-white font-bold">
+                {addingStaff ? "Adding..." : "Add Staff Member"}
               </Button>
             </DialogFooter>
           </form>

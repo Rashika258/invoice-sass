@@ -11,10 +11,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
+import { VerticalSelector, type BusinessVertical } from "@/components/settings/vertical-selector";
+
+export function SettingsForm({ profile }: { profile: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(profile?.logoUrl ?? "");
+  const [businessVertical, setBusinessVertical] = useState<BusinessVertical>(
+    (profile?.businessVertical as BusinessVertical) ?? "RETAIL_WHOLESALE"
+  );
+  const [enableBatchExpiry, setEnableBatchExpiry] = useState<boolean>(
+    profile?.enableBatchExpiry ?? false
+  );
+  const [enableBarcodes, setEnableBarcodes] = useState<boolean>(
+    profile?.enableBarcodes ?? true
+  );
+  const [enableStaffCommission, setEnableStaffCommission] = useState<boolean>(
+    profile?.enableStaffCommission ?? false
+  );
+  const [defaultItemType, setDefaultItemType] = useState<"PRODUCT" | "SERVICE">(
+    profile?.defaultItemType ?? "PRODUCT"
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleVerticalPresetChange = (
+    vertical: BusinessVertical,
+    presets: {
+      batchExpiry: boolean;
+      barcodes: boolean;
+      staffCommission: boolean;
+      itemType: "PRODUCT" | "SERVICE";
+    }
+  ) => {
+    setBusinessVertical(vertical);
+    setEnableBatchExpiry(presets.batchExpiry);
+    setEnableBarcodes(presets.barcodes);
+    setEnableStaffCommission(presets.staffCommission);
+    setDefaultItemType(presets.itemType);
+    toast.info(`Configured default settings for ${vertical.replace("_", " ")}`);
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,6 +71,11 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
     const formData = new FormData(event.currentTarget);
     const data = {
       companyName: String(formData.get("companyName") ?? ""),
+      businessVertical,
+      enableBatchExpiry,
+      enableBarcodes,
+      enableStaffCommission,
+      defaultItemType,
       logoUrl: logoUrl.trim() || undefined,
       email: String(formData.get("email") ?? ""),
       phone: String(formData.get("phone") ?? ""),
@@ -71,9 +110,9 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Business Profile &amp; Settings</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Business Profile &amp; Vertical Settings</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Configure your business details, custom logo, GSTIN, bank accounts, and invoice templates.
+            Configure your industry profile, custom logo, GSTIN, bank accounts, and feature capabilities.
           </p>
         </div>
         <Button
@@ -85,6 +124,56 @@ export function SettingsForm({ profile }: { profile: CompanyProfile | null }) {
           <span>{isSubmitting ? "Saving..." : "Save Settings"}</span>
         </Button>
       </div>
+
+      {/* Vertical Selector */}
+      <Card className="rounded-xl border border-border/60 p-5 bg-card shadow-xs">
+        <VerticalSelector
+          selectedVertical={businessVertical}
+          onVerticalChange={handleVerticalPresetChange}
+        />
+
+        {/* Feature Capabilities Toggles */}
+        <div className="mt-6 pt-5 border-t border-border/60 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enableBatchExpiry}
+              onChange={(e) => setEnableBatchExpiry(e.target.checked)}
+              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <div className="text-xs font-semibold">Batch &amp; Expiry Tracking</div>
+              <div className="text-[11px] text-muted-foreground">Mandatory for Chemists &amp; Pharmacies</div>
+            </div>
+          </label>
+
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enableBarcodes}
+              onChange={(e) => setEnableBarcodes(e.target.checked)}
+              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <div className="text-xs font-semibold">Barcode Billing &amp; POS</div>
+              <div className="text-[11px] text-muted-foreground">Fast barcode checkout for Retail counters</div>
+            </div>
+          </label>
+
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enableStaffCommission}
+              onChange={(e) => setEnableStaffCommission(e.target.checked)}
+              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <div className="text-xs font-semibold">Staff Service Commissions</div>
+              <div className="text-[11px] text-muted-foreground">Track stylist &amp; technician cuts per service bill</div>
+            </div>
+          </label>
+        </div>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Company Profile & Logo Card */}

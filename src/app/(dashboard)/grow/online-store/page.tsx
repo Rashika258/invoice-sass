@@ -773,7 +773,7 @@ export default function OnlineStorePage() {
               <Button type="button" variant="outline" size="sm" onClick={() => setNewBillOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={loading} className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold">
+              <Button type="submit" size="sm" disabled={loading} className="bg-brand hover:bg-brand/90 text-white font-bold">
                 {loading ? "Generating..." : "Generate GST Bill"}
               </Button>
             </div>

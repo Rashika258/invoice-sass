@@ -73,3 +73,5 @@ export async function sendWhatsAppMetaCloudMessage({
 
   return { success: true, method: "WA_ME_LINK", waUrl };
 }
+
+export const sendWhatsAppInvoiceAction = sendWhatsAppMetaCloudMessage;

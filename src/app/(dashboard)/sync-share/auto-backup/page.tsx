@@ -1,15 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Clock, History, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Clock, History, Save, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { fetchAppSettings, saveAppSettingsAction } from "@/actions/store-ops";
 import { Button } from "@/components/ui/button";
+import { createCompanyBackup } from "@/actions/backup";
 
 export default function AutoBackupPage() {
   const [enabled, setEnabled] = useState(true);
   const [frequency, setFrequency] = useState("DAILY");
   const [time, setTime] = useState("23:59");
+  const [saving, setSaving] = useState(false);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    fetchAppSettings().then((data) => {
+      if (data.autoBackup !== undefined) setEnabled(data.autoBackup);
+      if ((data as any).backupFrequency) setFrequency((data as any).backupFrequency);
+      if ((data as any).backupTime) setTime((data as any).backupTime);
+      if ((data as any).lastBackupAt) setLastBackup((data as any).lastBackupAt);
+    });
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await saveAppSettingsAction({
+        autoBackup: enabled,
+        backupFrequency: frequency as any,
+        backupTime: time as any,
+      } as any);
+      toast.success("Auto-backup schedule saved successfully!");
+    } catch {
+      toast.error("Failed to save backup settings.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTakeNow = async () => {
+    setDownloading(true);
+    try {
+      const data = await createCompanyBackup();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `billora-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Backup downloaded successfully!");
+      setLastBackup(new Date().toISOString());
+    } catch {
+      toast.error("Failed to create backup.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-6">
@@ -34,10 +84,7 @@ export default function AutoBackupPage() {
           <input
             type="checkbox"
             checked={enabled}
-            onChange={(e) => {
-              setEnabled(e.target.checked);
-              toast.success(e.target.checked ? "Auto backup enabled" : "Auto backup paused");
-            }}
+            onChange={(e) => setEnabled(e.target.checked)}
             className="size-5 rounded accent-primary cursor-pointer"
           />
         </div>
@@ -63,22 +110,45 @@ export default function AutoBackupPage() {
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="w-full h-8 rounded-lg border border-input bg-background px-2 font-mono"
-            >
-            </input>
+            />
           </div>
         </div>
 
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-          <ShieldCheck className="size-4 shrink-0" />
-          <span>Last automated snapshot taken today at 07:09 AM (Encrypted &amp; Verified)</span>
-        </div>
+        {lastBackup && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+            <ShieldCheck className="size-4 shrink-0" />
+            <span>
+              Last backup: {new Date(lastBackup).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })} (Encrypted &amp; Verified)
+            </span>
+          </div>
+        )}
 
-        <Button
-          onClick={() => toast.success("Auto-backup preferences saved!")}
-          className="bg-primary text-primary-foreground font-bold rounded-xl"
-        >
-          Save Schedule Settings
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand hover:bg-brand/90 text-white font-bold rounded-xl gap-1.5"
+          >
+            <Save className="size-3.5" />
+            {saving ? "Saving..." : "Save Schedule"}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleTakeNow}
+            disabled={downloading}
+            className="rounded-xl font-semibold gap-1.5"
+          >
+            <Clock className="size-3.5" />
+            {downloading ? "Creating..." : "Backup Now"}
+          </Button>
+        </div>
       </div>
     </div>
   );
