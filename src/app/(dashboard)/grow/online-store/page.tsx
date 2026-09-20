@@ -46,7 +46,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -621,13 +623,13 @@ export default function OnlineStorePage() {
 
       {/* Edit Stock & Price Dialog */}
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <DialogHeader>
             <DialogTitle className="text-base font-bold">
               Edit Online Stock &amp; Price
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-2 text-xs">
+          <DialogBody className="space-y-4 text-xs">
             <div>
               <p className="font-bold text-foreground">{editProduct?.name}</p>
               <p className="text-[11px] text-muted-foreground font-mono">HSN: {editProduct?.hsn} | Unit: {editProduct?.unit}</p>
@@ -665,118 +667,118 @@ export default function OnlineStorePage() {
                 className="h-8 text-xs font-mono"
               />
             </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
-              <Button variant="outline" size="sm" onClick={() => setEditProduct(null)}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSaveStockEdit} className="bg-primary text-primary-foreground font-bold">
-                Save Changes
-              </Button>
-            </div>
-          </div>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setEditProduct(null)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSaveStockEdit} className="bg-primary text-primary-foreground font-bold">
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Create New Store Bill Dialog */}
       <Dialog open={newBillOpen} onOpenChange={setNewBillOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Receipt className="size-4 text-[#ef4444]" />
               Create Online Store GST Bill
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreateStoreBill} className="space-y-4 pt-2 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleCreateStoreBill} className="flex flex-col flex-1 overflow-hidden">
+            <DialogBody className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Customer Name *</Label>
+                  <Input
+                    value={custName}
+                    onChange={(e) => setCustName(e.target.value)}
+                    placeholder="e.g. Ramesh Hardware"
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Customer Phone *</Label>
+                  <Input
+                    value={custPhone}
+                    onChange={(e) => setCustPhone(e.target.value)}
+                    placeholder="e.g. 9845012345"
+                    className="h-8 text-xs font-mono"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
-                <Label>Customer Name *</Label>
+                <Label>Delivery Address</Label>
                 <Input
-                  value={custName}
-                  onChange={(e) => setCustName(e.target.value)}
-                  placeholder="e.g. Ramesh Hardware"
+                  value={custAddress}
+                  onChange={(e) => setCustAddress(e.target.value)}
+                  placeholder="Address for shipping"
                   className="h-8 text-xs"
-                  required
                 />
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="sm:col-span-2 space-y-1">
+                  <Label>Select Product *</Label>
+                  <Select value={selectedProductId} onValueChange={(val) => val && setSelectedProductId(val)}>
+                    <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
+                      <SelectValue placeholder="Select Product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {storeProducts.map((p) => (
+                        <SelectItem key={p.id} value={p.id} className="text-xs">
+                          {p.name} (₹{p.onlinePrice} | Stock: {p.onlineStock})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Quantity</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={selectedQty}
+                    onChange={(e) => setSelectedQty(Number(e.target.value))}
+                    className="h-8 text-xs font-mono"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
-                <Label>Customer Phone *</Label>
-                <Input
-                  value={custPhone}
-                  onChange={(e) => setCustPhone(e.target.value)}
-                  placeholder="e.g. 9845012345"
-                  className="h-8 text-xs font-mono"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label>Delivery Address</Label>
-              <Input
-                value={custAddress}
-                onChange={(e) => setCustAddress(e.target.value)}
-                placeholder="Address for shipping"
-                className="h-8 text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="sm:col-span-2 space-y-1">
-                <Label>Select Product *</Label>
-                <Select value={selectedProductId} onValueChange={(val) => val && setSelectedProductId(val)}>
+                <Label>Payment Mode</Label>
+                <Select value={paymentMode} onValueChange={(val) => val && setPaymentMode(val)}>
                   <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                    <SelectValue placeholder="Select Product" />
+                    <SelectValue placeholder="Select Payment Mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    {storeProducts.map((p) => (
-                      <SelectItem key={p.id} value={p.id} className="text-xs">
-                        {p.name} (₹{p.onlinePrice} | Stock: {p.onlineStock})
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="UPI" className="text-xs">UPI (Google Pay / PhonePe / Paytm)</SelectItem>
+                    <SelectItem value="COD" className="text-xs">Cash on Delivery (COD)</SelectItem>
+                    <SelectItem value="NET_BANKING" className="text-xs">Net Banking / NEFT</SelectItem>
+                    <SelectItem value="CARD" className="text-xs">Credit / Debit Card</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <Label>Quantity</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={selectedQty}
-                  onChange={(e) => setSelectedQty(Number(e.target.value))}
-                  className="h-8 text-xs font-mono"
-                />
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 text-[11px] text-muted-foreground">
+                ⚡ This will generate a separate Store Tax Invoice with HSN and GST calculation, and deduct stock only from the online store pool.
               </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label>Payment Mode</Label>
-              <Select value={paymentMode} onValueChange={(val) => val && setPaymentMode(val)}>
-                <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                  <SelectValue placeholder="Select Payment Mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UPI" className="text-xs">UPI (Google Pay / PhonePe / Paytm)</SelectItem>
-                  <SelectItem value="COD" className="text-xs">Cash on Delivery (COD)</SelectItem>
-                  <SelectItem value="NET_BANKING" className="text-xs">Net Banking / NEFT</SelectItem>
-                  <SelectItem value="CARD" className="text-xs">Credit / Debit Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 text-[11px] text-muted-foreground">
-              ⚡ This will generate a separate Store Tax Invoice with HSN and GST calculation, and deduct stock only from the online store pool.
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            </DialogBody>
+            <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={() => setNewBillOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" size="sm" disabled={loading} className="bg-brand hover:bg-brand/90 text-white font-bold">
                 {loading ? "Generating..." : "Generate GST Bill"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

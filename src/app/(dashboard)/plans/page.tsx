@@ -105,19 +105,24 @@ export default function PlansPricingPage() {
 
   // Single Checkout Flow State
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
-  const [checkoutStep, setCheckoutStep] = useState<"METHOD" | "UPI" | "CARD" | "OTP" | "SUCCESS">("METHOD");
+  const [checkoutStep, setCheckoutStep] = useState<
+    "METHOD" | "UPI" | "CARD" | "NETBANKING_LOGIN" | "NETBANKING_OTP" | "OTP" | "SUCCESS"
+  >("METHOD");
   const [cardTab, setCardTab] = useState<"CARD" | "NETBANKING">("CARD");
   const [utrNumber, setUtrNumber] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [activePlan, setActivePlan] = useState<ActivePlanData | null>(null);
   const [otpCode, setOtpCode] = useState("123456");
 
-  // Card Form State
+  // Card & NetBanking Form State
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardName, setCardName] = useState("");
   const [selectedBank, setSelectedBank] = useState("HDFC");
+  const [bankUserId, setBankUserId] = useState("84920194");
+  const [bankPassword, setBankPassword] = useState("password123");
+  const [bankOtpCode, setBankOtpCode] = useState("948201");
 
   // Bulk license calculator state
   const [bulkPlan, setBulkPlan] = useState<"SILVER" | "GOLD">("GOLD");
@@ -169,6 +174,9 @@ export default function PlansPricingPage() {
     setCardCvv("");
     setCardName("");
     setOtpCode("123456");
+    setBankUserId("84920194");
+    setBankPassword("password123");
+    setBankOtpCode("948201");
   };
 
   const handleActivateLicense = (method: string) => {
@@ -971,15 +979,161 @@ export default function PlansPricingPage() {
                   <div className="pt-2">
                     <Button
                       type="button"
-                      onClick={() => handleActivateLicense("NETBANKING")}
-                      disabled={isVerifying}
-                      className="w-full h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                      onClick={() => setCheckoutStep("NETBANKING_LOGIN")}
+                      className="w-full h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
                     >
-                      {isVerifying ? "Connecting to Bank..." : `Pay ₹ ${currentPayablePrice} via ${selectedBank}`}
+                      Proceed to {selectedBank} Net Banking →
                     </Button>
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* STEP 3B: NET BANKING LOGIN PORTAL */}
+          {checkoutStep === "NETBANKING_LOGIN" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-3">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutStep("CARD")}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  <span>Select Bank</span>
+                </button>
+                <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/5 text-primary border-primary/20">
+                  {selectedBank} Net Banking Portal
+                </Badge>
+              </div>
+
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1 text-xs">
+                <div className="flex justify-between font-bold text-foreground">
+                  <span>Merchant: Billora Business OS</span>
+                  <span className="font-mono text-primary font-black">₹ {currentPayablePrice}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <ShieldCheck className="size-3 text-emerald-600" />
+                  Secure 256-Bit SSL Net Banking Gateway ({selectedBank} Bank)
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!bankUserId.trim() || !bankPassword.trim()) {
+                    toast.error("Please enter your User ID and Password");
+                    return;
+                  }
+                  toast.info(`Connecting to ${selectedBank} NetBanking gateway...`);
+                  setCheckoutStep("NETBANKING_OTP");
+                }}
+                className="space-y-3 text-xs"
+              >
+                <div className="space-y-1">
+                  <Label htmlFor="bank-userid">{selectedBank} Customer / User ID *</Label>
+                  <Input
+                    id="bank-userid"
+                    value={bankUserId}
+                    onChange={(e) => setBankUserId(e.target.value)}
+                    placeholder="e.g. 84920194"
+                    required
+                    className="h-9 font-mono text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="bank-password">IPIN / NetBanking Password *</Label>
+                  <div className="relative">
+                    <Input
+                      id="bank-password"
+                      type="password"
+                      value={bankPassword}
+                      onChange={(e) => setBankPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="h-9 font-mono text-xs pr-8"
+                    />
+                    <Lock className="size-3.5 absolute right-2.5 top-3 text-muted-foreground pointer-events-none" />
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Demo credentials pre-filled for bank authentication testing.
+                </p>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCheckoutStep("CARD")}
+                    className="flex-1 h-9 text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
+                  >
+                    Login &amp; Authorize ₹ {currentPayablePrice}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* STEP 3C: NET BANKING OTP VERIFICATION */}
+          {checkoutStep === "NETBANKING_OTP" && (
+            <div className="space-y-4">
+              <div className="text-center space-y-1">
+                <div className="size-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center font-bold">
+                  <ShieldCheck className="size-5" />
+                </div>
+                <h3 className="font-bold text-sm text-foreground">{selectedBank} High Security OTP</h3>
+                <p className="text-[11px] text-muted-foreground">
+                  An OTP has been generated &amp; sent to your registered mobile ending in •••• 9410
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-muted/50 border text-xs space-y-1 font-mono">
+                <div className="flex justify-between"><span>Bank Account:</span><span className="font-bold">{selectedBank} •••• 4910</span></div>
+                <div className="flex justify-between"><span>Customer ID:</span><span className="font-bold">{bankUserId}</span></div>
+                <div className="flex justify-between"><span>Amount to Debit:</span><span className="font-bold text-primary">₹ {currentPayablePrice}</span></div>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <Label htmlFor="bank-otp-input">Enter 6-Digit Bank Security OTP:</Label>
+                <Input
+                  id="bank-otp-input"
+                  maxLength={6}
+                  value={bankOtpCode}
+                  onChange={(e) => setBankOtpCode(e.target.value)}
+                  className="h-10 text-center font-mono font-bold tracking-widest text-base"
+                />
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Demo OTP auto-filled with 948201 for instant verification
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCheckoutStep("NETBANKING_LOGIN")}
+                  disabled={isVerifying}
+                  className="flex-1 h-9 text-xs cursor-pointer"
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleActivateLicense("NETBANKING")}
+                  disabled={isVerifying}
+                  className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                >
+                  {isVerifying ? "Authorizing with Bank..." : "Confirm Payment & Activate"}
+                </Button>
+              </div>
             </div>
           )}
 
