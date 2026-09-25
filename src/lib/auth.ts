@@ -111,16 +111,27 @@ export async function requireUser() {
   return user;
 }
 
-export async function requireAdmin() {
+import type { UserRole } from "@/generated/prisma/client";
+
+export async function requireRole(allowedRoles: UserRole[]) {
   const user = await requireUser();
-  if (user.role !== "ADMIN") {
-    throw new Error("Unauthorized: Admin privileges required");
+  if (!allowedRoles.includes(user.role)) {
+    throw new Error(`Unauthorized: Role '${user.role}' lacks permission for this action.`);
   }
   return user;
+}
+
+export function hasRole(role: UserRole, allowedRoles: UserRole[]): boolean {
+  return allowedRoles.includes(role);
+}
+
+export async function requireAdmin() {
+  return requireRole(["ADMIN"]);
 }
 
 export async function getOrganizationId() {
   const user = await requireUser();
   return user.organizationId;
 }
+
 

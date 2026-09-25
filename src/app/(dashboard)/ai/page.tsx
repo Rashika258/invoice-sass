@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
+import { AiHubView } from "@/components/ai/ai-hub-view";
 
 export const metadata: Metadata = {
   title: "AI Business Brain & Autopilot | Billora OS",
@@ -20,7 +20,7 @@ export default function AiHubPage() {
         </p>
       </div>
 
-      <AiBusinessAssistant />
+      <AiHubView />
     </div>
   );
 }

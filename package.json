@@ -69,5 +69,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^1.0.0"
+  },
+  "prisma": {
+    "seed": "tsx scripts/seed-db.ts"
   }
 }

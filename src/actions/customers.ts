@@ -1,55 +1,32 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
 import { requireOrganization } from "@/lib/organization";
-import { customerSchema, type CustomerInput } from "@/lib/validations";
+import { requirePermission } from "@/lib/permissions";
+import type { CustomerInput } from "@/lib/validations";
+import { CustomerService } from "@/services/customer-service";
 
 export async function getCustomers() {
   const organization = await requireOrganization();
-  return db.customer.findMany({ where: { organizationId: organization.id }, orderBy: { name: "asc" } });
+  await requirePermission("INVOICE_READ");
+  return CustomerService.list(organization.id);
 }
 
 export async function createCustomer(data: CustomerInput) {
-  const parsed = customerSchema.parse(data);
   const organization = await requireOrganization();
-  const customer = await db.customer.create({
-    data: {
-      organizationId: organization.id,
-      ...parsed,
-      email: parsed.email || null,
-    },
-  });
-  revalidatePath("/customers");
-  revalidatePath("/invoices/new");
-  revalidatePath("/purchases");
-  revalidatePath("/purchases/new");
-  revalidatePath("/dashboard");
-  return customer;
+  await requirePermission("INVOICE_CREATE");
+  return CustomerService.create(organization.id, data);
 }
 
 export async function updateCustomer(id: string, data: CustomerInput) {
-  const parsed = customerSchema.parse(data);
   const organization = await requireOrganization();
-  const result = await db.customer.updateMany({ where: { id, organizationId: organization.id }, data: { ...parsed, email: parsed.email || null } });
-  if (!result.count) throw new Error("Customer not found");
-  revalidatePath("/customers");
-  revalidatePath("/invoices");
-  revalidatePath("/purchases");
-  revalidatePath("/dashboard");
+  await requirePermission("INVOICE_UPDATE");
+  return CustomerService.update(organization.id, id, data);
 }
 
 export async function deleteCustomer(id: string) {
   const organization = await requireOrganization();
-  if (await db.invoice.count({ where: { customerId: id, organizationId: organization.id } })) {
-    throw new Error("Parties with bills cannot be deleted");
-  }
-  if (await db.payment.count({ where: { partyId: id, organizationId: organization.id } })) {
-    throw new Error("Parties with payments cannot be deleted");
-  }
-  const result = await db.customer.deleteMany({ where: { id, organizationId: organization.id } });
-  if (!result.count) throw new Error("Customer not found");
-  revalidatePath("/customers"); revalidatePath("/dashboard");
+  await requirePermission("INVOICE_DELETE");
+  return CustomerService.delete(organization.id, id);
 }
 
 export async function bulkCreateCustomers(
@@ -63,24 +40,19 @@ export async function bulkCreateCustomers(
   }>
 ) {
   const organization = await requireOrganization();
+  await requirePermission("INVOICE_CREATE");
   let count = 0;
   for (const party of parties) {
     if (!party.name?.trim()) continue;
-    await db.customer.create({
-      data: {
-        organizationId: organization.id,
-        name: party.name.trim(),
-        partyType: party.type || "CUSTOMER",
-        phone: party.phone || null,
-        taxId: party.gstin || null,
-        state: party.state || null,
-        openingBalance: Number(party.openingBalance) || 0,
-      },
+    await CustomerService.create(organization.id, {
+      name: party.name.trim(),
+      partyType: party.type || "CUSTOMER",
+      phone: party.phone || "",
+      taxId: party.gstin || "",
+      state: party.state || "",
+      openingBalance: Number(party.openingBalance) || 0,
     });
     count++;
   }
-  revalidatePath("/customers");
-  revalidatePath("/invoices/new");
-  revalidatePath("/dashboard");
   return { success: true, count };
 }

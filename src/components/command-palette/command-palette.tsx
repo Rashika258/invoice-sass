@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import {
   Search, LayoutDashboard, FileText, ShoppingBag, Package, Users,
-  Wallet, BarChart3, Settings, Plus, Receipt, ArrowRight,
+  Wallet, BarChart3, Settings, Plus, Receipt, ArrowRight, ArrowRightLeft,
   CreditCard, Building2, FileSpreadsheet, Zap, BookOpen,
   CalendarDays, Scale, TrendingUp, Moon, Sun, Keyboard, Sparkles,
   Boxes, UserCheck, AlertCircle, Store, Clock, X,
@@ -239,6 +239,13 @@ export function CommandPalette() {
           icon: Package,
           action: () => go("/items"),
           keywords: ["inventory", "stock", "products", "items"],
+        },
+        {
+          id: "stock-transfer",
+          label: "Stock Transfer & Godowns",
+          icon: ArrowRightLeft,
+          action: () => go("/items/stock-transfer"),
+          keywords: ["stock transfer", "godowns", "warehouse", "transit", "shift inventory"],
         },
         {
           id: "parties",

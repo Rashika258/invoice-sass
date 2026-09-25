@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowRightLeft,
   Banknote,
   BarChart3,
   Barcode,
@@ -104,8 +105,12 @@ const navConfig: NavGroup[] = [
     id: "items",
     title: "Items",
     icon: Package,
-    collapsible: false,
-    items: [{ href: "/items", label: "Items & Inventory", icon: Package, plusHref: "/items" }],
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { href: "/items", label: "Items & Inventory", icon: Package, plusHref: "/items" },
+      { href: "/items/stock-transfer", label: "Stock Transfer & Godowns", icon: ArrowRightLeft, badge: "NEW" },
+    ],
   },
   {
     id: "sale",

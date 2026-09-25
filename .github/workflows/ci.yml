@@ -1,0 +1,43 @@
+name: Continuous Integration & Quality Gate
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  quality-gate:
+    name: Typecheck, Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Type Check
+        run: npm run type
+
+      - name: Lint Check
+        run: npm run lint
+
+      - name: Run Vitest Unit & Integration Tests
+        run: npm run test
+
+      - name: Verify Production Build
+        run: npm run build
+        env:
+          DATABASE_URL: "file:./ci.db"
+          AUTH_SECRET: "ci-test-secret-key-12345"

@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import type { Customer, Invoice, InvoiceItem } from "@/generated/prisma/client";
 import { numberToWordsIndian } from "@/lib/number-to-words";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { generateUpiQrSvg } from "@/lib/upi-qr";
 import {
   Building2,
   CheckCircle2,
@@ -30,6 +31,36 @@ export interface InvoiceTemplateProps {
   className?: string;
   templateId?: TemplateId | string;
   copyType?: "ORIGINAL" | "DUPLICATE" | "TRIPLICATE";
+}
+
+function UpiQrInline({
+  payeeName,
+  amount,
+  invoiceNumber,
+  upiId = "billing@okaxis",
+  size = 56,
+}: {
+  payeeName?: string | null;
+  amount: number;
+  invoiceNumber: string;
+  upiId?: string;
+  size?: number;
+}) {
+  const qrSvg = generateUpiQrSvg({
+    upiId,
+    payeeName: payeeName || "Billora Merchant",
+    amount,
+    transactionRef: invoiceNumber,
+    note: `Invoice ${invoiceNumber}`,
+  });
+
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="shrink-0 flex items-center justify-center overflow-hidden rounded bg-white"
+      dangerouslySetInnerHTML={{ __html: qrSvg }}
+    />
+  );
 }
 
 function splitRupeesPaise(amount: number | null | undefined): { rs: string; ps: string } {
@@ -677,7 +708,7 @@ function ModernTemplate({ invoice, currency = "INR", className = "" }: InvoiceTe
               </p>
             </div>
             <div className="size-14 rounded-lg bg-white p-1 border border-emerald-300 shadow-xs flex items-center justify-center shrink-0">
-              <QrCode className="size-11 text-emerald-900" />
+              <UpiQrInline payeeName={invoice.companyName} amount={invoice.total} invoiceNumber={invoice.invoiceNumber} size={50} />
             </div>
           </div>
         </div>
@@ -867,21 +898,27 @@ function GstTaxTemplate({ invoice, currency = "INR", className = "" }: InvoiceTe
         </table>
       </div>
 
-      {/* Bank details & Signatures */}
+      {/* Bank details, UPI QR & Signatures */}
       <div className="grid grid-cols-2 gap-4 text-xs border border-slate-300 rounded-lg p-3 bg-slate-50">
-        <div className="space-y-1">
-          <span className="font-bold text-slate-700 uppercase tracking-wider text-[10px] block">
-            Bank Wire Transfer (NEFT/RTGS):
-          </span>
-          <p>
-            Bank: <span className="font-bold">State Bank of India</span>
-          </p>
-          <p>
-            A/c No: <span className="font-mono font-bold">38291048291</span>
-          </p>
-          <p>
-            IFSC: <span className="font-mono font-bold">SBIN0004128</span>
-          </p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="font-bold text-slate-700 uppercase tracking-wider text-[10px] block">
+              Bank Wire Transfer (NEFT/RTGS):
+            </span>
+            <p>
+              Bank: <span className="font-bold">HDFC Bank Ltd</span>
+            </p>
+            <p>
+              A/c No: <span className="font-mono font-bold">50200012345678</span>
+            </p>
+            <p>
+              IFSC: <span className="font-mono font-bold">HDFC0001234</span>
+            </p>
+          </div>
+          <div className="text-center p-1 bg-white border border-slate-200 rounded-lg shadow-2xs shrink-0">
+            <UpiQrInline payeeName={invoice.companyName} amount={invoice.total} invoiceNumber={invoice.invoiceNumber} size={50} />
+            <span className="text-[8px] font-bold text-slate-700 block mt-0.5">UPI SCAN</span>
+          </div>
         </div>
         <div className="text-right flex flex-col justify-between">
           <p className="font-extrabold text-slate-900">
@@ -1157,8 +1194,8 @@ function ThermalTemplate({ invoice, currency = "INR", className = "" }: InvoiceT
       </div>
 
       <div className="text-center pt-2 border-t border-dashed border-black space-y-1">
-        <div className="size-16 mx-auto bg-slate-100 p-1 border border-black rounded flex items-center justify-center">
-          <QrCode className="size-14 text-black" />
+        <div className="size-16 mx-auto bg-white p-1 border border-black rounded flex items-center justify-center">
+          <UpiQrInline payeeName={invoice.companyName} amount={invoice.total} invoiceNumber={invoice.invoiceNumber} size={58} />
         </div>
         <p className="text-[8px] font-bold">SCAN TO PAY VIA UPI</p>
         <p className="text-[8px] pt-1">Thank you for your business!</p>

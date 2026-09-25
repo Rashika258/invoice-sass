@@ -1,32 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import type { DocumentType } from "@/generated/prisma/client";
-import { db } from "@/lib/db";
-import { DOCUMENT_META } from "@/lib/documents";
-import { calculateDocumentTotals, statesMatch } from "@/lib/invoice-utils";
-import { nextDocumentNumber } from "@/lib/number-series";
 import { requireOrganization } from "@/lib/organization";
-import { applyStockChange, shouldAffectStock } from "@/lib/stock";
-import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
-import { recordAuditLog } from "@/lib/audit";
-
-const MAX_PAGE_SIZE = 100;
-
-function refreshDocuments(href: string) {
-  revalidatePath("/dashboard");
-  revalidatePath("/invoices");
-  revalidatePath("/estimates");
-  revalidatePath("/credit-notes");
-  revalidatePath("/challans");
-  revalidatePath("/purchases");
-  revalidatePath("/debit-notes");
-  revalidatePath("/purchase-orders");
-  revalidatePath("/items");
-  revalidatePath("/customers");
-  revalidatePath("/reports");
-  revalidatePath(href);
-}
+import { requirePermission } from "@/lib/permissions";
+import type { InvoiceInput } from "@/lib/validations";
+import { InvoiceService } from "@/services/invoice-service";
 
 export interface GetInvoicesOptions {
   documentType?: DocumentType;
@@ -38,157 +16,36 @@ export interface GetInvoicesOptions {
 
 export async function getInvoices(documentType?: DocumentType) {
   const organization = await requireOrganization();
-  return db.invoice.findMany({
-    where: {
-      organizationId: organization.id,
-      ...(documentType ? { documentType } : {}),
-    },
-    include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { createdAt: "desc" },
-  });
+  await requirePermission("INVOICE_READ");
+  return InvoiceService.list(organization.id, documentType);
 }
 
 export async function getPaginatedInvoices(options: GetInvoicesOptions) {
   const organization = await requireOrganization();
-  const page = Number.isFinite(options.page) ? Math.max(1, Math.floor(options.page!)) : 1;
-  const limit = Number.isFinite(options.limit)
-    ? Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(options.limit!)))
-    : 10;
-  const skip = (page - 1) * limit;
-  const search = options.search?.trim().slice(0, 100);
-
-  const where = {
-    organizationId: organization.id,
-    ...(options.documentType ? { documentType: options.documentType } : {}),
-    ...(options.status ? { status: options.status as any } : {}),
-    ...(search
-      ? {
-          OR: [
-            { invoiceNumber: { contains: search } },
-            { customer: { name: { contains: search } } },
-          ],
-        }
-      : {}),
-  };
-
-  const [invoices, total] = await Promise.all([
-    db.invoice.findMany({
-      where,
-      include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-    }),
-    db.invoice.count({ where }),
-  ]);
-
-  return {
-    invoices,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit) || 1,
-  };
+  await requirePermission("INVOICE_READ");
+  return InvoiceService.listPaginated(organization.id, options);
 }
 
 export async function getInvoice(id: string) {
   const organization = await requireOrganization();
-  return db.invoice.findFirst({
-    where: { id, organizationId: organization.id },
-    include: { customer: true, items: { orderBy: { sortOrder: "asc" } }, payments: true },
-  });
-}
-
-function linePayload(parsed: InvoiceInput) {
-  return parsed.items.map((item, sortOrder) => ({
-    itemId: item.itemId || null,
-    description: item.description,
-    hsn: item.hsn || null,
-    unit: item.unit || null,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-    gstRate: item.gstRate ?? parsed.taxRate,
-    amount: item.quantity * item.unitPrice,
-    sortOrder,
-  }));
+  await requirePermission("INVOICE_READ");
+  return InvoiceService.getById(organization.id, id);
 }
 
 export async function createInvoice(data: InvoiceInput) {
-  const parsed = invoiceSchema.parse(data);
+  await requirePermission("INVOICE_CREATE");
   const organization = await requireOrganization();
-  const customer = await db.customer.findFirst({ where: { id: parsed.customerId, organizationId: organization.id } });
-  if (!customer) throw new Error("Party not found");
-
-  const placeOfSupply = parsed.placeOfSupply || customer.state || "";
-  const isInterState = parsed.isInterState || !statesMatch(organization.profile?.state, placeOfSupply);
-  const totals = calculateDocumentTotals(parsed.items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice, gstRate: item.gstRate ?? parsed.taxRate })), parsed.discount, isInterState);
-
-  const invoice = await db.$transaction(async (tx) => {
-    const profile = await tx.companyProfile.upsert({ where: { organizationId: organization.id }, create: { organizationId: organization.id, companyName: organization.name }, update: {} });
-    const invoiceNumber = await nextDocumentNumber(tx, organization.id, parsed.documentType, profile.invoicePrefix);
-    const created = await tx.invoice.create({
-      data: {
-        organizationId: organization.id, customerId: customer.id, invoiceNumber, documentType: parsed.documentType,
-        issueDate: new Date(parsed.issueDate), dueDate: new Date(parsed.dueDate), status: parsed.status,
-        companyName: profile.companyName || organization.name, companyEmail: profile.email, companyPhone: profile.phone,
-        companyAddress: profile.address, companyCity: profile.city, companyState: profile.state, companyZip: profile.zipCode,
-        companyCountry: profile.country, companyTaxId: profile.taxId, notes: parsed.notes || null, terms: parsed.terms || null,
-        placeOfSupply: placeOfSupply || null, isInterState, vehicleNumber: parsed.vehicleNumber || null,
-        ewayBill: parsed.ewayBill || null, orderNumber: parsed.orderNumber || null, ...totals, discount: parsed.discount,
-        items: { create: linePayload(parsed) },
-      }, include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
-    });
-    if (shouldAffectStock(parsed.status)) await applyStockChange(tx, organization.id, parsed.documentType, parsed.items, 1);
-    return created;
-  });
-
-  await recordAuditLog({ organizationId: organization.id, action: "CREATE", entity: "Invoice", entityId: invoice.id, changes: { invoiceNumber: invoice.invoiceNumber, documentType: invoice.documentType, total: invoice.total, customer: customer.name } });
-  refreshDocuments(DOCUMENT_META[parsed.documentType].href);
-  return invoice;
+  return InvoiceService.create(organization.id, data, organization.name, organization.profile?.state);
 }
 
 export async function updateInvoice(id: string, data: InvoiceInput) {
-  const parsed = invoiceSchema.parse(data);
+  await requirePermission("INVOICE_UPDATE");
   const organization = await requireOrganization();
-  const customer = await db.customer.findFirst({ where: { id: parsed.customerId, organizationId: organization.id } });
-  if (!customer) throw new Error("Party not found");
-  const existing = await db.invoice.findFirst({ where: { id, organizationId: organization.id }, include: { items: true } });
-  if (!existing) throw new Error("Document not found");
-
-  const placeOfSupply = parsed.placeOfSupply || customer.state || "";
-  const isInterState = parsed.isInterState || !statesMatch(organization.profile?.state, placeOfSupply);
-  const totals = calculateDocumentTotals(parsed.items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice, gstRate: item.gstRate ?? parsed.taxRate })), parsed.discount, isInterState);
-
-  const invoice = await db.$transaction(async (tx) => {
-    if (shouldAffectStock(existing.status)) await applyStockChange(tx, organization.id, existing.documentType, existing.items, -1);
-    await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
-    const updated = await tx.invoice.update({
-      where: { id },
-      data: {
-        customerId: customer.id, documentType: parsed.documentType, issueDate: new Date(parsed.issueDate), dueDate: new Date(parsed.dueDate), status: parsed.status,
-        notes: parsed.notes || null, terms: parsed.terms || null, placeOfSupply: placeOfSupply || null, isInterState,
-        vehicleNumber: parsed.vehicleNumber || null, ewayBill: parsed.ewayBill || null, orderNumber: parsed.orderNumber || null,
-        ...totals, discount: parsed.discount, items: { create: linePayload(parsed) },
-      }, include: { customer: true, items: { orderBy: { sortOrder: "asc" } } },
-    });
-    if (shouldAffectStock(parsed.status)) await applyStockChange(tx, organization.id, parsed.documentType, parsed.items, 1);
-    return updated;
-  });
-
-  await recordAuditLog({ organizationId: organization.id, action: "UPDATE", entity: "Invoice", entityId: invoice.id, changes: { invoiceNumber: invoice.invoiceNumber, documentType: invoice.documentType, total: invoice.total } });
-  refreshDocuments(DOCUMENT_META[parsed.documentType].href);
-  revalidatePath(`/invoices/${id}`);
-  return invoice;
+  return InvoiceService.update(organization.id, id, data, organization.profile?.state);
 }
 
 export async function deleteInvoice(id: string) {
+  await requirePermission("INVOICE_DELETE");
   const organization = await requireOrganization();
-  const existing = await db.invoice.findFirst({ where: { id, organizationId: organization.id }, include: { items: true } });
-  if (!existing) throw new Error("Document not found");
-  await db.$transaction(async (tx) => {
-    if (shouldAffectStock(existing.status)) await applyStockChange(tx, organization.id, existing.documentType, existing.items, -1);
-    await tx.invoice.delete({ where: { id } });
-  });
-  await recordAuditLog({ organizationId: organization.id, action: "DELETE", entity: "Invoice", entityId: id, changes: { invoiceNumber: existing.invoiceNumber, documentType: existing.documentType } });
-  refreshDocuments(DOCUMENT_META[existing.documentType].href);
+  return InvoiceService.delete(organization.id, id);
 }

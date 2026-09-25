@@ -25,7 +25,7 @@
 ### Prerequisites
 - **Node.js**: v18.x or later
 - **Package Manager**: `npm`, `yarn`, `pnpm`, or `bun`
-- **Database**: PostgreSQL (Prisma ORM)
+- **Database**: PostgreSQL (Production) or SQLite (Local Development with Prisma ORM)
 
 ### Installation & Local Setup
 
@@ -43,7 +43,12 @@
 3. **Configure Environment Variables**:
    Create a `.env` file in the root directory:
    ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/invoice_db?schema=public"
+   # For Local SQLite Development:
+   DATABASE_URL="file:./dev.db"
+
+   # For Production PostgreSQL Deployment:
+   # DATABASE_URL="postgresql://user:password@localhost:5432/invoice_db?schema=public"
+
    AUTH_SECRET="your-secure-random-secret"
    ```
 
