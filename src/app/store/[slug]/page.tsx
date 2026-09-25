@@ -22,6 +22,7 @@ import {
   Store,
   Truck,
   X,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -442,13 +443,13 @@ export default function PublicStorePage({
                   onClick={() => setPaymentMethod("UPI")}
                   className={`p-2.5 rounded-xl border text-xs font-bold text-left transition-all ${
                     paymentMethod === "UPI"
-                      ? "border-emerald-600 bg-emerald-500/10 text-emerald-600"
-                      : "border-border bg-card text-muted-foreground"
+                      ? "border-emerald-600 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "border-border bg-card text-muted-foreground hover:border-border/80"
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
-                    <QrCode className="size-3.5" />
-                    <span>⚡ Instant UPI</span>
+                    <Zap className="size-3.5 text-amber-500 fill-amber-500/20" />
+                    <span>Instant UPI</span>
                   </div>
                   <p className="text-[10px] font-normal text-muted-foreground mt-0.5">
                     Google Pay, PhonePe, Paytm
@@ -460,13 +461,13 @@ export default function PublicStorePage({
                   onClick={() => setPaymentMethod("COD")}
                   className={`p-2.5 rounded-xl border text-xs font-bold text-left transition-all ${
                     paymentMethod === "COD"
-                      ? "border-emerald-600 bg-emerald-500/10 text-emerald-600"
-                      : "border-border bg-card text-muted-foreground"
+                      ? "border-emerald-600 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "border-border bg-card text-muted-foreground hover:border-border/80"
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
-                    <Truck className="size-3.5" />
-                    <span>📦 Cash on Delivery</span>
+                    <Truck className="size-3.5 text-emerald-500" />
+                    <span>Cash on Delivery</span>
                   </div>
                   <p className="text-[10px] font-normal text-muted-foreground mt-0.5">
                     Pay on dispatch / arrival
