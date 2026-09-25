@@ -213,9 +213,24 @@ export function FormFieldNumber({
   required,
   step = "any",
   min = 0,
+  defaultValue,
   ...props
 }: FormFieldNumberProps) {
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
+
+  const isControlled = value !== undefined;
+  const valueProps = isControlled
+    ? { value }
+    : defaultValue !== undefined
+    ? { defaultValue }
+    : {};
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onChange) {
+      const val = parseFloat(e.target.value);
+      onChange(isNaN(val) ? 0 : val);
+    }
+  };
 
   return (
     <div className={cn("space-y-1.5", containerClassName)}>
@@ -235,14 +250,14 @@ export function FormFieldNumber({
           type="number"
           step={step}
           min={min}
-          value={value ?? ""}
-          onChange={(e) => onChange?.(parseFloat(e.target.value) || 0)}
+          onChange={handleChange}
           className={cn(
             "h-9 text-xs font-mono shadow-none",
             currencySymbol && "pl-7",
             error && "border-destructive focus-visible:ring-destructive",
             className
           )}
+          {...valueProps}
           {...props}
         />
       </div>
@@ -254,3 +269,4 @@ export function FormFieldNumber({
     </div>
   );
 }
+

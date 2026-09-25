@@ -24,7 +24,7 @@
       "withoutTaxPrice": 355.93,
       "gstRate": 18,
       "discountPercent": 10,
-      "onlineStock": 45,
+      "onlineStock": 43,
       "unit": "PCS",
       "isPublic": true
     },
@@ -109,7 +109,35 @@
       "paymentMode": "UPI",
       "paymentStatus": "PAID",
       "fulfillmentStatus": "DELIVERED"
+    },
+    {
+      "id": "sb-1790337015247",
+      "billNumber": "OS-1002",
+      "date": "2026-09-25T11:50:15.247Z",
+      "customerName": "Rajesh Enterprises",
+      "customerPhone": "9845012345",
+      "customerAddress": "Peenya 2nd Stage, Bengaluru",
+      "items": [
+        {
+          "id": "sbi-1790337015247-0.2441229595261627",
+          "name": "MS Heavy Flange 2 Inch (Class 150)",
+          "hsn": "7307",
+          "quantity": 2,
+          "unitPrice": 420,
+          "gstRate": 18,
+          "amount": 840,
+          "taxAmount": 128.14
+        }
+      ],
+      "subtotal": 711.86,
+      "cgst": 64.07,
+      "sgst": 64.07,
+      "igst": 0,
+      "total": 840,
+      "paymentMode": "UPI",
+      "paymentStatus": "PAID",
+      "fulfillmentStatus": "CONFIRMED"
     }
   ],
-  "nextBillSeq": 1002
+  "nextBillSeq": 1003
 }

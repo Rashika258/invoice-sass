@@ -101,7 +101,7 @@ export function EmployeeFormDialog({
           name="hourlyRate"
           step="0.01"
           placeholder="Base rate per 8-hour workday"
-          defaultValue={employee?.hourlyRate ?? 0}
+          defaultValue={employee?.hourlyRate ?? ""}
           currencySymbol="₹"
           helperText="Base rate per 8-hour workday"
           required
@@ -112,7 +112,7 @@ export function EmployeeFormDialog({
           name="overtimeRate"
           step="0.01"
           placeholder="Rate applied for hours worked beyond 8 hours"
-          defaultValue={employee?.overtimeRate ?? 0}
+          defaultValue={employee?.overtimeRate ?? ""}
           currencySymbol="₹"
           helperText="Rate applied for hours worked beyond 8 hours"
           required
