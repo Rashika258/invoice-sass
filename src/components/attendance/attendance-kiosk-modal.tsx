@@ -475,7 +475,7 @@ export function AttendanceKioskModal({
             onClick={() => setActiveTab("FACE_SCAN")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === "FACE_SCAN"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
                 : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
@@ -595,7 +595,7 @@ export function AttendanceKioskModal({
               onClick={() => setPunchType("FULL_DAY")}
               className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
                 punchType === "FULL_DAY"
-                  ? "bg-blue-600 text-white shadow-xs"
+                  ? "bg-emerald-600 text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -709,7 +709,7 @@ export function AttendanceKioskModal({
               size="lg"
               disabled={isProcessing || !selectedEmployee}
               onClick={handleFaceScanPunch}
-              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/25 transition-all active:scale-[0.98]"
+              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all active:scale-[0.98]"
             >
               <Camera className="size-4 mr-2" />
               {isProcessing ? "Scanning & Verifying..." : `Capture & Punch ${punchType}`}

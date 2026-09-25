@@ -222,7 +222,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setItemType("PRODUCT")}
                 className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "PRODUCT"
-                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                    ? "bg-emerald-600 text-white shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -233,7 +233,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setItemType("SERVICE")}
                 className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "SERVICE"
-                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                    ? "bg-emerald-600 text-white shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -653,7 +653,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             type="button"
             onClick={() => handleSave(false)}
             disabled={isSubmitting}
-            className="h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-6 shadow-xs transition-all active:scale-[0.98]"
+            className="h-9 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 shadow-xs transition-all active:scale-[0.98]"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>

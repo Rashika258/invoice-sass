@@ -589,11 +589,20 @@ export default function PublicStorePage({
               )}
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.print()}
+                className="w-1/2 text-xs font-semibold gap-1.5 border-border cursor-pointer"
+              >
+                <Printer className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Print PDF Receipt</span>
+              </Button>
               <Button
                 type="button"
                 onClick={() => setConfirmedOrder(null)}
-                className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="w-1/2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
               >
                 Done
               </Button>

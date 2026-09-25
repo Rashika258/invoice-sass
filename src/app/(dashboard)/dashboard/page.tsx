@@ -24,6 +24,7 @@ import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactio
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
 import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
 import { TodaysTasksWidget } from "@/components/dashboard/todays-tasks-widget";
+import { ContinueWhereWidget } from "@/components/common/continue-where-widget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -165,6 +166,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Continue Where You Left Off Shortcut Widget */}
+      <ContinueWhereWidget />
 
       {/* Today's Tasks & Quick Action Bar */}
       <TodaysTasksWidget

@@ -175,7 +175,7 @@ export function PaymentFormDialog({
           </DialogBody>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Payment"}</Button>
+            <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">{isSubmitting ? "Saving..." : "Save Payment"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

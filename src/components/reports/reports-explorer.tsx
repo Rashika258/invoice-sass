@@ -215,18 +215,17 @@ export function ReportsExplorer({
               variant="outline"
               size="sm"
               onClick={handlePrint}
-              className="h-8 text-xs font-semibold rounded-xl border-border"
+              className="h-8 text-xs font-semibold rounded-xl border-border hover:bg-muted cursor-pointer"
             >
-              <Printer className="mr-1.5 size-3.5" />
-              Print Report
+              <Printer className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Print PDF Report</span>
             </Button>
             <Button
               size="sm"
               onClick={handlePrint}
-              className="h-8 text-xs font-semibold rounded-xl bg-primary text-primary-foreground"
+              className="h-8 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
             >
               <Download className="mr-1.5 size-3.5" />
-              Export PDF
             </Button>
           </div>
         </div>

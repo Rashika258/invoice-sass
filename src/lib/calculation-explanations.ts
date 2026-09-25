@@ -6,7 +6,7 @@ import React from "react";
  */
 export function invoiceTotalExplanation(invoice: Invoice): React.ReactNode {
   const lines: string[] = [];
-  const subtotal = invoice.subTotal ?? 0;
+  const subtotal = invoice.subtotal ?? 0;
   const tax = invoice.taxAmount ?? 0;
   const discount = invoice.discount ?? 0;
   const total = invoice.total ?? 0;

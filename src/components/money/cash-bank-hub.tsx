@@ -130,7 +130,9 @@ export function CashBankHub({
 
           <button
             type="button"
+            onClick={() => toast.info("Bank Options: Export statement, reconcile accounts, adjust opening balance.")}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground cursor-pointer"
+            title="More Options"
           >
             <MoreVertical className="size-4" />
           </button>

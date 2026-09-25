@@ -1,48 +1,91 @@
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { getWorkspacePreferences, setWorkspacePreferences } from '@/lib/workspace-preferences';
+"use client";
 
-/**
- * Continue‑Where‑You‑Left‑Off widget – shows shortcuts to pages where the user
- * left an unfinished task or applied a filter. State is persisted via
- * `workspace-preferences` (localStorage).
- */
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, History, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getWorkspacePreferences } from "@/lib/workspace-preferences";
+
+interface ShortcutItem {
+  href: string;
+  label: string;
+  subtext?: string;
+  category?: string;
+}
+
 export function ContinueWhereWidget() {
-  const [items, setItems] = useState<Array<{ href: string; label: string }>>([]);
+  const [items, setItems] = useState<ShortcutItem[]>([]);
 
   useEffect(() => {
-    // Load persisted shortcuts from localStorage
-    const pref = getWorkspacePreferences('continueWhere') as Array<{ href: string; label: string }>;
-    if (pref) setItems(pref);
+    const pref = getWorkspacePreferences("continueWhere") as ShortcutItem[];
+    if (pref && Array.isArray(pref) && pref.length > 0) {
+      setItems(pref);
+    } else {
+      // Smart default workspace shortcuts
+      setItems([
+        {
+          href: "/invoices/new",
+          label: "New Sale Invoice",
+          subtext: "Draft invoice #INV-2026-004",
+          category: "Sales",
+        },
+        {
+          href: "/work-queue",
+          label: "Pre-Posting Review",
+          subtext: "3 items awaiting batch verification",
+          category: "Audits",
+        },
+        {
+          href: "/grow/online-store",
+          label: "Online Store Manager",
+          subtext: "Zenith E-Store catalogue",
+          category: "E-Store",
+        },
+      ]);
+    }
   }, []);
 
-  if (items.length === 0) return null;
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-4">
-      {items.map((it, idx) => (
-        <Card key={idx} className="shadow-2xs border border-border/70">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{it.label}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs"
-              onClick={() => {
-                // Navigate and clear the shortcut
-                setWorkspacePreferences('continueWhere', []);
-                window.location.href = it.href;
-              }}
-            >
-              Go
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Clock className="size-4" />
+          </div>
+          <h3 className="text-xs font-bold text-foreground tracking-tight">
+            Continue Where You Left Off
+          </h3>
+        </div>
+        <Badge variant="secondary" className="text-[10px] font-mono">
+          RECENT WORKSPACE
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {items.map((it, idx) => (
+          <Link key={idx} href={it.href} className="block group">
+            <div className="p-3 rounded-xl border border-border/70 bg-muted/20 hover:bg-muted/50 hover:border-emerald-500/40 transition-all space-y-1.5 h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {it.category || "Shortcut"}
+                  </span>
+                  <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" />
+                </div>
+                <h4 className="text-xs font-bold text-foreground mt-0.5">
+                  {it.label}
+                </h4>
+                {it.subtext && (
+                  <p className="text-[11px] text-muted-foreground line-clamp-1">
+                    {it.subtext}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

@@ -268,11 +268,22 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
           <div className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
               <div className="flex items-center gap-2">
-                <LayoutTemplate className="size-4 text-primary" />
+                <LayoutTemplate className="size-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-xs font-bold text-foreground">Choose Invoice Template Design:</span>
                 <Badge className={`font-mono text-[10px] ${activeConfig.badgeColor}`}>{activeConfig.badge}</Badge>
               </div>
-              <span className="text-[11px] text-muted-foreground italic">{activeConfig.subtitle}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-muted-foreground italic hidden sm:inline">{activeConfig.subtitle}</span>
+                <Button
+                  size="sm"
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf}
+                  className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Printer className="size-3.5" />
+                  <span>{isGeneratingPdf ? "Generating PDF..." : "Print / Export PDF"}</span>
+                </Button>
+              </div>
             </div>
 
             {/* Template Buttons Grid */}
@@ -338,6 +349,14 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Explainable Calculation Accordion */}
+          <div className="print:hidden">
+            <ExplainableAccordion
+              title="Total Calculation Breakdown & Taxes"
+              content={invoiceTotalExplanation(invoice)}
+            />
           </div>
 
           {/* Document Render Container */}

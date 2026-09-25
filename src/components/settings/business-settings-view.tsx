@@ -552,7 +552,12 @@ export function BusinessSettingsView({
                       DEFAULT
                     </Badge>
                   </div>
-                  <button type="button" className="text-muted-foreground hover:text-foreground">
+                  <button
+                    type="button"
+                    onClick={() => toast.info("Editing Default Business Profile")}
+                    className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors cursor-pointer"
+                    title="Edit Business Profile"
+                  >
                     <Edit2 className="size-3.5" />
                   </button>
                 </div>

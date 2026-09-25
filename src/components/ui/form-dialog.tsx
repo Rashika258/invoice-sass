@@ -85,7 +85,7 @@ export function FormDialog({
               type="submit"
               isLoading={isSubmitting}
               loadingText="Saving..."
-              className="h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+              className="h-9 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 shadow-xs transition-all active:scale-[0.98]"
             >
               {submitText}
             </ActionButton>

@@ -351,7 +351,7 @@ export default function ImportItemsPage() {
         <DialogContent className="sm:max-w-md rounded-2xl select-none">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Barcode className="size-5 text-primary" />
+              <Barcode className="size-5 text-emerald-600 dark:text-emerald-400" />
               Import Item By Barcode
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -362,7 +362,7 @@ export default function ImportItemsPage() {
           <form onSubmit={handleBarcodeSubmit} className="space-y-4 pt-2">
             {/* Live Camera Scanner Viewport */}
             {isCameraScanning ? (
-              <div className="relative rounded-xl overflow-hidden border-2 border-primary bg-black h-52 flex flex-col items-center justify-center">
+              <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500 bg-black h-52 flex flex-col items-center justify-center">
                 <video
                   ref={(el) => {
                     if (el && navigator.mediaDevices?.getUserMedia) {
@@ -405,9 +405,9 @@ export default function ImportItemsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsCameraScanning(true)}
-                className="w-full h-10 rounded-xl border-dashed border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full h-10 rounded-xl border-dashed border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
-                <Camera className="size-4" />
+                <Camera className="size-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Scan Barcode using Device Camera</span>
               </Button>
             )}
@@ -471,7 +471,7 @@ export default function ImportItemsPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer"
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 cursor-pointer shadow-sm"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : "Add to Inventory"}
               </Button>
@@ -516,7 +516,7 @@ export default function ImportItemsPage() {
                 Choose a .CSV file from your computer
               </p>
               <p className="text-[11px] text-muted-foreground mt-1">UTF-8 encoded spreadsheet</p>
-              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground cursor-pointer shadow-xs hover:bg-primary/90">
+              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-semibold cursor-pointer shadow-xs">
                 <span>Select File</span>
                 <input
                   type="file"
@@ -562,7 +562,7 @@ export default function ImportItemsPage() {
                 type="button"
                 disabled={csvPreview.length === 0 || loading}
                 onClick={handleCsvImportSubmit}
-                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-5 cursor-pointer"
+                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 cursor-pointer shadow-sm"
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />

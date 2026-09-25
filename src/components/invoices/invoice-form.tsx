@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ChevronDown,
   Plus,
+  Printer,
   Receipt,
   ShoppingBag,
   Trash2,
@@ -985,15 +986,16 @@ export function InvoiceForm({
 
               {/* Action Buttons */}
               <div className="pt-4 flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => router.back()} className="h-10">
+                <Button type="button" variant="outline" onClick={() => router.back()} className="h-10 text-xs">
                   Discard
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-brand hover:bg-brand/90 text-white font-bold h-10 px-6 shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-6 shadow-sm gap-1.5 cursor-pointer text-xs"
                 >
-                  {isSubmitting ? "Saving..." : invoiceId ? `Update ${meta.label}` : `Save & Preview Bill`}
+                  <Printer className="size-4" />
+                  <span>{isSubmitting ? "Saving..." : invoiceId ? `Update & Print ${meta.label}` : `Save & Print ${meta.label}`}</span>
                 </Button>
               </div>
             </CardContent>

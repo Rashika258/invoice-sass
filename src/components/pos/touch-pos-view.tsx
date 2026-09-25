@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle2, Printer, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/invoice-utils";
 
 export interface PosProductItem {
@@ -17,6 +24,12 @@ export interface PosProductItem {
 export function TouchPosView({ products }: { products: PosProductItem[] }) {
   const [cart, setCart] = useState<Array<{ product: PosProductItem; qty: number }>>([]);
   const [search, setSearch] = useState("");
+  const [completedOrder, setCompletedOrder] = useState<{
+    itemsCount: number;
+    subtotal: number;
+    taxTotal: number;
+    grandTotal: number;
+  } | null>(null);
 
   const filtered = products.filter(
     (p) =>
@@ -51,6 +64,20 @@ export function TouchPosView({ products }: { products: PosProductItem[] }) {
   );
   const grandTotal = subtotal + taxTotal;
 
+  function handleCompleteSale() {
+    setCompletedOrder({
+      itemsCount: cart.reduce((s, i) => s + i.qty, 0),
+      subtotal,
+      taxTotal,
+      grandTotal,
+    });
+  }
+
+  function handleReset() {
+    setCart([]);
+    setCompletedOrder(null);
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
       {/* Product Selection Touch Grid */}
@@ -67,7 +94,7 @@ export function TouchPosView({ products }: { products: PosProductItem[] }) {
             <button
               key={product.id}
               onClick={() => addToCart(product)}
-              className="flex flex-col justify-between p-4 h-28 bg-card hover:bg-accent hover:text-accent-foreground border rounded-xl shadow-xs transition-all text-left active:scale-95 touch-manipulation"
+              className="flex flex-col justify-between p-4 h-28 bg-card hover:bg-accent hover:text-accent-foreground border rounded-xl shadow-xs transition-all text-left active:scale-95 touch-manipulation cursor-pointer"
             >
               <span className="font-semibold text-sm line-clamp-2">{product.name}</span>
               <span className="font-bold text-base text-primary">
@@ -149,12 +176,72 @@ export function TouchPosView({ products }: { products: PosProductItem[] }) {
 
           <Button
             disabled={cart.length === 0}
-            className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-98 transition-all"
+            onClick={handleCompleteSale}
+            className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-98 transition-all cursor-pointer"
           >
             ⚡ Complete Cash / UPI Sale
           </Button>
         </div>
       </Card>
+
+      {/* Sale Completion Modal with Print Invoice / PDF Options */}
+      <Dialog open={!!completedOrder} onOpenChange={(open) => !open && handleReset()}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="size-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
+              <CheckCircle2 className="size-8" />
+            </div>
+            <DialogTitle className="text-xl font-bold">POS Order Completed!</DialogTitle>
+          </DialogHeader>
+
+          {completedOrder && (
+            <div className="space-y-4 py-2">
+              <div className="rounded-xl border border-border/70 bg-muted/40 p-4 space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Total Items</span>
+                  <span className="font-semibold text-foreground">{completedOrder.itemsCount}</span>
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>GST Amount</span>
+                  <span className="font-semibold text-foreground">{formatCurrency(completedOrder.taxTotal)}</span>
+                </div>
+                <div className="flex justify-between text-base font-bold text-foreground border-t pt-2">
+                  <span>Paid Amount</span>
+                  <span className="text-emerald-600 font-mono">{formatCurrency(completedOrder.grandTotal)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={() => window.print()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 gap-2 cursor-pointer"
+                >
+                  <Printer className="size-4" />
+                  Print Thermal Receipt
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="font-bold h-11 gap-2 cursor-pointer"
+                >
+                  <Printer className="size-4" />
+                  Print PDF Invoice
+                </Button>
+              </div>
+
+              <Button
+                variant="secondary"
+                onClick={handleReset}
+                className="w-full h-10 gap-2 cursor-pointer"
+              >
+                <RefreshCw className="size-4" />
+                Start Next Sale
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

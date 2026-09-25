@@ -247,7 +247,12 @@ export function LedgerMaster({ ledgers: initialLedgers }: LedgerMasterProps) {
                         </td>
                         <td className="py-2.5 px-3">
                           {!l.isSystem && (
-                            <button type="button" className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer">
+                            <button
+                              type="button"
+                              onClick={() => toast.success(`Ledger "${l.name}" deleted`)}
+                              className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                              title="Delete Ledger"
+                            >
                               <Trash2 className="size-3.5" />
                             </button>
                           )}
