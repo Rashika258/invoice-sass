@@ -23,6 +23,7 @@ import { QuickCreateDropdown } from "@/components/dashboard/quick-create-dropdow
 import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactions-tabs";
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
 import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
+import { TodaysTasksWidget } from "@/components/dashboard/todays-tasks-widget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -164,6 +165,17 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Today's Tasks & Quick Action Bar */}
+      <TodaysTasksWidget
+        overdueCount={summary.sales.filter((s: any) => s.status === "OVERDUE").length}
+        overdueTotal={summary.sales
+          .filter((s: any) => s.status === "OVERDUE")
+          .reduce((sum: number, s: any) => sum + (s.total - s.paidAmount), 0)}
+        lowStockCount={summary.items.filter((i: any) => i.itemType === "PRODUCT" && i.stockQty <= (i.minStock || 5)).length}
+        pendingPaymentCount={summary.sales.filter((s: any) => s.status === "SENT" || s.paidAmount < s.total).length}
+        currency={currency}
+      />
 
       {/* AI Business Assistant: "Ask Your Business" NLP Layer */}
       <AiBusinessAssistant />

@@ -102,6 +102,13 @@ export function verifyPaymentSignature(
   return generatedSignature === signature;
 }
 
+export function createPaymentHmac(orderId: string, paymentId: string, customSecret?: string): string {
+  const config = getPaymentGatewayConfig();
+  const secret = customSecret || config.keySecret;
+  return crypto.createHmac("sha256", secret).update(`${orderId}|${paymentId}`).digest("hex");
+}
+
+
 /**
  * Verifies Webhook HMAC SHA256 Signature
  */
@@ -123,6 +130,8 @@ export function verifyWebhookSignature(
   return expectedSignature === signature;
 }
 
+import { buildUpiUri } from "./upi-qr";
+
 /**
  * Generates dynamic UPI Payment URL for QR Codes and direct Intent links
  */
@@ -133,11 +142,12 @@ export function generateUpiPayUrl(params: {
   note: string;
   txnRef?: string;
 }): string {
-  const vpa = params.vpa || "9448673532@okaxis";
-  const name = encodeURIComponent(params.name || "Billora Business OS");
-  const note = encodeURIComponent(params.note);
-  const amountStr = params.amount.toFixed(2);
-  const tr = params.txnRef ? `&tr=${params.txnRef}` : "";
-
-  return `upi://pay?pa=${vpa}&pn=${name}&am=${amountStr}&cu=INR&tn=${note}${tr}`;
+  return buildUpiUri({
+    upiId: params.vpa || "9448673532@okaxis",
+    payeeName: params.name || "Billora Business OS",
+    amount: params.amount,
+    note: params.note,
+    transactionRef: params.txnRef,
+  });
 }
+

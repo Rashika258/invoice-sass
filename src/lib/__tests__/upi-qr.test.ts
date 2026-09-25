@@ -11,8 +11,8 @@ describe('UPI QR Code Generator', () => {
     });
 
     expect(uri).toContain('upi://pay?');
-    expect(uri).toContain('pa=merchant%40okaxis');
-    expect(uri).toContain('pn=Billora+Store');
+    expect(decodeURIComponent(uri)).toContain('pa=merchant@okaxis');
+    expect(decodeURIComponent(uri)).toContain('pn=Billora Store');
     expect(uri).toContain('am=1250.50');
     expect(uri).toContain('tr=INV-2026-001');
   });

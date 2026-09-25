@@ -263,6 +263,12 @@ export function InvoiceForm({
     setPartyList(customers);
   }, [customers]);
 
+  const [createdInvoice, setCreatedInvoice] = useState<{
+    id: string;
+    number: string;
+    total: number;
+  } | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customerId, setCustomerId] = useState(initialData?.customerId ?? "");
   const [issueDate, setIssueDate] = useState(
@@ -410,7 +416,11 @@ export function InvoiceForm({
       } else {
         const invoice = await createInvoice(payload);
         toast.success(`${meta.label} created successfully`);
-        router.push(`/invoices/${invoice.id}`);
+        setCreatedInvoice({
+          id: invoice.id,
+          number: invoice.invoiceNumber,
+          total: invoice.total,
+        });
       }
       router.refresh();
     } catch (error) {
@@ -425,6 +435,56 @@ export function InvoiceForm({
       ? party.partyType === "SUPPLIER" || party.partyType === "BOTH"
       : party.partyType === "CUSTOMER" || party.partyType === "BOTH",
   );
+
+  if (createdInvoice) {
+    return (
+      <Card className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-lg shadow-sm">
+            ✓
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              {meta.label} #{createdInvoice.number} Created Successfully!
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Document Total: {formatCurrency(createdInvoice.total, currency)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-500/20">
+          <Link href={`/invoices/${createdInvoice.id}`}>
+            <Button size="sm" className="h-8 text-xs font-bold">
+              View {meta.label}
+            </Button>
+          </Link>
+          <Link href={`/invoices/${createdInvoice.id}?print=true`}>
+            <Button size="sm" variant="outline" className="h-8 text-xs font-semibold">
+              Print / Export PDF
+            </Button>
+          </Link>
+          <Link href="/payments">
+            <Button size="sm" variant="outline" className="h-8 text-xs font-semibold">
+              Record Payment
+            </Button>
+          </Link>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setCreatedInvoice(null);
+              setItems([emptyLineItem(defaultTaxRate)]);
+              setNotes("");
+            }}
+            className="h-8 text-xs font-bold border border-border"
+          >
+            + Create Another {meta.label}
+          </Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

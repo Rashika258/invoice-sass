@@ -21,7 +21,11 @@ const EnvSchema = z.object({
   PASSWORD_RESET_LOG: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
+
 
 const parsedEnv = EnvSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
@@ -44,7 +48,11 @@ const parsedEnv = EnvSchema.parse({
   PASSWORD_RESET_LOG: process.env.PASSWORD_RESET_LOG,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 });
+
 
 export const isPostgres = parsedEnv.DATABASE_URL.startsWith("postgres://") || parsedEnv.DATABASE_URL.startsWith("postgresql://");
 export const isSqlite = parsedEnv.DATABASE_URL.startsWith("file:") || parsedEnv.DATABASE_URL.endsWith(".db");

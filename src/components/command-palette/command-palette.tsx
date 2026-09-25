@@ -32,33 +32,72 @@ type CommandGroup = {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+import { getRecentItems, recordRecentItem, type RecentItem } from "@/lib/recent-actions";
+
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
+  useEffect(() => {
+    setRecentItems(getRecentItems());
+  }, [open]);
+
   const go = useCallback(
-    (href: string) => {
+    (href: string, title?: string, subtitle?: string, category?: RecentItem["category"]) => {
       setOpen(false);
       setSearch("");
+      if (title && category) {
+        recordRecentItem(title, subtitle || "Quick Access", category, href);
+      }
       router.push(href);
     },
     [router]
   );
 
-  // ⌘K / Ctrl+K to open
+  // ⌘K / Ctrl+K and single-key shortcuts (N, P, I, C)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      // Don't trigger single-key shortcuts if active element is an input, textarea, or contentEditable
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+
+      if ((e.metaKey || e.ctrlKey) && e.key?.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((o) => !o);
+        return;
       }
-      if (e.key === "Escape") setOpen(false);
+
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+
+      if (!isInput && !open && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const key = e.key.toLowerCase();
+        if (key === "n") {
+          e.preventDefault();
+          go("/invoices/new", "New Sale Invoice", "Zero-navigation billing loop", "INVOICE");
+        } else if (key === "p") {
+          e.preventDefault();
+          go("/cash-bank", "Record Payment", "Cash & Bank management", "PAGE");
+        } else if (key === "i") {
+          e.preventDefault();
+          go("/items", "Inventory & Stock", "Warehouse items master", "ITEM");
+        } else if (key === "c") {
+          e.preventDefault();
+          go("/customers", "Customers Directory", "Customer ledgers & party list", "CUSTOMER");
+        }
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [open, go]);
 
   const groups: CommandGroup[] = [
     {

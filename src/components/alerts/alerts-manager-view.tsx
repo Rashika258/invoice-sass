@@ -544,17 +544,31 @@ export function AlertsManagerView({
                   </p>
 
                   <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                    {alert.actionHref ? (
-                      <Link
-                        href={alert.actionHref}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-bold shadow-2xs hover:opacity-90 transition-opacity"
-                      >
-                        <span>{alert.actionLabel || "Take Action"}</span>
-                        <ChevronRight className="size-3" />
-                      </Link>
-                    ) : (
-                      <span />
-                    )}
+                    {(() => {
+                      const effectiveHref = alert.actionHref || (
+                        alert.category === "STOCK" ? "/items" :
+                        alert.category === "PAYMENT" ? "/invoices" :
+                        alert.category === "PAYDAY" ? "/payroll" :
+                        alert.category === "GST_TAX" ? "/reports/gst" :
+                        "/dashboard"
+                      );
+                      const effectiveLabel = alert.actionLabel || (
+                        alert.category === "STOCK" ? "Review Stock" :
+                        alert.category === "PAYMENT" ? "View Invoices" :
+                        alert.category === "PAYDAY" ? "Process Payroll" :
+                        alert.category === "GST_TAX" ? "Review Tax Report" :
+                        "Open Dashboard"
+                      );
+                      return (
+                        <Link
+                          href={effectiveHref}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-bold shadow-2xs hover:opacity-90 transition-opacity"
+                        >
+                          <span>{effectiveLabel}</span>
+                          <ChevronRight className="size-3" />
+                        </Link>
+                      );
+                    })()}
 
                     <Button
                       variant="ghost"

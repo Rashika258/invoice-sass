@@ -1,67 +1,57 @@
-// Billora Service Worker — Offline POS & Asset Cache
 const CACHE_NAME = "billora-pwa-v1";
-const ASSETS_TO_CACHE = [
+const STATIC_ASSETS = [
   "/",
-  "/pos",
-  "/invoices",
-  "/items",
-  "/customers",
-  "/icon.png",
-  "/logo.png",
-  "/apple-icon.png",
   "/manifest.json",
+  "/favicon.ico",
+  "/offline",
 ];
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", (event: any) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(() => {
-        // Silent fallback for uncached routes
-      });
+      return cache.addAll(STATIC_ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", (event: any) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       );
     })
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
+self.addEventListener("fetch", (event: any) => {
   if (event.request.method !== "GET") return;
 
-  const url = new URL(event.request.url);
-
-  // Skip API requests from SW cache (API queue handled by IndexedDB)
-  if (url.pathname.startsWith("/api/")) return;
-
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
-          return networkResponse;
-        })
-        .catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
-    })
+          if (event.request.mode === "navigate") {
+            return caches.match("/offline");
+          }
+          return new Response("Offline", { status: 503, statusText: "Offline" });
+        });
+      })
   );
 });

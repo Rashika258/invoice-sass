@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FileText } from "lucide-react";
 import { registerUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +19,17 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    const result = await registerUser(new FormData(event.currentTarget));
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const result = await registerUser(new FormData(event.currentTarget));
+      if (result?.error) {
+        setError(result.error);
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      if (err?.message?.includes("NEXT_REDIRECT")) {
+        throw err;
+      }
+      setError(err?.message || "An unexpected error occurred during account creation.");
       setIsLoading(false);
     }
   }
@@ -49,7 +57,18 @@ export default function RegisterPage() {
               Start managing invoices, payroll, and products
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <GoogleSignInButton text="Sign up with Google" />
+
+            <div className="relative flex items-center justify-center my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative px-2 bg-card text-xs uppercase text-muted-foreground font-medium">
+                Or continue with email
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

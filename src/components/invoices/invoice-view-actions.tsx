@@ -27,7 +27,10 @@ import { deleteInvoice } from "@/actions/invoices";
 import { InvoiceTemplate, type TemplateId } from "@/components/invoices/invoice-template";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UnifiedRecordPage } from "@/components/common/unified-record-page";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { ExplainableAccordion } from "@/components/common/explainable-accordion";
+import { invoiceTotalExplanation } from "@/lib/calculation-explanations";
 
 type InvoiceViewProps = {
   invoice: Invoice & {
@@ -203,158 +206,152 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
 
   const activeConfig = TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) || TEMPLATE_CONFIGS[0];
 
+  const remainingBalance = Math.max(0, invoice.total - invoice.paidAmount);
+
   return (
-    <div className="space-y-4">
-      {/* Top Action Bar */}
-      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="outline" render={<Link href="/invoices" />}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Invoices
+    <UnifiedRecordPage
+      title={invoice.invoiceNumber || "Sales Invoice"}
+      subtitle={`Billed to ${invoice.customer.name} • ${invoice.companyName}`}
+      entityType="INVOICE"
+      entityId={invoice.id}
+      backHref="/invoices"
+      statusPill={{
+        label: invoice.status,
+        variant:
+          invoice.status.toUpperCase() === "PAID"
+            ? "success"
+            : invoice.status.toUpperCase() === "SENT" || invoice.status.toUpperCase() === "UNPAID"
+            ? "warning"
+            : "neutral",
+      }}
+      summaryCards={[
+        {
+          label: "Total Amount",
+          value: formatCurrency(invoice.total, currency),
+          subtext: "Gross invoice value",
+        },
+        {
+          label: "Paid Amount",
+          value: formatCurrency(invoice.paidAmount, currency),
+          highlight: "emerald",
+          subtext: "Settled payments",
+        },
+        {
+          label: "Remaining Balance",
+          value: formatCurrency(remainingBalance, currency),
+          highlight: remainingBalance > 0 ? "amber" : "emerald",
+          subtext: remainingBalance > 0 ? "Outstanding due" : "Fully settled",
+        },
+        {
+          label: "Invoice Date",
+          value: new Date((invoice as any).issueDate || invoice.createdAt).toLocaleDateString("en-IN"),
+          subtext: `Due: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("en-IN") : "Immediate"}`,
+        },
+      ]}
+      onEdit={() => router.push(`/invoices/${invoice.id}/edit`)}
+      onPrint={handleDownloadPdf}
+      onShare={handleShareWhatsApp}
+      extraActions={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+          onClick={handleDelete}
+        >
+          <Trash2 className="size-3.5 mr-1" />
+          <span>Delete</span>
         </Button>
+      }
+      overviewContent={
+        <div className="space-y-4">
+          {/* Template Switcher Gallery */}
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs print:hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+              <div className="flex items-center gap-2">
+                <LayoutTemplate className="size-4 text-primary" />
+                <span className="text-xs font-bold text-foreground">Choose Invoice Template Design:</span>
+                <Badge className={`font-mono text-[10px] ${activeConfig.badgeColor}`}>{activeConfig.badge}</Badge>
+              </div>
+              <span className="text-[11px] text-muted-foreground italic">{activeConfig.subtitle}</span>
+            </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleShareWhatsApp}
-            className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
-          >
-            <MessageCircle className="mr-2 h-4 w-4 text-emerald-600" />
-            Share WhatsApp
-          </Button>
-
-          <Button
-            variant="outline"
-            disabled={isGeneratingPdf}
-            onClick={handleDownloadPdf}
-            className="border-blue-600/30 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 cursor-pointer font-medium"
-          >
-            <Download className="mr-2 h-4 w-4 text-blue-600" />
-            {isGeneratingPdf ? "Generating..." : "Download PDF"}
-          </Button>
-
-          <Button
-            variant="default"
-            onClick={() => window.print()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold cursor-pointer shadow-xs"
-          >
-            <Printer className="mr-2 h-4 w-4" />
-            Print Bill
-          </Button>
-
-          <Link
-            href={`/invoices/${invoice.id}/edit`}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground px-3 py-1.5 text-sm font-semibold shadow-xs transition-all active:scale-[0.98]"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Bill
-          </Link>
-
-          <Button
-            variant="ghost"
-            className="text-destructive hover:bg-destructive/10 cursor-pointer"
-            onClick={handleDelete}
-            title="Delete Bill"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Template Switcher Gallery (Hidden during print) */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs print:hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
-          <div className="flex items-center gap-2">
-            <LayoutTemplate className="size-4 text-primary" />
-            <span className="text-xs font-bold text-foreground">
-              Choose Invoice Template Design:
-            </span>
-            <Badge className={`font-mono text-[10px] ${activeConfig.badgeColor}`}>
-              {activeConfig.badge}
-            </Badge>
-          </div>
-          <span className="text-[11px] text-muted-foreground italic">
-            {activeConfig.subtitle}
-          </span>
-        </div>
-
-        {/* Template Buttons Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-          {TEMPLATE_CONFIGS.map((t) => {
-            const Icon = t.icon;
-            const isSelected = selectedTemplate === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => handleSelectTemplate(t.id)}
-                className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs"
-                    : "border-border bg-card hover:bg-accent/40 hover:border-border/80"
-                }`}
-              >
-                <div className="flex items-center justify-between w-full mb-1">
-                  <div
-                    className={`p-1.5 rounded-lg ${
-                      isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            {/* Template Buttons Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+              {TEMPLATE_CONFIGS.map((t) => {
+                const Icon = t.icon;
+                const isSelected = selectedTemplate === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleSelectTemplate(t.id)}
+                    className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs"
+                        : "border-border bg-card hover:bg-accent/40 hover:border-border/80"
                     }`}
                   >
-                    <Icon className="size-3.5" />
-                  </div>
-                  {isSelected && <Check className="size-3.5 text-primary font-bold" />}
-                </div>
-                <div className="font-bold text-xs text-foreground leading-tight">{t.name}</div>
-                <div className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                  {t.badge}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Copy Type Selector for Sri Manjunatha Authentic Template */}
-        {(selectedTemplate === "CLASSIC" || selectedTemplate === "TRADITIONAL") && (
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs">
-            <span className="text-muted-foreground font-semibold flex items-center gap-1.5">
-              <Copy className="size-3.5 text-red-600" />
-              Sri Manjunatha Recipient Copy:
-            </span>
-            <div className="inline-flex rounded-lg border bg-muted/30 p-0.5">
-              {(
-                [
-                  { id: "ORIGINAL", label: "Original (Recipient)" },
-                  { id: "DUPLICATE", label: "Duplicate (Transporter)" },
-                  { id: "TRIPLICATE", label: "Triplicate (Supplier)" },
-                ] as const
-              ).map((cp) => (
-                <button
-                  key={cp.id}
-                  type="button"
-                  onClick={() => setCopyType(cp.id)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
-                    copyType === cp.id
-                      ? "bg-white dark:bg-zinc-800 text-foreground shadow-2xs font-extrabold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {cp.label}
-                </button>
-              ))}
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <div
+                        className={`p-1.5 rounded-lg ${
+                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="size-3.5" />
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-primary font-bold" />}
+                    </div>
+                    <div className="font-bold text-xs text-foreground leading-tight">{t.name}</div>
+                    <div className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{t.badge}</div>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Invoice Document Render Container */}
-      <div id="printable-invoice-document" className="bg-transparent">
-        <InvoiceTemplate
-          invoice={invoice}
-          currency={currency}
-          logoUrl={logoUrl}
-          templateId={selectedTemplate}
-          copyType={copyType}
-        />
-      </div>
-    </div>
+            {(selectedTemplate === "CLASSIC" || selectedTemplate === "TRADITIONAL") && (
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs">
+                <span className="text-muted-foreground font-semibold flex items-center gap-1.5">
+                  <Copy className="size-3.5 text-red-600" />
+                  Sri Manjunatha Recipient Copy:
+                </span>
+                <div className="inline-flex rounded-lg border bg-muted/30 p-0.5">
+                  {(
+                    [
+                      { id: "ORIGINAL", label: "Original (Recipient)" },
+                      { id: "DUPLICATE", label: "Duplicate (Transporter)" },
+                      { id: "TRIPLICATE", label: "Triplicate (Supplier)" },
+                    ] as const
+                  ).map((cp) => (
+                    <button
+                      key={cp.id}
+                      type="button"
+                      onClick={() => setCopyType(cp.id)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                        copyType === cp.id
+                          ? "bg-white dark:bg-zinc-800 text-foreground shadow-2xs font-extrabold"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {cp.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Document Render Container */}
+          <div id="printable-invoice-document" className="bg-transparent">
+            <InvoiceTemplate
+              invoice={invoice}
+              currency={currency}
+              logoUrl={logoUrl}
+              templateId={selectedTemplate}
+              copyType={copyType}
+            />
+          </div>
+        </div>
+      }
+    />
   );
 }

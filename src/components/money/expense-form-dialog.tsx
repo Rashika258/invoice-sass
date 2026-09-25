@@ -5,28 +5,15 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import type { BankAccount } from "@/generated/prisma/client";
 import { createExpense, deleteExpense } from "@/actions/money";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  FormDialog,
+  FormFieldInput,
+  FormFieldSelect,
+  FormFieldTextarea,
+  FormFieldNumber,
+  ConfirmActionButton,
+} from "@/components/ui";
 
 const CATEGORIES = [
   "Rent",
@@ -50,7 +37,7 @@ export function ExpenseFormDialog({
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bankAccountId, setBankAccountId] = useState(accounts[0]?.id ?? "");
-  const [category, setCategory] = useState("Office & Administrative");
+  const [category, setCategory] = useState("Office");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -76,104 +63,84 @@ export function ExpenseFormDialog({
     }
   };
 
+  const accountOptions = accounts.length === 0
+    ? [{ label: "No cash or bank accounts found", value: "_empty", disabled: true }]
+    : accounts.map((acc) => ({ label: acc.name, value: acc.id }));
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="sm:max-w-lg p-0">
-        <DialogHeader>
-          <DialogTitle>Record Business Expense</DialogTitle>
-          <DialogDescription>
-            Log daily operational overheads, bills, or petty cash vouchers.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <DialogBody>
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select value={category} onValueChange={(value) => value && setCategory(value)}>
-                <SelectTrigger><SelectValue placeholder="Category">{category}</SelectValue></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Input id="description" name="description" placeholder="e.g. Office tea, Electricity bill" />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount *</Label>
-                <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gstRate">GST %</Label>
-                <Input id="gstRate" name="gstRate" type="number" min="0" step="0.01" defaultValue={0} />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <DatePicker value={date} onChange={setDate} />
-              </div>
-              <div className="space-y-2">
-                <Label>Paid from</Label>
-                <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select account">
-                      {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.length === 0 ? (
-                      <SelectItem value="_empty" disabled>No cash or bank accounts found</SelectItem>
-                    ) : (
-                      accounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea id="notes" name="notes" rows={2} />
-            </div>
-          </DialogBody>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Expense"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      title="Record Business Expense"
+      description="Log daily operational overheads, bills, or petty cash vouchers."
+      trigger={trigger}
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Save Expense"
+      maxWidthClass="sm:max-w-lg"
+    >
+      <FormFieldSelect
+        label="Category"
+        value={category}
+        onValueChange={(val) => setCategory(val)}
+        options={CATEGORIES}
+      />
+      <FormFieldInput
+        label="Description"
+        name="description"
+        placeholder="e.g. Office tea, Electricity bill"
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldNumber
+          label="Amount"
+          name="amount"
+          step="0.01"
+          placeholder="0.00"
+          currencySymbol="₹"
+          required
+        />
+        <FormFieldNumber
+          label="GST %"
+          name="gstRate"
+          step="0.01"
+          defaultValue={0}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-foreground block">Date</label>
+          <DatePicker value={date} onChange={setDate} />
+        </div>
+        <FormFieldSelect
+          label="Paid from"
+          value={bankAccountId}
+          onValueChange={(val) => setBankAccountId(val)}
+          options={accountOptions}
+        />
+      </div>
+      <FormFieldTextarea label="Notes" name="notes" rows={2} />
+    </FormDialog>
   );
 }
 
 export function DeleteExpenseButton({ id }: { id: string }) {
-  const [busy, setBusy] = useState(false);
+  const handleDelete = async () => {
+    try {
+      await deleteExpense(id);
+      toast.success("Expense deleted");
+    } catch {
+      toast.error("Could not delete expense");
+    }
+  };
+
   return (
-    <Button
+    <ConfirmActionButton
+      confirmMessage="Delete this expense?"
+      onConfirm={handleDelete}
       variant="ghost"
       size="sm"
-      disabled={busy}
-      onClick={async () => {
-        if (!confirm("Delete this expense?")) return;
-        setBusy(true);
-        try {
-          await deleteExpense(id);
-          toast.success("Expense deleted");
-        } catch {
-          toast.error("Could not delete expense");
-        } finally {
-          setBusy(false);
-        }
-      }}
     >
       Delete
-    </Button>
+    </ConfirmActionButton>
   );
 }

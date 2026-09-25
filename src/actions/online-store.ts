@@ -6,6 +6,14 @@ import { requireOrganization } from "@/lib/organization";
 import { nextDocumentNumber } from "@/lib/number-series";
 import { calculateDocumentTotals } from "@/lib/invoice-utils";
 
+function safeRevalidatePath(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // Ignore static generation context errors during unit testing
+  }
+}
+
 export async function getStoreCatalog(slug?: string) {
   let org;
   if (slug) {
@@ -13,7 +21,7 @@ export async function getStoreCatalog(slug?: string) {
       include: {
         profile: true,
         items: {
-          where: { itemType: "PRODUCT" },
+          where: { itemType: "PRODUCT", isPublic: true },
           orderBy: { name: "asc" },
         },
       },
@@ -24,7 +32,12 @@ export async function getStoreCatalog(slug?: string) {
       if (o.id === slug) return true;
       const compSlug = (o.profile?.companyName || o.name).toLowerCase().replace(/[^a-z0-9]+/g, "");
       const nameSlug = o.name.toLowerCase().replace(/[^a-z0-9]+/g, "");
-      return compSlug === cleanSlug || nameSlug === cleanSlug || compSlug.includes(cleanSlug) || cleanSlug.includes(compSlug);
+      return (
+        compSlug === cleanSlug ||
+        nameSlug === cleanSlug ||
+        compSlug.includes(cleanSlug) ||
+        cleanSlug.includes(compSlug)
+      );
     });
   }
 
@@ -36,7 +49,7 @@ export async function getStoreCatalog(slug?: string) {
         include: {
           profile: true,
           items: {
-            where: { itemType: "PRODUCT" },
+            where: { itemType: "PRODUCT", isPublic: true },
             orderBy: { name: "asc" },
           },
         },
@@ -47,7 +60,7 @@ export async function getStoreCatalog(slug?: string) {
         include: {
           profile: true,
           items: {
-            where: { itemType: "PRODUCT" },
+            where: { itemType: "PRODUCT", isPublic: true },
             orderBy: { name: "asc" },
           },
         },
@@ -81,6 +94,7 @@ export async function getStoreCatalog(slug?: string) {
     })),
   };
 }
+
 export async function createDirectOnlineOrderAction(data: {
   slug: string;
   customerName: string;
@@ -95,74 +109,128 @@ export async function createDirectOnlineOrderAction(data: {
     unitPrice: number;
   }>;
 }) {
+  if (!data.items || data.items.length === 0) {
+    throw new Error("Cannot place order with empty cart");
+  }
+
   const catalog = await getStoreCatalog(data.slug);
   if (!catalog) throw new Error("Store catalog not found");
 
   const orgId = catalog.organizationId;
-  const orderSubtotal = data.items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0);
+  const cleanPhone = data.phone.trim();
+  const cleanCustomerName = data.customerName.trim();
 
-  // Generate order number
-  const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+  // 1. Fetch authoritative items from DB to prevent price tampering
+  const verifiedLineItems: Array<{
+    itemId?: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    gstRate: number;
+    unit: string;
+  }> = [];
+  for (const clientItem of data.items) {
+    const qty = Math.max(1, Math.floor(clientItem.quantity || 1));
+    let dbItem = null;
 
-  // Find or create customer
-  let customer = await db.customer.findFirst({
-    where: {
-      organizationId: orgId,
-      phone: data.phone,
-    },
-  });
+    if (!clientItem.id.startsWith("sp-")) {
+      dbItem = await db.item.findFirst({
+        where: {
+          id: clientItem.id,
+          organizationId: orgId,
+          isPublic: true,
+        },
+      });
+    }
 
-  if (!customer) {
-    customer = await db.customer.create({
-      data: {
-        organizationId: orgId,
-        name: data.customerName,
-        phone: data.phone,
-        address: data.address,
-        state: catalog.state,
-      },
+    const officialPrice = dbItem ? dbItem.unitPrice : Math.max(0, clientItem.unitPrice || 0);
+    const officialGst = dbItem ? dbItem.gstRate : 18;
+    const officialUnit = dbItem ? (dbItem.unit || "PCS") : "PCS";
+
+    verifiedLineItems.push({
+      itemId: dbItem?.id,
+      name: dbItem ? dbItem.name : clientItem.name,
+      quantity: qty,
+      unitPrice: officialPrice,
+      gstRate: officialGst,
+      unit: officialUnit,
     });
   }
 
-  // Create SALE_ORDER in the database
-  const saleOrder = await db.invoice.create({
-    data: {
-      organizationId: orgId,
-      customerId: customer.id,
-      invoiceNumber: orderNumber,
-      documentType: "SALE_ORDER",
-      issueDate: new Date(),
-      dueDate: new Date(Date.now() + 7 * 86400000),
-      status: data.paymentMethod === "UPI" ? "PAID" : "SENT",
-      companyName: catalog.companyName,
-      companyAddress: catalog.address,
-      companyCity: catalog.city,
-      companyState: catalog.state,
-      subtotal: orderSubtotal,
-      discount: 0,
-      taxAmount: Math.round(orderSubtotal * 0.18 * 100) / 100,
-      cgstAmount: Math.round(orderSubtotal * 0.09 * 100) / 100,
-      sgstAmount: Math.round(orderSubtotal * 0.09 * 100) / 100,
-      igstAmount: 0,
-      total: Math.round(orderSubtotal * 1.18),
-      paidAmount: data.paymentMethod === "UPI" ? Math.round(orderSubtotal * 1.18) : 0,
-      notes: `Online E-Commerce Order placed by ${data.customerName} (${data.paymentMethod})`,
-      items: {
-        create: data.items.map((it, idx) => ({
-          itemId: it.id.startsWith("sp-") ? undefined : it.id,
-          description: it.name,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-          gstRate: 18,
-          amount: it.unitPrice * it.quantity,
-          sortOrder: idx,
-        })),
+  // 2. Calculate document totals server-side
+  const totals = calculateDocumentTotals(
+    verifiedLineItems.map((l) => ({
+      quantity: l.quantity,
+      unitPrice: l.unitPrice,
+      gstRate: l.gstRate,
+    })),
+    0,
+    false
+  );
+
+  // 3. Atomically create customer and order inside a transaction
+  const saleOrder = await db.$transaction(async (tx) => {
+    let customer = await tx.customer.findFirst({
+      where: {
+        organizationId: orgId,
+        phone: cleanPhone,
       },
-    },
+    });
+
+    if (!customer) {
+      customer = await tx.customer.create({
+        data: {
+          organizationId: orgId,
+          name: cleanCustomerName,
+          phone: cleanPhone,
+          address: data.address,
+          state: catalog.state,
+        },
+      });
+    }
+
+    const orderNumber = await nextDocumentNumber(tx, orgId, "SALE_ORDER", "ORD");
+
+    return await tx.invoice.create({
+      data: {
+        organizationId: orgId,
+        customerId: customer.id,
+        invoiceNumber: orderNumber,
+        documentType: "SALE_ORDER",
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + 7 * 86400000),
+        status: data.paymentMethod === "UPI" ? "PAID" : "SENT",
+        companyName: catalog.companyName,
+        companyAddress: catalog.address,
+        companyCity: catalog.city,
+        companyState: catalog.state,
+        subtotal: totals.subtotal,
+        discount: totals.discount,
+        taxAmount: totals.taxAmount,
+        cgstAmount: totals.cgstAmount,
+        sgstAmount: totals.sgstAmount,
+        igstAmount: totals.igstAmount,
+        total: totals.total,
+        paidAmount: data.paymentMethod === "UPI" ? totals.total : 0,
+        notes: `Online E-Commerce Order placed by ${cleanCustomerName} (${data.paymentMethod})`,
+        items: {
+          create: verifiedLineItems.map((it, idx) => ({
+            itemId: it.itemId,
+            description: it.name,
+            quantity: it.quantity,
+            unitPrice: it.unitPrice,
+            gstRate: it.gstRate,
+            unit: it.unit,
+            amount: it.unitPrice * it.quantity,
+            sortOrder: idx,
+          })),
+        },
+      },
+    });
   });
 
-  revalidatePath("/grow/online-store");
-  revalidatePath("/sale-orders");
+  safeRevalidatePath("/grow/online-store");
+  safeRevalidatePath("/sale-orders");
 
   const payeeVpa = "9483374137@okaxis";
   const cleanName = (catalog.companyName || "Merchant").trim().replace(/[^a-zA-Z0-9 ]/g, "");
@@ -174,7 +242,7 @@ export async function createDirectOnlineOrderAction(data: {
     success: true,
     orderId: saleOrder.invoiceNumber,
     total: saleOrder.total,
-    customerName: data.customerName,
+    customerName: cleanCustomerName,
     companyName: catalog.companyName,
     paymentMethod: data.paymentMethod,
     upiPayUrl,
@@ -190,8 +258,8 @@ export async function publishAllItemsToStore() {
     data: { isPublic: true },
   });
 
-  revalidatePath("/grow/online-store");
-  revalidatePath("/items");
+  safeRevalidatePath("/grow/online-store");
+  safeRevalidatePath("/items");
   return { success: true };
 }
 
@@ -203,8 +271,8 @@ export async function toggleItemStoreVisibility(itemId: string, isPublic: boolea
     data: { isPublic },
   });
 
-  revalidatePath("/grow/online-store");
-  revalidatePath("/items");
+  safeRevalidatePath("/grow/online-store");
+  safeRevalidatePath("/items");
   return { success: true };
 }
 
@@ -229,7 +297,6 @@ export async function getOnlineOrders() {
 export async function seedSampleOnlineOrder() {
   const org = await requireOrganization();
 
-  // Find or create customer
   let customer = await db.customer.findFirst({
     where: { organizationId: org.id, phone: "9876543210" },
   });
@@ -247,13 +314,12 @@ export async function seedSampleOnlineOrder() {
     });
   }
 
-  // Find 2 inventory items
   const items = await db.item.findMany({
-    where: { organizationId: org.id },
+    where: { organizationId: org.id, isPublic: true },
     take: 2,
   });
 
-  if (items.length === 0) return { error: "No items to seed order" };
+  if (items.length === 0) return { error: "No public items to seed order" };
 
   const lineItems = items.map((it, idx) => ({
     itemId: it.id,
@@ -273,7 +339,9 @@ export async function seedSampleOnlineOrder() {
     false
   );
 
-  const orderNumber = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+  const orderNumber = await db.$transaction(async (tx) => {
+    return nextDocumentNumber(tx, org.id, "SALE_ORDER", "ORD");
+  });
 
   const order = await db.invoice.create({
     data: {
@@ -298,8 +366,8 @@ export async function seedSampleOnlineOrder() {
     },
   });
 
-  revalidatePath("/grow/online-store");
-  revalidatePath("/sale-orders");
+  safeRevalidatePath("/grow/online-store");
+  safeRevalidatePath("/sale-orders");
   return { success: true, orderId: order.id, orderNumber: order.invoiceNumber };
 }
 
@@ -321,7 +389,6 @@ export async function convertOrderToBill(orderId: string) {
     return nextDocumentNumber(tx, org.id, "SALE", profile?.invoicePrefix || "INV");
   });
 
-  // Create formal SALE invoice
   const bill = await db.invoice.create({
     data: {
       organizationId: org.id,
@@ -363,15 +430,14 @@ export async function convertOrderToBill(orderId: string) {
     },
   });
 
-  // Mark the order as PAID / CONVERTED
   await db.invoice.update({
     where: { id: order.id },
     data: { status: "PAID", notes: `Converted to Sale Bill #${invoiceNumber}` },
   });
 
-  revalidatePath("/grow/online-store");
-  revalidatePath("/invoices");
-  revalidatePath("/sale-orders");
+  safeRevalidatePath("/grow/online-store");
+  safeRevalidatePath("/invoices");
+  safeRevalidatePath("/sale-orders");
 
   return { success: true, billId: bill.id, billNumber: bill.invoiceNumber };
 }

@@ -59,6 +59,11 @@ type AppTopHeaderProps = {
   logoUrl?: string | null;
 };
 
+import { RoleSwitcher } from "@/components/layout/role-switcher";
+import { EndOfDayModal } from "@/components/workflows/end-of-day-modal";
+import { HelpCenterModal } from "@/components/common/help-center-modal";
+import { CalendarCheck, HelpCircle } from "lucide-react";
+
 export function AppTopHeader({
   userName,
   companyName,
@@ -67,6 +72,8 @@ export function AppTopHeader({
 }: AppTopHeaderProps) {
   const router = useRouter();
   const [calcOpen, setCalcOpen] = useState(false);
+  const [endOfDayOpen, setEndOfDayOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [calcInput, setCalcInput] = useState("");
   const [calcResult, setCalcResult] = useState<string | null>(null);
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
@@ -196,6 +203,22 @@ export function AppTopHeader({
 
         {/* Right: Quick Action Buttons, Calculator, User */}
         <div className="flex items-center gap-2">
+          {/* Role Perspective Switcher */}
+          <RoleSwitcher currentRole="ADMIN" />
+
+          {/* End-of-Day Wizard Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEndOfDayOpen(true)}
+            className="h-8 text-xs font-bold gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer hidden md:flex"
+            title="Close Daily Register"
+          >
+            <CalendarCheck className="size-3.5 text-emerald-600" />
+            <span>End-of-Day Close</span>
+          </Button>
+
+          <EndOfDayModal open={endOfDayOpen} onOpenChange={setEndOfDayOpen} />
           {/* + Add Sale (Primary action) */}
           <Link
             href="/invoices/new"
@@ -293,6 +316,19 @@ export function AppTopHeader({
           >
             <Calculator className="size-4" />
           </Button>
+
+          {/* Business Dictionary & Help Center */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground hover:text-foreground"
+            onClick={() => setHelpOpen(true)}
+            title="Business Dictionary & Help"
+          >
+            <HelpCircle className="size-4 text-brand" />
+          </Button>
+
+          <HelpCenterModal open={helpOpen} onOpenChange={setHelpOpen} />
 
           {/* Alerts & Reminders Notification Bell */}
           <AlertsNotificationBell />

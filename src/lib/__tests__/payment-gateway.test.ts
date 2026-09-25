@@ -83,8 +83,9 @@ describe("Payment Gateway Utility Suite", () => {
       });
 
       expect(upiUrl).toContain("upi://pay?");
-      expect(upiUrl).toContain("pa=9448673532@okaxis");
+      expect(decodeURIComponent(upiUrl)).toContain("pa=9448673532@okaxis");
       expect(upiUrl).toContain("am=4799.00");
+
       expect(upiUrl).toContain("cu=INR");
       expect(upiUrl).toContain("tn=Gold_License_Activation");
       expect(upiUrl).toContain("tr=TXN9849201");

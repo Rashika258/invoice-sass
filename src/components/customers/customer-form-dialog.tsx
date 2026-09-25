@@ -3,32 +3,16 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Customer } from "@/generated/prisma/client";
-import {
-  createCustomer,
-  deleteCustomer,
-  updateCustomer,
-} from "@/actions/customers";
+import { createCustomer, deleteCustomer, updateCustomer } from "@/actions/customers";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  FormDialog,
+  FormFieldInput,
+  FormFieldSelect,
+  FormFieldTextarea,
+  FormFieldNumber,
+  ConfirmActionButton,
+} from "@/components/ui";
 
 type CustomerFormDialogProps = {
   customer?: Customer;
@@ -98,164 +82,83 @@ export function CustomerFormDialog({
     }
   };
 
+  const partyOptions = [
+    { label: "Customer", value: "CUSTOMER" },
+    { label: "Supplier", value: "SUPPLIER" },
+    { label: "Customer & Supplier", value: "BOTH" },
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          (trigger ?? (
-            <Button>{customer ? "Edit Party" : "Add Party"}</Button>
-          )) as React.ReactElement
-        }
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title={customer ? "Edit Party" : "Add Party"}
+      description={
+        customer
+          ? "Update customer or supplier contact details and billing info."
+          : "Register a new customer or supplier in your business registry."
+      }
+      trigger={trigger ?? <Button>{customer ? "Edit Party" : "Add Party"}</Button>}
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      submitText={customer ? "Save changes" : "Create Party"}
+    >
+      <FormFieldInput
+        label="Name"
+        name="name"
+        defaultValue={customer?.name}
+        required
       />
-      <DialogContent className="sm:max-w-lg p-0">
-        <DialogHeader>
-          <DialogTitle>
-            {customer ? "Edit Party" : "Add Party"}
-          </DialogTitle>
-          <DialogDescription>
-            {customer
-              ? "Update customer or supplier contact details and billing info."
-              : "Register a new customer or supplier in your business registry."}
-          </DialogDescription>
-        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <DialogBody>
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={customer?.name}
-                required
-              />
-            </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldSelect
+          label="Party type"
+          name="partyType"
+          value={partyType}
+          onValueChange={(val) => setPartyType(val)}
+          options={partyOptions}
+        />
+        <FormFieldNumber
+          label="Opening balance"
+          name="openingBalance"
+          defaultValue={customer?.openingBalance ?? 0}
+          step="0.01"
+        />
+      </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="partyType">Party type</Label>
-                <input type="hidden" name="partyType" value={partyType} />
-                <Select value={partyType} onValueChange={(val) => val && setPartyType(val)}>
-                  <SelectTrigger className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                    <SelectValue placeholder="Select Party Type">
-                      {partyType === "CUSTOMER"
-                        ? "Customer"
-                        : partyType === "SUPPLIER"
-                          ? "Supplier"
-                          : partyType === "BOTH"
-                            ? "Customer & Supplier"
-                            : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CUSTOMER">Customer</SelectItem>
-                    <SelectItem value="SUPPLIER">Supplier</SelectItem>
-                    <SelectItem value="BOTH">Customer &amp; Supplier</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="openingBalance">Opening balance</Label>
-                <Input
-                  id="openingBalance"
-                  name="openingBalance"
-                  type="number"
-                  step="0.01"
-                  defaultValue={customer?.openingBalance ?? 0}
-                />
-              </div>
-            </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldInput
+          label="Email"
+          name="email"
+          type="email"
+          defaultValue={customer?.email ?? ""}
+        />
+        <FormFieldInput
+          label="Phone"
+          name="phone"
+          defaultValue={customer?.phone ?? ""}
+        />
+      </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  defaultValue={customer?.email ?? ""}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  defaultValue={customer?.phone ?? ""}
-                />
-              </div>
-            </div>
+      <FormFieldInput
+        label="Address"
+        name="address"
+        defaultValue={customer?.address ?? ""}
+      />
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                name="address"
-                defaultValue={customer?.address ?? ""}
-              />
-            </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldInput label="City" name="city" defaultValue={customer?.city ?? ""} />
+        <FormFieldInput label="State" name="state" defaultValue={customer?.state ?? ""} />
+      </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" defaultValue={customer?.city ?? ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  defaultValue={customer?.state ?? ""}
-                />
-              </div>
-            </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldInput label="Zip Code" name="zipCode" defaultValue={customer?.zipCode ?? ""} />
+        <FormFieldInput label="Country" name="country" defaultValue={customer?.country ?? ""} />
+      </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="zipCode">Zip Code</Label>
-                <Input
-                  id="zipCode"
-                  name="zipCode"
-                  defaultValue={customer?.zipCode ?? ""}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  name="country"
-                  defaultValue={customer?.country ?? ""}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="taxId">GSTIN</Label>
-              <Input id="taxId" name="taxId" defaultValue={customer?.taxId ?? ""} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                defaultValue={customer?.notes ?? ""}
-                rows={3}
-              />
-            </div>
-          </DialogBody>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : customer ? "Save changes" : "Create Party"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <FormFieldInput label="GSTIN" name="taxId" defaultValue={customer?.taxId ?? ""} />
+      <FormFieldTextarea label="Notes" name="notes" defaultValue={customer?.notes ?? ""} rows={3} />
+    </FormDialog>
   );
 }
 
@@ -266,31 +169,24 @@ export function DeleteCustomerButton({
   customerId: string;
   onSuccess?: () => void;
 }) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const handleDelete = async () => {
-    if (!confirm("Delete this party?")) return;
-
-    setIsDeleting(true);
     try {
       await deleteCustomer(customerId);
       toast.success("Party deleted");
       onSuccess?.();
     } catch {
       toast.error("Failed to delete customer");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   return (
-    <Button
+    <ConfirmActionButton
+      confirmMessage="Delete this party?"
+      onConfirm={handleDelete}
       variant="ghost"
       size="sm"
-      onClick={handleDelete}
-      disabled={isDeleting}
     >
       Delete
-    </Button>
+    </ConfirmActionButton>
   );
 }

@@ -1,41 +1,103 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/auth";
+import { env } from "@/lib/env";
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
-  const cookies = request.headers.get("cookie") || "";
-  const stateCookie = cookies.match(/(?:^|; )billora_oauth_state=([^;]+)/)?.[1];
-  const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || url.origin;
-  const failure = (message: string) => NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(message)}`, appUrl));
-  if (!code || !state || !stateCookie || state !== decodeURIComponent(stateCookie)) return failure("google_state_invalid");
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const code = searchParams.get("code");
+  const error = searchParams.get("error");
+  const baseUrl = env.APP_URL || env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  if (error || !code) {
+    return NextResponse.redirect(`${baseUrl}/login?error=Google+Authentication+was+cancelled`);
+  }
+
+  const clientId = env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = `${baseUrl}/api/auth/google/callback`;
+
+  if (!clientId || !clientSecret) {
+    return NextResponse.redirect(`${baseUrl}/login?error=Google+OAuth+credentials+missing`);
+  }
 
   try {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    if (!clientId || !clientSecret) return failure("google_not_configured");
-    const redirectUri = `${appUrl}/api/auth/google/callback`;
-    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: "authorization_code" }) });
-    const tokens = await tokenResponse.json() as { access_token?: string };
-    if (!tokenResponse.ok || !tokens.access_token) return failure("google_token_failed");
-    const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: `Bearer ${tokens.access_token}` } });
-    const profile = await profileResponse.json() as { email?: string; name?: string; email_verified?: boolean };
-    if (!profileResponse.ok || !profile.email || profile.email_verified === false) return failure("google_email_unverified");
+    // 1. Exchange authorization code for access token
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
 
-    let user = await db.user.findUnique({ where: { email: profile.email.toLowerCase() } });
-    if (!user) {
-      user = await db.user.create({ data: { name: profile.name?.trim() || profile.email.split("@")[0], email: profile.email.toLowerCase(), passwordHash: `oauth:google:${crypto.randomUUID()}`, organization: { create: { name: `${profile.name || "My"} Business`, profile: { create: { companyName: `${profile.name || "My"} Business`, currency: "INR", defaultTaxRate: 18 } } } } } });
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      return NextResponse.redirect(`${baseUrl}/login?error=Failed+to+exchange+Google+authorization+code`);
     }
+
+    // 2. Fetch user profile from Google UserInfo API
+    const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+
+    const googleUser = await userResponse.json();
+
+    if (!googleUser?.email) {
+      return NextResponse.redirect(`${baseUrl}/login?error=Could+not+retrieve+email+from+Google+profile`);
+    }
+
+    const email = googleUser.email.toLowerCase().trim();
+    const name = googleUser.name || googleUser.given_name || email.split("@")[0];
+
+    // 3. Find or create User and Organization in database
+    let user = await db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Create random secure password for OAuth user
+      const randomPassword = Math.random().toString(36).slice(-10) + Date.now().toString(36);
+      const passwordHash = await bcrypt.hash(randomPassword, 12);
+      const companyName = `${name}'s Business`;
+
+      user = await db.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          organization: {
+            create: {
+              name: companyName,
+              profile: {
+                create: {
+                  companyName,
+                  paymentTerms: "Net 30",
+                  invoicePrefix: "INV",
+                  nextInvoiceNumber: 1,
+                  currency: "INR",
+                  defaultTaxRate: 0,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // 4. Create user session cookie
     await createSession(user.id);
-    const stateData = JSON.parse(Buffer.from(state, "base64url").toString("utf8")) as { callback?: string };
-    const callback = stateData.callback && stateData.callback.startsWith("/") && !stateData.callback.startsWith("//") ? stateData.callback : "/dashboard";
-    const response = NextResponse.redirect(new URL(callback, appUrl));
-    response.cookies.delete("billora_oauth_state");
-    return response;
-  } catch (error) {
-    console.error("Google OAuth callback failed", error);
-    return failure("google_login_failed");
+
+    // 5. Redirect to Dashboard
+    return NextResponse.redirect(`${baseUrl}/dashboard`);
+  } catch (err: any) {
+    console.error("Google OAuth error:", err);
+    return NextResponse.redirect(`${baseUrl}/login?error=An+unexpected+error+occurred+during+Google+sign+in`);
   }
 }

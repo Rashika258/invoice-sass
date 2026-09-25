@@ -21,6 +21,7 @@ import type { Item } from "@/generated/prisma/client";
 import { createItem, deleteItem, updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmActionButton } from "@/components/ui/action-button";
 import {
   Dialog,
   DialogContent,
@@ -669,32 +670,25 @@ export function DeleteItemButton({
   itemId: string;
   onSuccess?: () => void;
 }) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const handleDelete = async () => {
-    if (!confirm("Delete this item?")) return;
-
-    setIsDeleting(true);
     try {
       await deleteItem(itemId);
       toast.success("Item deleted");
       onSuccess?.();
     } catch {
       toast.error("Failed to delete item");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   return (
-    <Button
+    <ConfirmActionButton
+      confirmMessage="Delete this item?"
+      onConfirm={handleDelete}
       variant="ghost"
       size="sm"
-      onClick={handleDelete}
-      disabled={isDeleting}
       className="text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
     >
       Delete
-    </Button>
+    </ConfirmActionButton>
   );
 }

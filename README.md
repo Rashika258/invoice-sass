@@ -22,6 +22,8 @@
 
 ## 🚀 Quick Start Guide for Developers
 
+For complete step-by-step local installation instructions, environment configuration, database setup, and troubleshooting, refer to **[LOCAL_SETUP_GUIDE.md](LOCAL_SETUP_GUIDE.md)**.
+
 ### Prerequisites
 - **Node.js**: v18.x or later
 - **Package Manager**: `npm`, `yarn`, `pnpm`, or `bun`
@@ -41,33 +43,39 @@
    ```
 
 3. **Configure Environment Variables**:
-   Create a `.env` file in the root directory:
-   ```env
-   # For Local SQLite Development:
-   DATABASE_URL="file:./dev.db"
-
-   # For Production PostgreSQL Deployment:
-   # DATABASE_URL="postgresql://user:password@localhost:5432/invoice_db?schema=public"
-
-   AUTH_SECRET="your-secure-random-secret"
+   Copy the provided environment template:
+   ```bash
+   cp .env.example .env
+   # On Windows PowerShell:
+   Copy-Item .env.example .env
    ```
 
-4. **Run Database Migrations & Seed**:
+4. **Initialize Database & Seed Full Demo Data**:
    ```bash
+   # Push schema to local SQLite database
    npx prisma db push
+
+   # Seed demo data across all features (Invoices, Items, Staff, Ledgers)
+   npm run seed:all
    ```
 
 5. **Start Development Server**:
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+   Open **[http://localhost:3000](http://localhost:3000)** in your browser!
+   Log in with pre-seeded demo credentials:
+   - **Admin**: `admin@billora.app` / `admin123`
+   - **Staff**: `staff@billora.app` / `staff123`
+   - **Auditor**: `auditor@billora.app` / `password123`
 
-6. **Production Build**:
+6. **Production Build & Deployment**:
    ```bash
    npm run build
    npm run start
    ```
+   For full production deployment instructions (Vercel, Docker Compose, Linux PM2 + Nginx), see **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**.
+
 
 ---
 

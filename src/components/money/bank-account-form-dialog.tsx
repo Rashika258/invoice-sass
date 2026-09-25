@@ -4,25 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { BankAccount } from "@/generated/prisma/client";
 import { createBankAccount, deleteBankAccount, updateBankAccount } from "@/actions/money";
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  FormDialog,
+  FormFieldInput,
+  FormFieldSelect,
+  FormFieldNumber,
+  ConfirmActionButton,
+} from "@/components/ui";
 
 export function BankAccountFormDialog({
   account,
@@ -62,75 +50,68 @@ export function BankAccountFormDialog({
     }
   };
 
+  const typeOptions = [
+    { label: "Cash", value: "CASH" },
+    { label: "Bank", value: "BANK" },
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="sm:max-w-md p-0">
-        <DialogHeader>
-          <DialogTitle>{account ? "Edit account" : "Add cash / bank account"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <DialogBody>
-            <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input id="name" name="name" defaultValue={account?.name} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select value={accountType} onValueChange={(value) => { if (value === "CASH" || value === "BANK") setAccountType(value); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">Cash</SelectItem>
-                  <SelectItem value="BANK">Bank</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="accountNumber">Account no.</Label>
-                <Input id="accountNumber" name="accountNumber" defaultValue={account?.accountNumber ?? ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ifsc">IFSC</Label>
-                <Input id="ifsc" name="ifsc" defaultValue={account?.ifsc ?? ""} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="openingBalance">Opening balance</Label>
-              <Input id="openingBalance" name="openingBalance" type="number" step="0.01" defaultValue={account?.openingBalance ?? 0} />
-            </div>
-          </DialogBody>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={setOpen}
+      title={account ? "Edit account" : "Add cash / bank account"}
+      trigger={trigger}
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      submitText="Save"
+      maxWidthClass="sm:max-w-md"
+    >
+      <FormFieldInput label="Name" name="name" defaultValue={account?.name} required />
+      <FormFieldSelect
+        label="Type"
+        value={accountType}
+        onValueChange={(val) => {
+          if (val === "CASH" || val === "BANK") setAccountType(val);
+        }}
+        options={typeOptions}
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldInput
+          label="Account no."
+          name="accountNumber"
+          defaultValue={account?.accountNumber ?? ""}
+        />
+        <FormFieldInput label="IFSC" name="ifsc" defaultValue={account?.ifsc ?? ""} />
+      </div>
+      <FormFieldNumber
+        label="Opening balance"
+        name="openingBalance"
+        step="0.01"
+        defaultValue={account?.openingBalance ?? 0}
+        currencySymbol="₹"
+      />
+    </FormDialog>
   );
 }
 
 export function DeleteBankAccountButton({ id }: { id: string }) {
-  const [busy, setBusy] = useState(false);
+  const handleDelete = async () => {
+    try {
+      await deleteBankAccount(id);
+      toast.success("Account deleted");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete account");
+    }
+  };
+
   return (
-    <Button
+    <ConfirmActionButton
+      confirmMessage="Delete this account?"
+      onConfirm={handleDelete}
       variant="ghost"
       size="sm"
-      disabled={busy}
-      onClick={async () => {
-        if (!confirm("Delete this account?")) return;
-        setBusy(true);
-        try {
-          await deleteBankAccount(id);
-          toast.success("Account deleted");
-        } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Could not delete account");
-        } finally {
-          setBusy(false);
-        }
-      }}
     >
       Delete
-    </Button>
+    </ConfirmActionButton>
   );
 }

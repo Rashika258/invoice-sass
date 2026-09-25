@@ -1,11 +1,8 @@
 "use server";
 
-import {
-  createPaymentOrder,
-  generateUpiPayUrl,
-  getPaymentGatewayConfig,
-  verifyPaymentSignature,
-} from "@/lib/payment-gateway";
+import { PaymentGatewayService, type CreateOrderParams } from "@/services/payment-gateway-service";
+import { StripeService } from "@/services/stripe-service";
+import type { StripeCheckoutSessionOptions } from "@/lib/stripe";
 
 export interface GatewaySettings {
   razorpayKeyId: string;
@@ -25,35 +22,9 @@ let inMemoryGatewaySettings: GatewaySettings = {
   sandboxMode: true,
 };
 
-/**
- * Server Action: Creates a Payment Order for Subscription Upgrade or Invoice
- */
-export async function createOrderAction(params: {
-  amount: number;
-  receiptId: string;
-  type: "SUBSCRIPTION" | "INVOICE";
-  description: string;
-}) {
+export async function createOrderAction(params: CreateOrderParams) {
   try {
-    const order = await createPaymentOrder({
-      amount: params.amount,
-      receipt: params.receiptId,
-      notes: {
-        type: params.type,
-        description: params.description,
-      },
-    });
-
-    const config = getPaymentGatewayConfig();
-
-    return {
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      keyId: config.keyId,
-      isMock: order.isMock,
-    };
+    return await PaymentGatewayService.createOrder(params);
   } catch (err: any) {
     return {
       success: false,
@@ -62,9 +33,23 @@ export async function createOrderAction(params: {
   }
 }
 
-/**
- * Server Action: Verifies Payment HMAC Signature and returns License / Receipt Data
- */
+export async function createStripeCheckoutAction(options: StripeCheckoutSessionOptions) {
+  try {
+    const session = await StripeService.createCheckoutSession(options);
+    return {
+      success: true,
+      sessionId: session.id,
+      url: session.url,
+      isMock: session.isMock,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || "Failed to create Stripe checkout session",
+    };
+  }
+}
+
 export async function verifyPaymentAction(params: {
   orderId: string;
   paymentId: string;
@@ -74,40 +59,7 @@ export async function verifyPaymentAction(params: {
   amount: number;
 }) {
   try {
-    const isValid = verifyPaymentSignature(
-      params.orderId,
-      params.paymentId,
-      params.signature
-    );
-
-    if (!isValid) {
-      return {
-        success: false,
-        error: "Payment verification failed: Invalid HMAC signature.",
-      };
-    }
-
-    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const licenseKey = `BIL-${params.planName.toUpperCase()}-2026-${randomSuffix}-${Math.floor(
-      1000 + Math.random() * 9000
-    )}`;
-
-    const expiresDate = new Date();
-    expiresDate.setFullYear(
-      expiresDate.getFullYear() + (params.tenure.includes("3") ? 3 : 1)
-    );
-
-    return {
-      success: true,
-      licenseKey,
-      expiresAt: expiresDate.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-      txnId: `TXN_${params.paymentId}_${Date.now().toString().slice(-6)}`,
-      activatedOn: new Date().toISOString(),
-    };
+    return await PaymentGatewayService.verifyAndProcessPayment(params);
   } catch (err: any) {
     return {
       success: false,
@@ -116,16 +68,10 @@ export async function verifyPaymentAction(params: {
   }
 }
 
-/**
- * Server Action: Fetches Payment Gateway Settings
- */
 export async function getPaymentSettingsAction(): Promise<GatewaySettings> {
   return inMemoryGatewaySettings;
 }
 
-/**
- * Server Action: Saves Payment Gateway Settings
- */
 export async function savePaymentSettingsAction(settings: Partial<GatewaySettings>) {
   inMemoryGatewaySettings = {
     ...inMemoryGatewaySettings,
@@ -138,24 +84,6 @@ export async function savePaymentSettingsAction(settings: Partial<GatewaySetting
   };
 }
 
-/**
- * Server Action: Generates dynamic Invoice Payment Link and UPI QR Code data
- */
 export async function getInvoicePaymentLinkAction(invoiceId: string, amount: number, customerName: string) {
-  const upiUrl = generateUpiPayUrl({
-    vpa: inMemoryGatewaySettings.upiId,
-    name: "Billora Business OS",
-    amount,
-    note: `Inv_${invoiceId}`,
-    txnRef: invoiceId,
-  });
-
-  return {
-    success: true,
-    upiUrl,
-    qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-      upiUrl
-    )}&margin=6`,
-    payLink: `/api/v1/payments/pay-invoice/${invoiceId}`,
-  };
+  return PaymentGatewayService.generateUpiLink(invoiceId, amount, inMemoryGatewaySettings.upiId);
 }

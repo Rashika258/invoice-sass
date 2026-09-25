@@ -1,0 +1,44 @@
+export const APP_NAME = "Billora";
+export const DEFAULT_CURRENCY = "INR";
+export const CURRENCY_SYMBOL = "₹";
+export const DEFAULT_PAYMENT_TERMS = "Net 30";
+export const DEFAULT_INVOICE_PREFIX = "INV";
+
+export const INVOICE_STATUSES = ["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"] as const;
+export type InvoiceStatusType = (typeof INVOICE_STATUSES)[number];
+
+export const DOCUMENT_TYPES = [
+  "SALE",
+  "ESTIMATE",
+  "PROFORMA",
+  "SALE_ORDER",
+  "CREDIT_NOTE",
+  "DELIVERY_CHALLAN",
+  "PURCHASE",
+  "DEBIT_NOTE",
+  "PURCHASE_ORDER",
+] as const;
+
+export const GST_RATES = [0, 5, 12, 18, 28] as const;
+
+export const SYSTEM_LEDGER_GROUPS = [
+  "CASH_IN_HAND",
+  "BANK_ACCOUNTS",
+  "FIXED_ASSETS",
+  "CURRENT_ASSETS",
+  "LOANS_ADVANCES_ASSET",
+  "SUNDRY_CREDITORS",
+  "CURRENT_LIABILITIES",
+  "LOANS_LIABILITY",
+  "CAPITAL_ACCOUNT",
+  "RESERVES_SURPLUS",
+  "SALES_ACCOUNTS",
+  "DIRECT_INCOME",
+  "INDIRECT_INCOME",
+  "PURCHASE_ACCOUNTS",
+  "DIRECT_EXPENSES",
+  "INDIRECT_EXPENSES",
+  "DUTIES_TAXES",
+  "SUNDRY_DEBTORS",
+  "BRANCH_DIVISIONS",
+] as const;

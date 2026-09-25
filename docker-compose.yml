@@ -1,0 +1,50 @@
+name: billora-erp
+
+services:
+  # ── PostgreSQL Database Container ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: billora-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: invoice_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d invoice_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Billora Next.js 16 Web Application Container ──────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billora-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://postgres:postgrespassword@postgres:5432/invoice_db?schema=public"
+      AUTH_SECRET: "your-production-secure-auth-secret-key-2026"
+      NEXT_PUBLIC_APP_NAME: "Billora OS"
+      APP_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
