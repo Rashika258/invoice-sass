@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import type { Customer, Invoice, InvoiceItem } from "@/generated/prisma/client";
 import { deleteInvoice } from "@/actions/invoices";
+import { sendWhatsAppInvoiceAction } from "@/actions/whatsapp-api";
 import { InvoiceTemplate, type TemplateId } from "@/components/invoices/invoice-template";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -150,13 +151,43 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
     }
   };
 
-  const handleShareWhatsApp = () => {
-    const text = `Dear ${invoice.customer.name},\nYour invoice ${invoice.invoiceNumber} for ${formatCurrency(invoice.total, currency)} from ${invoice.companyName} is ready.\nBalance due: ${formatCurrency(Math.max(invoice.total - invoice.paidAmount, 0), currency)}.\nThank you for your business!`;
-    const cleanPhone = invoice.customer.phone?.replace(/[^0-9]/g, "") || "";
-    const waUrl = cleanPhone
-      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
-      : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, "_blank");
+  const handleShareWhatsApp = async () => {
+    let targetPhone = invoice.customer.phone;
+    if (!targetPhone) {
+      const inputPhone = prompt(
+        `Enter WhatsApp phone number for ${invoice.customer.name} (with country code, e.g. 919876543210):`,
+        ""
+      );
+      if (!inputPhone) return;
+      targetPhone = inputPhone;
+    }
+
+    toast.loading("Preparing WhatsApp dispatch...", { id: "wa-dispatch" });
+    try {
+      const res = await sendWhatsAppInvoiceAction({
+        phone: targetPhone,
+        customerName: invoice.customer.name,
+        invoiceNumber: invoice.invoiceNumber,
+        totalAmount: invoice.total,
+      });
+
+      if (res.method === "META_CLOUD_API") {
+        toast.success("Invoice sent via official WhatsApp Cloud API!", { id: "wa-dispatch" });
+      } else {
+        toast.success("Opening WhatsApp chat...", { id: "wa-dispatch" });
+        if (res.waUrl) {
+          window.open(res.waUrl, "_blank");
+        }
+      }
+    } catch (err: any) {
+      toast.dismiss("wa-dispatch");
+      const cleanPhone = targetPhone.replace(/[^0-9]/g, "");
+      const text = `Dear ${invoice.customer.name},\nYour invoice ${invoice.invoiceNumber} for ${formatCurrency(invoice.total, currency)} from ${invoice.companyName} is ready.\nBalance due: ${formatCurrency(Math.max(invoice.total - invoice.paidAmount, 0), currency)}.\nThank you for your business!`;
+      const waUrl = cleanPhone
+        ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+        : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, "_blank");
+    }
   };
 
   const handleDownloadPdf = async () => {

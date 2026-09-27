@@ -10,8 +10,17 @@ import {
   Plus,
   Search,
   Tag,
+  Upload,
 } from "lucide-react";
 import { DeleteItemButton, ItemFormDialog } from "@/components/items/item-form-dialog";
+import { ItemCsvImport } from "@/components/items/item-csv-import";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -103,14 +112,34 @@ export function ItemsView({
             Manage your product catalog, stock quantities, HSN codes, and GST rates.
           </p>
         </div>
-        <ItemFormDialog
-          trigger={
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 px-3.5 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98]">
-              <Plus className="size-3.5" />
-              <span>Add New Item</span>
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="font-semibold h-8 px-3 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <Upload className="size-3.5 text-muted-foreground" />
+                <span>Import CSV</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold">Bulk Import Products &amp; Services</DialogTitle>
+              </DialogHeader>
+              <ItemCsvImport onSuccess={() => window.location.reload()} />
+            </DialogContent>
+          </Dialog>
+
+          <ItemFormDialog
+            trigger={
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-8 px-3.5 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer">
+                <Plus className="size-3.5" />
+                <span>Add New Item</span>
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       {/* 3 Summary Cards */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import type { Customer, Item } from "@/generated/prisma/client";
 import { createInvoice } from "@/actions/invoices";
+import { getOrCreateWalkinCustomer } from "@/actions/customers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,11 +63,12 @@ export function PosView({
   enableBarcodes?: boolean;
   enableStaffCommission?: boolean;
 }) {
+  const WALK_IN_ID = "__WALK_IN__";
   const router = useRouter();
   const [cart, setCart] = useState<POSCartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(
-    customers[0]?.id || "",
+    WALK_IN_ID,
   );
   const selectedCustomer = useMemo(
     () => customers.find((c) => c.id === selectedCustomerId),
@@ -75,6 +77,24 @@ export function PosView({
   const [paymentMode, setPaymentMode] = useState<"CASH" | "UPI" | "CARD">("CASH");
   const [amountTendered, setAmountTendered] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "SELECT"
+      ) {
+        return;
+      }
+      if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Filter items by search
   const filteredItems = useMemo(() => {
@@ -158,15 +178,28 @@ export function PosView({
       return;
     }
 
-    if (!selectedCustomerId) {
-      toast.error("Please select a customer");
+    // Resolve the customer ID to pass to the invoice (auto-create Walk-in if needed)
+    let invoiceCustomerId: string;
+    if (selectedCustomerId === WALK_IN_ID || !selectedCustomerId) {
+      try {
+        const walkin = await getOrCreateWalkinCustomer();
+        invoiceCustomerId = walkin.id;
+      } catch {
+        invoiceCustomerId = customers[0]?.id || "";
+      }
+    } else {
+      invoiceCustomerId = selectedCustomerId;
+    }
+
+    if (!invoiceCustomerId) {
+      toast.error("Unable to resolve customer. Please try again.");
       return;
     }
 
     setIsProcessing(true);
     try {
       const invoiceData = {
-        customerId: selectedCustomerId,
+        customerId: invoiceCustomerId,
         documentType: "SALE" as const,
         issueDate: new Date().toISOString().split("T")[0],
         dueDate: new Date().toISOString().split("T")[0],
@@ -236,9 +269,18 @@ export function PosView({
           <div className="relative">
             <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <Input
+              ref={searchInputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products by name or HSN code..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && filteredItems.length === 1) {
+                  e.preventDefault();
+                  addToCart(filteredItems[0]);
+                  setSearch("");
+                  toast.success(`Added ${filteredItems[0].name} to cart`);
+                }
+              }}
+              placeholder="Search products by name or scan barcode / HSN code..."
               className="pl-9 h-10 text-sm rounded-xl bg-background"
               autoFocus
             />
@@ -308,23 +350,42 @@ export function PosView({
               </div>
 
               {/* Customer Selector */}
-              <div className="mt-2.5">
-                <Select value={selectedCustomerId} onValueChange={(val) => val && setSelectedCustomerId(val)}>
-                  <SelectTrigger className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium">
-                    <SelectValue placeholder="Select Customer">
-                      {selectedCustomer
-                        ? `${selectedCustomer.name}${selectedCustomer.phone ? ` (${selectedCustomer.phone})` : ""}`
-                        : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id} className="text-xs">
-                        {c.name} {c.phone ? `(${c.phone})` : ""}
+              <div className="mt-2.5 flex items-center gap-1.5">
+                <div className="flex-1">
+                  <Select value={selectedCustomerId} onValueChange={(val) => val && setSelectedCustomerId(val)}>
+                    <SelectTrigger className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium">
+                      <SelectValue placeholder="Select Customer">
+                        {selectedCustomerId === WALK_IN_ID
+                          ? "🚶 Walk-in / Cash Customer"
+                          : selectedCustomer
+                            ? `${selectedCustomer.name}${selectedCustomer.phone ? ` (${selectedCustomer.phone})` : ""}`
+                            : undefined}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={WALK_IN_ID} className="text-xs font-semibold">
+                        🚶 Walk-in / Cash Customer
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      {customers.map((c) => (
+                        <SelectItem key={c.id} value={c.id} className="text-xs">
+                          {c.name} {c.phone ? `(${c.phone})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedCustomerId !== WALK_IN_ID && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSelectedCustomerId(WALK_IN_ID)}
+                    className="h-8 text-[11px] px-2 rounded-lg shrink-0 font-medium"
+                    title="Switch to Walk-in Customer"
+                  >
+                    Reset Walk-in
+                  </Button>
+                )}
               </div>
             </CardHeader>
 

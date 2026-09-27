@@ -300,6 +300,104 @@ export function InvoiceForm({
     initialData?.items?.length ? initialData.items : [emptyLineItem(defaultTaxRate)],
   );
 
+  // --- Draft auto-save & restore ---
+  const DRAFT_KEY = `billora_draft_${documentType}`;
+  const [hasSavedDraft, setHasSavedDraft] = useState(false);
+  const [draftTimestamp, setDraftTimestamp] = useState<string | null>(null);
+
+  // Check for saved draft on mount for new documents
+  useEffect(() => {
+    if (invoiceId || initialData) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed.items?.length > 0 || parsed.customerId)) {
+          setHasSavedDraft(true);
+          setDraftTimestamp(
+            parsed.savedAt ? new Date(parsed.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "earlier"
+          );
+        }
+      }
+    } catch {}
+  }, [invoiceId, initialData, DRAFT_KEY]);
+
+  // Debounced auto-save draft
+  useEffect(() => {
+    if (invoiceId) return;
+    const hasData = customerId || items.some((i) => i.description?.trim() || i.unitPrice > 0);
+    if (!hasData) return;
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({
+            savedAt: new Date().toISOString(),
+            customerId,
+            issueDate,
+            dueDate,
+            discount,
+            notes,
+            terms,
+            placeOfSupply,
+            vehicleNumber,
+            ewayBill,
+            orderNumber,
+            items,
+          })
+        );
+      } catch {}
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [
+    invoiceId,
+    customerId,
+    issueDate,
+    dueDate,
+    discount,
+    notes,
+    terms,
+    placeOfSupply,
+    vehicleNumber,
+    ewayBill,
+    orderNumber,
+    items,
+    DRAFT_KEY,
+  ]);
+
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed.customerId) setCustomerId(parsed.customerId);
+      if (parsed.items?.length) setItems(parsed.items);
+      if (parsed.issueDate) setIssueDate(parsed.issueDate);
+      if (parsed.dueDate) setDueDate(parsed.dueDate);
+      if (parsed.notes !== undefined) setNotes(parsed.notes);
+      if (parsed.terms !== undefined) setTerms(parsed.terms);
+      if (parsed.discount !== undefined) setDiscount(parsed.discount);
+      if (parsed.placeOfSupply) setPlaceOfSupply(parsed.placeOfSupply);
+      if (parsed.vehicleNumber) setVehicleNumber(parsed.vehicleNumber);
+      if (parsed.ewayBill) setEwayBill(parsed.ewayBill);
+      if (parsed.orderNumber) setOrderNumber(parsed.orderNumber);
+      setHasSavedDraft(false);
+      toast.success("Draft restored successfully!");
+    } catch {
+      toast.error("Failed to restore draft");
+    }
+  };
+
+  const discardDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setHasSavedDraft(false);
+      toast.info("Draft discarded");
+    } catch {}
+  };
+
   const selectedParty = partyList.find((party) => party.id === customerId);
   const supplyState = placeOfSupply || selectedParty?.state || companyState || "";
   const isInterState = !statesMatch(companyState, supplyState);
@@ -416,6 +514,9 @@ export function InvoiceForm({
         router.push(`/invoices/${invoiceId}`);
       } else {
         const invoice = await createInvoice(payload);
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+        } catch {}
         toast.success(`${meta.label} created successfully`);
         setCreatedInvoice({
           id: invoice.id,
@@ -489,6 +590,44 @@ export function InvoiceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Unsaved Draft Alert Banner */}
+      {hasSavedDraft && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-xs shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-200 font-bold text-sm">
+              📝
+            </span>
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-200">
+                You have an unsaved draft {draftTimestamp ? `saved at ${draftTimestamp}` : ""}.
+              </p>
+              <p className="text-[11px] text-amber-700/90 dark:text-amber-300/80">
+                Restore your previous line items, customer, and tax details in 1 click.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={discardDraft}
+              className="h-7 text-xs font-semibold border-amber-500/30 hover:bg-amber-500/15 cursor-pointer"
+            >
+              Discard
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={restoreDraft}
+              className="h-7 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer shadow-xs"
+            >
+              Restore Draft
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner / Document Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border bg-card p-4 shadow-xs">
         <div className="flex items-center gap-2.5">

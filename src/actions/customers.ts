@@ -1,5 +1,6 @@
 "use server";
 
+import { db } from "@/lib/db";
 import { requireOrganization } from "@/lib/organization";
 import { requirePermission } from "@/lib/permissions";
 import type { CustomerInput } from "@/lib/validations";
@@ -55,4 +56,22 @@ export async function bulkCreateCustomers(
     count++;
   }
   return { success: true, count };
+}
+
+export async function getOrCreateWalkinCustomer() {
+  const organization = await requireOrganization();
+  await requirePermission("INVOICE_CREATE");
+  let walkin = await db.customer.findFirst({
+    where: {
+      organizationId: organization.id,
+      name: "Walk-in Customer",
+    },
+  });
+  if (!walkin) {
+    walkin = await CustomerService.create(organization.id, {
+      name: "Walk-in Customer",
+      partyType: "CUSTOMER",
+    });
+  }
+  return walkin;
 }

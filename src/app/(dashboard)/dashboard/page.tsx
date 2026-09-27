@@ -23,6 +23,7 @@ import { QuickCreateDropdown } from "@/components/dashboard/quick-create-dropdow
 import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactions-tabs";
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
 import { AiBusinessAssistant } from "@/components/dashboard/ai-business-assistant";
+import { AiCashflowForecastWidget } from "@/components/dashboard/ai-cashflow-forecast-widget";
 import { TodaysTasksWidget } from "@/components/dashboard/todays-tasks-widget";
 import { ContinueWhereWidget } from "@/components/common/continue-where-widget";
 import { Badge } from "@/components/ui/badge";
@@ -40,12 +41,40 @@ import { formatCurrency } from "@/lib/invoice-utils";
 
 export const dynamic = "force-dynamic";
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default async function DashboardPage() {
   const [summary, profile] = await Promise.all([
     getBusinessSummary(),
     getCompanyProfile(),
   ]);
   const currency = profile?.currency || "INR";
+  const businessName = profile?.companyName || (profile as any)?.businessName;
+
+  // Real data metrics
+  const totalPaidRevenue = summary.sales.reduce((sum: number, s: any) => sum + (s.paidAmount || 0), 0);
+  const revenueCollectionRate = summary.saleTotal > 0
+    ? Math.min(100, Math.round((totalPaidRevenue / summary.saleTotal) * 100))
+    : 100;
+
+  const overdueSales = summary.sales.filter((s: any) => s.status === "OVERDUE");
+  const overdueTotal = overdueSales.reduce((sum: number, s: any) => sum + Math.max(0, s.total - (s.paidAmount || 0)), 0);
+  const overdueRatio = summary.toCollect > 0 ? Math.round((overdueTotal / summary.toCollect) * 100) : 0;
+
+  const purchasePaid = summary.purchases?.reduce((acc: number, p: any) => acc + (p.paidAmount || 0), 0) || 0;
+  const payablesSettledRatio = summary.purchaseTotal > 0
+    ? Math.min(100, Math.round((purchasePaid / summary.purchaseTotal) * 100))
+    : 100;
+
+  const netTurnover = summary.saleTotal || 1;
+  const netMarginPct = summary.saleTotal > 0 ? Math.round((summary.profit / netTurnover) * 100) : 0;
+
+  const isNewAccount = summary.items.length === 0 || summary.sales.length === 0;
 
   return (
     <div className="space-y-6">
@@ -53,7 +82,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Dashboard
+            {getGreeting()}{businessName ? `, ${businessName}` : ""} 👋
           </h1>
           <p className="text-xs text-muted-foreground">
             Business performance, real-time turnover &amp; staff operations
@@ -64,6 +93,62 @@ export default async function DashboardPage() {
           <QuickCreateDropdown />
         </div>
       </div>
+
+      {/* First-Run Setup Checklist for New Users */}
+      {isNewAccount && (
+        <Card className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/[0.03] p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">Getting Started with Billora ERP</h3>
+                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">4 Quick Steps</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Complete these 4 initial setup steps to get your business live in under 5 minutes.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
+            <Link href="/settings" className="block group">
+              <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all h-full">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                  <span>1. Company &amp; GST</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Configure business name, logo, state &amp; GSTIN</p>
+              </div>
+            </Link>
+            <Link href="/items" className="block group">
+              <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all h-full">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                  <span>2. Add Products / CSV</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Upload inventory items, HSN codes, and pricing</p>
+              </div>
+            </Link>
+            <Link href="/customers" className="block group">
+              <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all h-full">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                  <span>3. Add First Customer</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Record client details, phone, and opening balance</p>
+              </div>
+            </Link>
+            <Link href="/invoices/new" className="block group">
+              <div className="p-3 rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all h-full">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                  <span>4. Issue First Bill</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">Create GST tax invoice and print or share on WhatsApp</p>
+              </div>
+            </Link>
+          </div>
+        </Card>
+      )}
 
       {/* 4 shadcn Metric / KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -84,9 +169,9 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
                 <TrendingUp className="size-3" />
-                +12.5%
+                {revenueCollectionRate}%
               </span>
-              <span>from last month</span>
+              <span>collected &amp; realized</span>
             </div>
           </CardContent>
         </Card>
@@ -107,11 +192,11 @@ export default async function DashboardPage() {
                 {formatCurrency(summary.toCollect, currency)}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-0.5 text-rose-500 font-semibold">
+                <span className={`inline-flex items-center gap-0.5 font-semibold ${overdueRatio > 0 ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"}`}>
                   <TrendingDown className="size-3" />
-                  -20%
+                  {overdueRatio}%
                 </span>
-                <span>pending customer dues</span>
+                <span>dues currently overdue</span>
               </div>
             </CardContent>
           </Card>
@@ -135,9 +220,9 @@ export default async function DashboardPage() {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-semibold">
                   <TrendingUp className="size-3" />
-                  +12.5%
+                  {payablesSettledRatio}%
                 </span>
-                <span>scheduled supplier bills</span>
+                <span>supplier bills settled</span>
               </div>
             </CardContent>
           </Card>
@@ -158,10 +243,10 @@ export default async function DashboardPage() {
               {formatCurrency(summary.profit, currency)}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-                +4.5%
+              <span className={`inline-flex items-center gap-0.5 font-semibold ${netMarginPct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
+                {netMarginPct >= 0 ? "+" : ""}{netMarginPct}%
               </span>
-              <span>steady net margin</span>
+              <span>net operating margin</span>
             </div>
           </CardContent>
         </Card>
@@ -178,6 +263,13 @@ export default async function DashboardPage() {
           .reduce((sum: number, s: any) => sum + (s.total - s.paidAmount), 0)}
         lowStockCount={summary.items.filter((i: any) => i.itemType === "PRODUCT" && i.stockQty <= (i.minStock || 5)).length}
         pendingPaymentCount={summary.sales.filter((s: any) => s.status === "SENT" || s.paidAmount < s.total).length}
+        currency={currency}
+      />
+
+      {/* 30-Day AI Cashflow Prediction */}
+      <AiCashflowForecastWidget
+        sales={summary.sales}
+        expenses={summary.expenses}
         currency={currency}
       />
 

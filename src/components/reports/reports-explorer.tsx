@@ -37,6 +37,14 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/invoice-utils";
 import { DateRangePicker, type DatePresetKey } from "@/components/ui/date-range-picker";
+import {
+  exportSaleReport,
+  exportPurchaseReport,
+  exportPartyStatement,
+  exportDaybookReport,
+  exportPnlReport,
+  exportGstr1Report,
+} from "@/lib/excel-export";
 
 type ReportType =
   // Transaction reports
@@ -85,6 +93,24 @@ export function ReportsExplorer({
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportCsv = () => {
+    if (activeReport === "sale" || activeReport === "bill_profit") {
+      exportSaleReport(summary?.sales || []);
+    } else if (activeReport === "purchase") {
+      exportPurchaseReport(summary?.purchases || []);
+    } else if (activeReport === "daybook" && dayBook?.invoices) {
+      exportDaybookReport(dayBook.invoices);
+    } else if (activeReport === "pnl" || activeReport === "trial_balance" || activeReport === "balance_sheet") {
+      exportPnlReport(summary);
+    } else if (activeReport === "gstr1" || activeReport === "gstr2" || activeReport === "gstr3b") {
+      exportGstr1Report(summary?.sales || []);
+    } else if (activeReport === "all_parties" || activeReport === "party_statement") {
+      exportPartyStatement(parties || []);
+    } else {
+      exportSaleReport(summary?.sales || []);
+    }
   };
 
   return (
@@ -221,11 +247,13 @@ export function ReportsExplorer({
               <span>Print PDF Report</span>
             </Button>
             <Button
+              variant="outline"
               size="sm"
-              onClick={handlePrint}
-              className="h-8 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
+              onClick={handleExportCsv}
+              className="h-8 text-xs font-semibold rounded-xl border-border hover:bg-muted cursor-pointer gap-1.5"
             >
-              <Download className="mr-1.5 size-3.5" />
+              <Download className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              Export CSV
             </Button>
           </div>
         </div>

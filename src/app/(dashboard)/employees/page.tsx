@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { format } from "date-fns";
-import { Plus, UserCircle } from "lucide-react";
+import { CalendarCheck, FileText, Plus, UserCircle } from "lucide-react";
 import { getEmployees } from "@/actions/employees";
 import {
   DeleteEmployeeButton,
@@ -29,14 +30,22 @@ export default async function EmployeesPage() {
             Manage staff, hourly rates, and overtime pay settings.
           </p>
         </div>
-        <EmployeeFormDialog
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4" />
-              Add Employee
+        <div className="flex items-center gap-2">
+          <Link href="/attendance">
+            <Button variant="outline" className="gap-1.5 text-xs font-semibold h-9 cursor-pointer">
+              <CalendarCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Attendance &amp; Payroll Hub</span>
             </Button>
-          }
-        />
+          </Link>
+          <EmployeeFormDialog
+            trigger={
+              <Button className="gap-1.5 text-xs font-semibold h-9 cursor-pointer">
+                <Plus className="h-4 w-4" />
+                Add Employee
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <Card>
@@ -77,10 +86,16 @@ export default async function EmployeesPage() {
                     <TableCell>{formatCurrency(employee.hourlyRate)}</TableCell>
                     <TableCell>{formatCurrency(employee.overtimeRate)}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 items-center">
+                        <Link href="/attendance">
+                          <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5 cursor-pointer">
+                            <FileText className="size-3.5 text-indigo-600 dark:text-indigo-400" />
+                            <span>Payslip</span>
+                          </Button>
+                        </Link>
                         <EmployeeFormDialog
                           employee={employee}
-                          trigger={<Button variant="ghost" size="sm">Edit</Button>}
+                          trigger={<Button variant="ghost" size="sm" className="h-8 text-xs cursor-pointer">Edit</Button>}
                         />
                         <DeleteEmployeeButton employeeId={employee.id} />
                       </div>
