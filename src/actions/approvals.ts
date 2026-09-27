@@ -8,9 +8,12 @@ import {
   type ApprovalType 
 } from "@/lib/approvals";
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
 
-export async function fetchApprovalsAction(organizationId?: string): Promise<ApprovalRequest[]> {
-  return getApprovalRequests(organizationId);
+export async function fetchApprovalsAction(overrideOrgId?: string): Promise<ApprovalRequest[]> {
+  const session = await requireUser();
+  const orgId = session.organizationId;
+  return getApprovalRequests(orgId);
 }
 
 export async function submitApprovalAction(data: {
@@ -19,15 +22,15 @@ export async function submitApprovalAction(data: {
   entityId: string;
   entityIdentifier: string;
   amount?: number;
-  requesterName: string;
-  requesterRole: string;
   reason: string;
   requiredRole: "ADMIN" | "CA_AUDITOR" | "WAREHOUSE_CLERK";
-  organizationId?: string;
 }) {
-  const req = submitApprovalRequest({
+  const session = await requireUser();
+  const req = await submitApprovalRequest({
     ...data,
-    organizationId: data.organizationId || "default-org-1",
+    requesterName: session.name || session.email,
+    requesterRole: session.role,
+    organizationId: session.organizationId,
   });
   revalidatePath("/approvals");
   revalidatePath("/work-queue");
@@ -37,10 +40,11 @@ export async function submitApprovalAction(data: {
 export async function reviewApprovalAction(
   requestId: string,
   decision: "APPROVED" | "REJECTED",
-  reviewerName: string,
   comment?: string
 ) {
-  const res = processApprovalDecision(requestId, decision, reviewerName, comment);
+  const session = await requireUser();
+  const reviewerName = session.name || session.email;
+  const res = await processApprovalDecision(requestId, decision, reviewerName, session.organizationId, comment);
   revalidatePath("/approvals");
   revalidatePath("/work-queue");
   return res;

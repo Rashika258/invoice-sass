@@ -300,34 +300,43 @@ export async function updateReconciliationStatus(
 }
 
 /**
- * Auto-repair a detected reconciliation issue
+ * Auto-repair a detected reconciliation issue with strict session & tenant verification
  */
 export async function autoRepairReconciliationIssue(issueId: string) {
+  const session = await requireUser();
+  const organizationId = session.organizationId;
+
   if (issueId.startsWith("inv_pay_")) {
     const invoiceId = issueId.replace("inv_pay_", "");
-    const payments = await db.payment.findMany({ where: { invoiceId } });
+    const inv = await db.invoice.findFirst({ where: { id: invoiceId, organizationId } });
+    if (!inv) {
+      return { success: false, error: "Invoice not found or unauthorized" };
+    }
+
+    const payments = await db.payment.findMany({ where: { invoiceId, organizationId } });
     const realTotalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
-    const inv = await db.invoice.findUnique({ where: { id: invoiceId } });
-    if (inv) {
-      const newStatus = realTotalPaid >= inv.total ? "PAID" : inv.status;
-      await db.invoice.update({
-        where: { id: invoiceId },
-        data: { paidAmount: realTotalPaid, status: newStatus },
-      });
-      issueStatusOverrides.set(issueId, { status: "RESOLVED", reason: "Auto-synced with payments ledger" });
-      revalidatePath("/reconciliation");
-      return { success: true, message: `Updated invoice #${inv.invoiceNumber} paid amount to ₹${realTotalPaid.toFixed(2)}` };
-    }
+    const newStatus = realTotalPaid >= inv.total ? "PAID" : inv.status;
+    await db.invoice.update({
+      where: { id: invoiceId },
+      data: { paidAmount: realTotalPaid, status: newStatus },
+    });
+    issueStatusOverrides.set(issueId, { status: "RESOLVED", reason: "Auto-synced with payments ledger" });
+    revalidatePath("/reconciliation");
+    return { success: true, message: `Updated invoice #${inv.invoiceNumber} paid amount to ₹${realTotalPaid.toFixed(2)}` };
   }
 
   if (issueId.startsWith("inv_calc_")) {
     const invoiceId = issueId.replace("inv_calc_", "");
-    const inv = await db.invoice.findUnique({
-      where: { id: invoiceId },
+    const inv = await db.invoice.findFirst({
+      where: { id: invoiceId, organizationId },
       include: { items: true },
     });
-    if (inv && inv.items.length > 0) {
+    if (!inv) {
+      return { success: false, error: "Invoice not found or unauthorized" };
+    }
+
+    if (inv.items.length > 0) {
       const subtotal = inv.items.reduce((sum, i) => sum + (i.amount || i.quantity * i.unitPrice), 0);
       const total = subtotal + inv.taxAmount;
       await db.invoice.update({
@@ -342,7 +351,12 @@ export async function autoRepairReconciliationIssue(issueId: string) {
 
   if (issueId.startsWith("stock_log_")) {
     const itemId = issueId.replace("stock_log_", "");
-    const movements = await db.stockMovementLog.findMany({ where: { itemId } });
+    const item = await db.item.findFirst({ where: { id: itemId, organizationId } });
+    if (!item) {
+      return { success: false, error: "Item not found or unauthorized" };
+    }
+
+    const movements = await db.stockMovementLog.findMany({ where: { itemId, organizationId } });
     const computedStock = movements.reduce((sum, m) => sum + m.quantityChange, 0);
     await db.item.update({
       where: { id: itemId },

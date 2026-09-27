@@ -101,41 +101,61 @@ export class PaymentGatewayService {
       const orderId = paymentEntity.order_id;
       const amount = paymentEntity.amount / 100;
       const invoiceId = paymentEntity.notes?.invoiceId;
+      const paymentRef = paymentEntity.id || orderId;
+
+      if (!paymentRef) {
+        throw new Error("Missing payment transaction reference in webhook");
+      }
+
+      // 1. IDEMPOTENCY / REPLAY PROTECTION CHECK
+      const existingPayment = await db.payment.findFirst({
+        where: { reference: paymentRef },
+      });
+      if (existingPayment) {
+        return { received: true, idempotent: true, message: "Payment event already processed" };
+      }
 
       if (invoiceId) {
         const invoice = await db.invoice.findUnique({ where: { id: invoiceId } });
         if (invoice) {
           const bankAccount = await db.bankAccount.findFirst({ where: { organizationId: invoice.organizationId } });
-          const paymentCount = await db.payment.count({ where: { organizationId: invoice.organizationId } });
+          const newPaidAmount = Math.round((invoice.paidAmount + amount) * 100) / 100;
+          const isFullyPaid = newPaidAmount >= Math.round(invoice.total * 100) / 100;
+          const targetStatus: "PAID" | "SENT" = isFullyPaid ? "PAID" : "SENT";
 
-          await db.invoice.update({
-            where: { id: invoiceId },
-            data: { status: "PAID" },
-          });
-
-          if (bankAccount) {
-            await db.payment.create({
-              data: {
-                organizationId: invoice.organizationId,
-                number: `PAY-${String(paymentCount + 1).padStart(4, "0")}`,
-                direction: "IN",
-                partyId: invoice.customerId,
-                invoiceId: invoice.id,
-                bankAccountId: bankAccount.id,
-                amount,
-                date: new Date(),
-                mode: "UPI",
-                reference: paymentEntity.id || orderId,
-              },
+          await db.$transaction(async (tx) => {
+            await tx.invoice.update({
+              where: { id: invoiceId },
+              data: { paidAmount: newPaidAmount, status: targetStatus },
             });
-          }
+
+            if (bankAccount) {
+              const paymentCount = await tx.payment.count({ where: { organizationId: invoice.organizationId } });
+              const uniqueNum = `PAY-${Date.now().toString().slice(-6)}-${String(paymentCount + 1).padStart(3, "0")}`;
+
+              await tx.payment.create({
+                data: {
+                  organizationId: invoice.organizationId,
+                  number: uniqueNum,
+                  direction: "IN",
+                  partyId: invoice.customerId,
+                  invoiceId: invoice.id,
+                  bankAccountId: bankAccount.id,
+                  amount,
+                  date: new Date(),
+                  mode: "UPI",
+                  reference: paymentRef,
+                },
+              });
+            }
+          });
 
           await recordAuditLog({
             organizationId: invoice.organizationId,
             action: "UPDATE",
             entity: "Invoice",
             entityId: invoiceId,
-            changes: { status: "PAID", paymentId: paymentEntity.id, amount },
+            changes: { status: targetStatus, paymentId: paymentRef, amount, totalPaid: newPaidAmount },
           });
         }
       }

@@ -265,11 +265,22 @@ export class InvoiceService {
   }
 
   static async delete(organizationId: string, id: string) {
-    const existing = await db.invoice.findFirst({ where: { id, organizationId }, include: { items: true } });
+    const existing = await db.invoice.findFirst({
+      where: { id, organizationId },
+      include: { customer: true, items: true },
+    });
     if (!existing) throw new Error("Document not found");
     await db.$transaction(async (tx) => {
       if (shouldAffectStock(existing.status))
         await applyStockChange(tx, organizationId, existing.documentType, existing.items, -1);
+      if (existing.documentType === "SALE" && existing.status !== "DRAFT") {
+        await AccountingService.postInvoiceReversalVoucher(
+          tx,
+          organizationId,
+          existing,
+          "Invoice deletion"
+        );
+      }
       await tx.invoice.delete({ where: { id } });
     });
     await recordAuditLog({

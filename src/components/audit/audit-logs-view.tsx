@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { getAuditLogsAction } from "@/actions/audit-logs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,11 +85,19 @@ const MOCK_AUDIT_LOGS: AuditLogDisplayItem[] = [
 ];
 
 export function AuditLogsView() {
-  const [logs] = useState<AuditLogDisplayItem[]>(MOCK_AUDIT_LOGS);
+  const [logs, setLogs] = useState<AuditLogDisplayItem[]>(MOCK_AUDIT_LOGS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<string>("ALL");
   const [selectedAction, setSelectedAction] = useState<string>("ALL");
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    getAuditLogsAction().then((dbLogs) => {
+      if (dbLogs && dbLogs.length > 0) {
+        setLogs(dbLogs);
+      }
+    }).catch(() => {});
+  }, []);
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =

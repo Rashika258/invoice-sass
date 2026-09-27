@@ -68,7 +68,6 @@ export function ApprovalCenterView() {
         const res = await reviewApprovalAction(
           selectedReq.id,
           decisionType,
-          "Admin Reviewer",
           comment || undefined
         );
         if (res.success) {

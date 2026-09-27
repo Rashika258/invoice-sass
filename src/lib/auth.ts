@@ -7,7 +7,13 @@ const SESSION_COOKIE = "invoiceflow_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function getAuthSecret() {
-  const secret = process.env.AUTH_SECRET || "billora-default-dev-secret-key-2026";
+  const defaultSecret = "billora-default-dev-secret-key-2026";
+  const secret = process.env.AUTH_SECRET || defaultSecret;
+  if (process.env.NODE_ENV === "production" && secret === defaultSecret) {
+    throw new Error(
+      "FATAL SECURITY ERROR: AUTH_SECRET must be configured with a strong secret in production."
+    );
+  }
   return secret;
 }
 

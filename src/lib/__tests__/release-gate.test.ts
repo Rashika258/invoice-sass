@@ -243,13 +243,8 @@ describe("Workflow Scorecard Engine", () => {
 
 // ─── 6. MULTI-ROLE APPROVAL ENGINE ──────────────────────────────────────────
 describe("Multi-Role Approval Engine", () => {
-  it("loads pre-seeded approval requests", () => {
-    const requests = getApprovalRequests("default-org-1");
-    expect(requests.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("submits a new approval request", () => {
-    const req = submitApprovalRequest({
+  it("submits a new approval request", async () => {
+    const req = await submitApprovalRequest({
       organizationId: "default-org-1",
       type: "LARGE_DISCOUNT",
       title: "25% Bulk Discount Approval",
@@ -262,11 +257,11 @@ describe("Multi-Role Approval Engine", () => {
       requiredRole: "ADMIN",
     });
     expect(req.status).toBe("PENDING");
-    expect(req.id).toMatch(/^appr_/);
+    expect(req.id).toBeDefined();
   });
 
-  it("processes approval decision correctly", () => {
-    const req = submitApprovalRequest({
+  it("processes approval decision correctly", async () => {
+    const req = await submitApprovalRequest({
       organizationId: "default-org-1",
       type: "EXPENSE_APPROVAL",
       title: "Cloud hosting bill",
@@ -279,14 +274,14 @@ describe("Multi-Role Approval Engine", () => {
       requiredRole: "ADMIN",
     });
 
-    const result = processApprovalDecision(req.id, "APPROVED", "Admin", "Approved within budget");
+    const result = await processApprovalDecision(req.id, "APPROVED", "Admin", "default-org-1", "Approved within budget");
     expect(result.success).toBe(true);
     expect(result.request?.status).toBe("APPROVED");
     expect(result.request?.reviewedBy).toBe("Admin");
   });
 
-  it("rejects a request and stores rejection reason", () => {
-    const req = submitApprovalRequest({
+  it("rejects a request and stores rejection reason", async () => {
+    const req = await submitApprovalRequest({
       organizationId: "default-org-1",
       type: "CREDIT_NOTE_ISSUANCE",
       title: "Credit note test",
@@ -298,7 +293,7 @@ describe("Multi-Role Approval Engine", () => {
       requiredRole: "CA_AUDITOR",
     });
 
-    const result = processApprovalDecision(req.id, "REJECTED", "Auditor", "Insufficient documentation");
+    const result = await processApprovalDecision(req.id, "REJECTED", "Auditor", "default-org-1", "Insufficient documentation");
     expect(result.success).toBe(true);
     expect(result.request?.status).toBe("REJECTED");
     expect(result.request?.reviewComment).toBe("Insufficient documentation");

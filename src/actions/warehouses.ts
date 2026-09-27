@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { db } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
 
 export interface WarehouseItem {
   id: string;
@@ -22,62 +24,61 @@ export interface StockTransferRecord {
   status: "DRAFT" | "IN_TRANSIT" | "COMPLETED" | "CANCELLED";
 }
 
-let mockWarehouses: WarehouseItem[] = [
-  {
-    id: "wh-1",
-    name: "Central Distribution Warehouse",
-    code: "WH-CENTRAL",
-    address: "Peenya Industrial Area Stage 2, Bengaluru",
-    isDefault: true,
-    totalItems: 1420,
-  },
-  {
-    id: "wh-2",
-    name: "Indiranagar Retail Branch Store",
-    code: "STORE-INDIRA",
-    address: "100ft Road, Indiranagar, Bengaluru",
-    isDefault: false,
-    totalItems: 380,
-  },
-  {
-    id: "wh-3",
-    name: "Whitefield Regional Hub",
-    code: "WH-WHITEFIELD",
-    address: "ITPL Main Road, Whitefield, Bengaluru",
-    isDefault: false,
-    totalItems: 650,
-  },
-];
+export async function getWarehousesAction(): Promise<WarehouseItem[]> {
+  const session = await requireUser();
+  const records = await db.warehouse.findMany({
+    where: { organizationId: session.organizationId },
+    orderBy: { createdAt: "asc" },
+  });
 
-let mockTransfers: StockTransferRecord[] = [
-  {
-    id: "tr-101",
-    transferNo: "STR-2026-001",
-    date: new Date().toISOString().split("T")[0],
-    sourceWarehouse: "Central Distribution Warehouse",
-    destWarehouse: "Indiranagar Retail Branch Store",
-    itemName: "Paracetamol 500mg (Strip of 10)",
-    quantity: 100,
-    status: "COMPLETED",
-  },
-  {
-    id: "tr-102",
-    transferNo: "STR-2026-002",
-    date: new Date().toISOString().split("T")[0],
-    sourceWarehouse: "Central Distribution Warehouse",
-    destWarehouse: "Whitefield Regional Hub",
-    itemName: "Butter Chicken + Naan Combo",
-    quantity: 50,
-    status: "IN_TRANSIT",
-  },
-];
+  if (records.length === 0) {
+    const defaultWh = await db.warehouse.create({
+      data: {
+        organizationId: session.organizationId,
+        name: "Central Distribution Warehouse",
+        code: "WH-MAIN",
+        address: "Main Storage Compound",
+      },
+    });
+    return [
+      {
+        id: defaultWh.id,
+        name: defaultWh.name,
+        code: defaultWh.code,
+        address: defaultWh.address || "",
+        isDefault: true,
+        totalItems: 0,
+      },
+    ];
+  }
 
-export async function getWarehousesAction() {
-  return mockWarehouses;
+  return records.map((w, idx) => ({
+    id: w.id,
+    name: w.name,
+    code: w.code,
+    address: w.address || "",
+    isDefault: idx === 0,
+    totalItems: 0,
+  }));
 }
 
-export async function getStockTransfersAction() {
-  return mockTransfers;
+export async function getStockTransfersAction(): Promise<StockTransferRecord[]> {
+  const session = await requireUser();
+  const transfers = await db.stockTransfer.findMany({
+    where: { organizationId: session.organizationId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return transfers.map((t) => ({
+    id: t.id,
+    transferNo: t.transferNumber,
+    date: t.createdAt.toISOString().split("T")[0],
+    sourceWarehouse: t.fromWarehouseId,
+    destWarehouse: t.toWarehouseId,
+    itemName: t.itemId,
+    quantity: t.quantity,
+    status: t.status as "DRAFT" | "IN_TRANSIT" | "COMPLETED" | "CANCELLED",
+  }));
 }
 
 export async function createStockTransferAction(data: {
@@ -86,19 +87,37 @@ export async function createStockTransferAction(data: {
   itemName: string;
   quantity: number;
 }) {
-  const newTransfer: StockTransferRecord = {
-    id: `tr-${Date.now()}`,
-    transferNo: `STR-2026-00${mockTransfers.length + 1}`,
-    date: new Date().toISOString().split("T")[0],
-    sourceWarehouse: data.sourceWarehouse,
-    destWarehouse: data.destWarehouse,
-    itemName: data.itemName,
-    quantity: data.quantity,
-    status: "IN_TRANSIT",
-  };
+  const session = await requireUser();
+  const count = await db.stockTransfer.count({
+    where: { organizationId: session.organizationId },
+  });
+  const transferNumber = `STR-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
 
-  mockTransfers.unshift(newTransfer);
+  const created = await db.stockTransfer.create({
+    data: {
+      organizationId: session.organizationId,
+      transferNumber,
+      fromWarehouseId: data.sourceWarehouse,
+      toWarehouseId: data.destWarehouse,
+      itemId: data.itemName,
+      quantity: data.quantity,
+      status: "COMPLETED",
+    },
+  });
+
   revalidatePath("/items/stock-transfer");
 
-  return { success: true, transfer: newTransfer };
+  return {
+    success: true,
+    transfer: {
+      id: created.id,
+      transferNo: created.transferNumber,
+      date: created.createdAt.toISOString().split("T")[0],
+      sourceWarehouse: created.fromWarehouseId,
+      destWarehouse: created.toWarehouseId,
+      itemName: created.itemId,
+      quantity: created.quantity,
+      status: created.status as "COMPLETED",
+    },
+  };
 }

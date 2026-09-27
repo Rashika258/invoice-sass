@@ -15,6 +15,7 @@ import {
   type PaymentInput,
 } from "@/lib/validations";
 import { recordAuditLog } from "@/lib/audit";
+import { AccountingService } from "@/services/accounting-service";
 
 function refreshMoney() {
   revalidatePath("/dashboard");
@@ -204,6 +205,7 @@ export async function createPayment(data: PaymentInput) {
       },
     });
     await syncInvoicePaid(tx, parsed.invoiceId || null);
+    await AccountingService.postPaymentVoucher(tx, organization.id, created);
     return created;
   });
 

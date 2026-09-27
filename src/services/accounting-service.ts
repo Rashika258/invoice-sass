@@ -266,6 +266,169 @@ export class AccountingService {
     });
   }
 
+  /**
+   * Post Reversal Voucher when an invoice is cancelled or deleted
+   */
+  static async postInvoiceReversalVoucher(
+    tx: any,
+    organizationId: string,
+    invoice: {
+      invoiceNumber: string;
+      total: number;
+      subtotal: number;
+      discount: number;
+      cgstAmount: number;
+      sgstAmount: number;
+      igstAmount: number;
+      customer: { name: string };
+    },
+    reason: string
+  ) {
+    const debtorsLedger = await tx.ledger.findFirst({ where: { organizationId, name: "Sundry Debtors" } });
+    const salesLedger = await tx.ledger.findFirst({ where: { organizationId, name: "Sales Account" } });
+    if (!debtorsLedger || !salesLedger) return;
+
+    const entries: VoucherEntryLine[] = [
+      { ledgerId: salesLedger.id, type: "DR", amount: Math.max(0, invoice.subtotal - invoice.discount) },
+      { ledgerId: debtorsLedger.id, type: "CR", amount: invoice.total },
+    ];
+
+    if (invoice.cgstAmount > 0) {
+      const cgstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "CGST Output" } });
+      if (cgstLedger) entries.push({ ledgerId: cgstLedger.id, type: "DR", amount: invoice.cgstAmount });
+    }
+    if (invoice.sgstAmount > 0) {
+      const sgstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "SGST Output" } });
+      if (sgstLedger) entries.push({ ledgerId: sgstLedger.id, type: "DR", amount: invoice.sgstAmount });
+    }
+    if (invoice.igstAmount > 0) {
+      const igstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "IGST Output" } });
+      if (igstLedger) entries.push({ ledgerId: igstLedger.id, type: "DR", amount: invoice.igstAmount });
+    }
+
+    this.validateVoucherBalance(entries);
+
+    const count = await tx.journalVoucher.count({ where: { organizationId, voucherType: "CREDIT_NOTE" } });
+    const voucherNumber = `REV-${String(count + 1).padStart(4, "0")}`;
+
+    await tx.journalVoucher.create({
+      data: {
+        organizationId,
+        voucherNumber,
+        voucherType: "CREDIT_NOTE",
+        date: new Date(),
+        narration: `REVERSAL: Invoice #${invoice.invoiceNumber} (${reason})`,
+        reference: `REV_${invoice.invoiceNumber}`,
+        entries: {
+          create: entries.map((e) => ({
+            ledgerId: e.ledgerId,
+            type: e.type,
+            amount: e.amount,
+          })),
+        },
+      },
+    });
+  }
+
+  /**
+   * Post Payment/Receipt Voucher when payment is recorded
+   */
+  static async postPaymentVoucher(
+    tx: any,
+    organizationId: string,
+    payment: {
+      number: string;
+      direction: "IN" | "OUT";
+      amount: number;
+      mode: string;
+      reference?: string | null;
+    }
+  ) {
+    const bankLedger = await tx.ledger.findFirst({ where: { organizationId, name: payment.mode === "CASH" ? "Cash" : "Bank Account" } });
+    const partyLedger = await tx.ledger.findFirst({ where: { organizationId, name: payment.direction === "IN" ? "Sundry Debtors" : "Sundry Creditors" } });
+
+    if (!bankLedger || !partyLedger) return;
+
+    const entries: VoucherEntryLine[] = payment.direction === "IN"
+      ? [
+          { ledgerId: bankLedger.id, type: "DR", amount: payment.amount },
+          { ledgerId: partyLedger.id, type: "CR", amount: payment.amount },
+        ]
+      : [
+          { ledgerId: partyLedger.id, type: "DR", amount: payment.amount },
+          { ledgerId: bankLedger.id, type: "CR", amount: payment.amount },
+        ];
+
+    this.validateVoucherBalance(entries);
+
+    const count = await tx.journalVoucher.count({ where: { organizationId, voucherType: payment.direction === "IN" ? "RECEIPT" : "PAYMENT" } });
+    const prefix = payment.direction === "IN" ? "RCP" : "PAY";
+
+    await tx.journalVoucher.create({
+      data: {
+        organizationId,
+        voucherNumber: `${prefix}-${String(count + 1).padStart(4, "0")}`,
+        voucherType: payment.direction === "IN" ? "RECEIPT" : "PAYMENT",
+        date: new Date(),
+        narration: `Automated Ledger Sync for Payment #${payment.number}`,
+        reference: payment.reference || payment.number,
+        entries: {
+          create: entries.map((e) => ({
+            ledgerId: e.ledgerId,
+            type: e.type,
+            amount: e.amount,
+          })),
+        },
+      },
+    });
+  }
+
+  /**
+   * Post Payroll Voucher when salary is processed
+   */
+  static async postPayrollVoucher(
+    tx: any,
+    organizationId: string,
+    payroll: {
+      employeeName: string;
+      netSalary: number;
+      month: string;
+      year: number;
+    }
+  ) {
+    const salaryLedger = await tx.ledger.findFirst({ where: { organizationId, name: "Salary & Wages" } });
+    const bankLedger = await tx.ledger.findFirst({ where: { organizationId, name: "Bank Account" } });
+
+    if (!salaryLedger || !bankLedger) return;
+
+    const entries: VoucherEntryLine[] = [
+      { ledgerId: salaryLedger.id, type: "DR", amount: payroll.netSalary },
+      { ledgerId: bankLedger.id, type: "CR", amount: payroll.netSalary },
+    ];
+
+    this.validateVoucherBalance(entries);
+
+    const count = await tx.journalVoucher.count({ where: { organizationId, voucherType: "PAYMENT" } });
+
+    await tx.journalVoucher.create({
+      data: {
+        organizationId,
+        voucherNumber: `PAY-${String(count + 1).padStart(4, "0")}`,
+        voucherType: "PAYMENT",
+        date: new Date(),
+        narration: `Payroll Disbursement: ${payroll.employeeName} (${payroll.month}/${payroll.year})`,
+        reference: `PAYROLL_${payroll.month}_${payroll.year}`,
+        entries: {
+          create: entries.map((e) => ({
+            ledgerId: e.ledgerId,
+            type: e.type,
+            amount: e.amount,
+          })),
+        },
+      },
+    });
+  }
+
   static async deleteVoucher(organizationId: string, id: string) {
     const existing = await db.journalVoucher.findFirst({
       where: { id, organizationId },
