@@ -12,9 +12,9 @@ export type ErrorCode =
 export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: number;
-  public readonly details?: any;
+  public readonly details?: unknown;
 
-  constructor(code: ErrorCode, message: string, statusCode: number = 400, details?: any) {
+  constructor(code: ErrorCode, message: string, statusCode = 400, details?: unknown) {
     super(message);
     this.name = "AppError";
     this.code = code;
@@ -30,7 +30,7 @@ export interface StructuredErrorResponse {
     code: ErrorCode;
     message: string;
     requestId?: string;
-    details?: any;
+    details?: unknown;
   };
 }
 

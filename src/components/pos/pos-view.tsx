@@ -266,9 +266,16 @@ export function PosView({
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50 text-xs">
-                    <span className="text-[10px] text-muted-foreground font-mono">
-                      {item.unit || "PCS"}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {item.unit || "PCS"}
+                      </span>
+                      {item.minStock > 0 && item.stockQty <= item.minStock && (
+                        <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4 font-semibold">
+                          Low Stock ({item.stockQty})
+                        </Badge>
+                      )}
+                    </div>
                     <span className="font-mono font-bold text-foreground">
                       {formatCurrency(item.unitPrice, currency)}
                     </span>

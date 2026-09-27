@@ -70,9 +70,9 @@ export function UnifiedRecordPage({
   };
 
   return (
-    <div className="space-y-6 pb-20 select-none">
+    <div className="space-y-6 pb-20 select-none print:p-0 print:m-0 print:pb-0 print:space-y-0">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-4 print:hidden">
         <div className="flex items-center gap-3">
           <Link
             href={backHref}
@@ -122,7 +122,7 @@ export function UnifiedRecordPage({
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 print:hidden">
         {summaryCards.map((card, idx) => (
           <Card key={idx} className="shadow-2xs border border-border/70">
             <CardContent className="p-3.5 space-y-1">
@@ -149,8 +149,8 @@ export function UnifiedRecordPage({
       </div>
 
       {/* Main Tabs (Overview, Activity, Related, Notes) */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-muted/60 p-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 print:space-y-0">
+        <TabsList className="bg-muted/60 p-1 print:hidden">
           <TabsTrigger value="overview" className="text-xs font-semibold gap-1.5">
             <FileText className="size-3.5" />
             <span>Overview</span>

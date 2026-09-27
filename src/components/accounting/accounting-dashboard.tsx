@@ -66,6 +66,15 @@ const GATEWAY_TILES = [
     color: "bg-rose-500/10 text-rose-500",
     badge: null,
   },
+  {
+    href: "/reconciliation",
+    icon: Layers,
+    label: "Reconciliation Center",
+    desc: "Automated checks for invoice totals, stock ledger, & bank balance invariants",
+    keys: null,
+    color: "bg-teal-500/10 text-teal-600",
+    badge: "Auto-Audit",
+  },
 ];
 
 const VOUCHER_SHORTCUTS = [

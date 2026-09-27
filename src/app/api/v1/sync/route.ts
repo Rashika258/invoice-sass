@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { createInvoice } from "@/actions/invoices";
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { invoices } = body;
 
@@ -18,8 +24,9 @@ export async function POST(req: Request) {
       try {
         const invoice = await createInvoice(invData);
         syncedResults.push({ id: invData.id, status: "SYNCED", serverInvoiceId: invoice.id });
-      } catch (err: any) {
-        syncedResults.push({ id: invData.id, status: "ERROR", error: err.message });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Sync error";
+        syncedResults.push({ id: invData.id, status: "ERROR", error: message });
       }
     }
 
@@ -27,10 +34,8 @@ export async function POST(req: Request) {
       success: true,
       results: syncedResults,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Failed to process mobile sync batch" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to process mobile sync batch";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

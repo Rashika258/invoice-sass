@@ -2,7 +2,7 @@ export interface SavedViewPreset {
   id: string;
   name: string;
   module: "INVOICE" | "ITEM" | "CUSTOMER" | "EXPENSE";
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
   isDefault?: boolean;
 }
 
@@ -23,7 +23,7 @@ export function getSavedViews(module: SavedViewPreset["module"]): SavedViewPrese
   }
 }
 
-export function saveViewPreset(name: string, module: SavedViewPreset["module"], filters: Record<string, any>): SavedViewPreset {
+export function saveViewPreset(name: string, module: SavedViewPreset["module"], filters: Record<string, unknown>): SavedViewPreset {
   const newPreset: SavedViewPreset = {
     id: `preset_${Date.now()}`,
     name,

@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
 
 export type ReconciliationIssueStatus = "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "IGNORED_WITH_REASON";
 
@@ -47,8 +48,13 @@ const issueStatusOverrides = new Map<string, { status: ReconciliationIssueStatus
  * Run comprehensive financial reconciliation across 7 system invariants
  */
 export async function runComprehensiveReconciliation(
-  organizationId: string = "default-org-1"
+  overrideOrgId?: string
 ): Promise<ReconciliationSummary> {
+  let organizationId = overrideOrgId;
+  if (!organizationId) {
+    const session = await requireUser();
+    organizationId = session.organizationId;
+  }
   const audits: ReconciliationAuditItem[] = [];
   let checksRun = 0;
 

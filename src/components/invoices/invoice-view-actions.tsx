@@ -179,6 +179,13 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        onclone: (clonedDoc) => {
+          const target = clonedDoc.getElementById("printable-invoice-document");
+          if (target) {
+            target.style.backgroundColor = "#ffffff";
+            target.style.color = "#000000";
+          }
+        },
       });
 
       const imgData = canvas.toDataURL("image/png");

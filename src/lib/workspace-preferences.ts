@@ -1,11 +1,10 @@
-// src/lib/workspace-preferences.ts
 /**
  * Simple wrapper around localStorage for persisting UI state per user workspace.
  * All values are JSON‑serialised. Prefix is used to avoid collisions.
  */
 const PREFIX = 'billora_workspace_';
 
-export function setWorkspacePreferences(key: string, value: any): void {
+export function setWorkspacePreferences<T = unknown>(key: string, value: T): void {
   try {
     const fullKey = PREFIX + key;
     const data = JSON.stringify(value);
@@ -17,7 +16,7 @@ export function setWorkspacePreferences(key: string, value: any): void {
   }
 }
 
-export function getWorkspacePreferences<T = any>(key: string): T | null {
+export function getWorkspacePreferences<T = unknown>(key: string): T | null {
   try {
     const fullKey = PREFIX + key;
     if (typeof window === 'undefined') return null;

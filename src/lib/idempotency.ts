@@ -3,7 +3,7 @@
  * retries, or network interruptions.
  */
 
-interface IdempotencyRecord<T = any> {
+interface IdempotencyRecord<T = unknown> {
   key: string;
   result: T;
   createdAt: number;
@@ -24,7 +24,7 @@ export function buildIdempotencyKey(
   return `${cleanOrg}:${cleanOp}:${cleanReq}`;
 }
 
-export function getIdempotentResult<T = any>(key: string): T | null {
+export function getIdempotentResult<T = unknown>(key: string): T | null {
   const record = idempotencyCache.get(key);
   if (!record) return null;
 
@@ -36,7 +36,7 @@ export function getIdempotentResult<T = any>(key: string): T | null {
   return record.result as T;
 }
 
-export function setIdempotentResult<T = any>(
+export function setIdempotentResult<T = unknown>(
   key: string,
   result: T,
   ttlMs: number = DEFAULT_TTL_MS
@@ -50,7 +50,7 @@ export function setIdempotentResult<T = any>(
   });
 }
 
-export async function executeIdempotentOperation<T = any>(
+export async function executeIdempotentOperation<T = unknown>(
   key: string,
   operation: () => Promise<T>,
   ttlMs: number = DEFAULT_TTL_MS

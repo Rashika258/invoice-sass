@@ -72,7 +72,7 @@ export function verifyTotpCode(secret: string, userCode: string): boolean {
   const key = base32Decode(secret);
   const epoch = Math.floor(Date.now() / 1000);
 
-  for (let delta of [-1, 1]) {
+  for (const delta of [-1, 1]) {
     const counter = Math.floor((epoch + delta * 30) / 30);
     const buffer = Buffer.alloc(8);
     buffer.writeBigInt64BE(BigInt(counter));

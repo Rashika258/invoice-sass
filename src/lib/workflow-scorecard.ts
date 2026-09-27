@@ -98,7 +98,7 @@ export function recordWorkflowMetric(
  * Retrieve aggregated scorecard for an organization
  */
 export function getWorkflowScorecard(organizationId: string = "default-org-1"): WorkflowScorecard {
-  let allEvents = [...telemetryBuffer];
+  const allEvents = [...telemetryBuffer];
 
   if (typeof window !== "undefined") {
     try {

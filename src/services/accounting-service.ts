@@ -1,29 +1,23 @@
 import { db } from "@/lib/db";
 import { recordAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
+import type { LedgerGroup, VoucherType, BalanceType } from "@/generated/prisma/client";
+import { AppError } from "@/lib/errors";
 
-export type LedgerGroupKey =
-  | "CASH_IN_HAND" | "BANK_ACCOUNTS" | "FIXED_ASSETS" | "CURRENT_ASSETS" | "LOANS_ADVANCES_ASSET"
-  | "SUNDRY_CREDITORS" | "CURRENT_LIABILITIES" | "LOANS_LIABILITY" | "CAPITAL_ACCOUNT" | "RESERVES_SURPLUS"
-  | "SALES_ACCOUNTS" | "DIRECT_INCOME" | "INDIRECT_INCOME"
-  | "PURCHASE_ACCOUNTS" | "DIRECT_EXPENSES" | "INDIRECT_EXPENSES"
-  | "DUTIES_TAXES" | "SUNDRY_DEBTORS" | "BRANCH_DIVISIONS";
-
-export type VoucherTypeKey =
-  | "PAYMENT" | "RECEIPT" | "JOURNAL" | "CONTRA"
-  | "SALES" | "PURCHASE" | "DEBIT_NOTE" | "CREDIT_NOTE";
+export type LedgerGroupKey = LedgerGroup;
+export type VoucherTypeKey = VoucherType;
 
 export interface LedgerInput {
   name: string;
   group: LedgerGroupKey;
   openingBalance?: number;
-  openingType?: "DR" | "CR";
+  openingType?: BalanceType;
   notes?: string;
 }
 
 export interface VoucherEntryLine {
   ledgerId: string;
-  type: "DR" | "CR";
+  type: BalanceType;
   amount: number;
 }
 
@@ -44,25 +38,48 @@ export interface GetVouchersOptions {
 }
 
 const SYSTEM_LEDGERS: Omit<LedgerInput, "openingBalance">[] = [
-  { name: "Cash",                group: "CASH_IN_HAND",      openingType: "DR" },
-  { name: "Bank Account",        group: "BANK_ACCOUNTS",     openingType: "DR" },
-  { name: "Sales Account",       group: "SALES_ACCOUNTS",    openingType: "CR" },
-  { name: "Purchase Account",    group: "PURCHASE_ACCOUNTS", openingType: "DR" },
-  { name: "Sundry Debtors",      group: "SUNDRY_DEBTORS",    openingType: "DR" },
-  { name: "Sundry Creditors",    group: "SUNDRY_CREDITORS",  openingType: "CR" },
-  { name: "IGST Output",         group: "DUTIES_TAXES",      openingType: "CR" },
-  { name: "CGST Output",         group: "DUTIES_TAXES",      openingType: "CR" },
-  { name: "SGST Output",         group: "DUTIES_TAXES",      openingType: "CR" },
-  { name: "IGST Input",          group: "DUTIES_TAXES",      openingType: "DR" },
-  { name: "CGST Input",          group: "DUTIES_TAXES",      openingType: "DR" },
-  { name: "SGST Input",          group: "DUTIES_TAXES",      openingType: "DR" },
-  { name: "Discount Allowed",    group: "INDIRECT_EXPENSES", openingType: "DR" },
-  { name: "Discount Received",   group: "INDIRECT_INCOME",   openingType: "CR" },
-  { name: "Salary & Wages",      group: "DIRECT_EXPENSES",   openingType: "DR" },
-  { name: "Rent Expense",        group: "INDIRECT_EXPENSES", openingType: "DR" },
+  { name: "Cash", group: "CASH_IN_HAND", openingType: "DR" },
+  { name: "Bank Account", group: "BANK_ACCOUNTS", openingType: "DR" },
+  { name: "Sales Account", group: "SALES_ACCOUNTS", openingType: "CR" },
+  { name: "Purchase Account", group: "PURCHASE_ACCOUNTS", openingType: "DR" },
+  { name: "Sundry Debtors", group: "SUNDRY_DEBTORS", openingType: "DR" },
+  { name: "Sundry Creditors", group: "SUNDRY_CREDITORS", openingType: "CR" },
+  { name: "IGST Output", group: "DUTIES_TAXES", openingType: "CR" },
+  { name: "CGST Output", group: "DUTIES_TAXES", openingType: "CR" },
+  { name: "SGST Output", group: "DUTIES_TAXES", openingType: "CR" },
+  { name: "IGST Input", group: "DUTIES_TAXES", openingType: "DR" },
+  { name: "CGST Input", group: "DUTIES_TAXES", openingType: "DR" },
+  { name: "SGST Input", group: "DUTIES_TAXES", openingType: "DR" },
+  { name: "Discount Allowed", group: "INDIRECT_EXPENSES", openingType: "DR" },
+  { name: "Discount Received", group: "INDIRECT_INCOME", openingType: "CR" },
+  { name: "Salary & Wages", group: "DIRECT_EXPENSES", openingType: "DR" },
+  { name: "Rent Expense", group: "INDIRECT_EXPENSES", openingType: "DR" },
 ];
 
 export class AccountingService {
+  /**
+   * Validate that total Debits equal total Credits in a voucher entry array
+   */
+  static validateVoucherBalance(entries: VoucherEntryLine[]): { drTotal: number; crTotal: number } {
+    const drTotal = Math.round(
+      entries.filter((e) => e.type === "DR").reduce((s, e) => s + e.amount, 0) * 100,
+    ) / 100;
+    const crTotal = Math.round(
+      entries.filter((e) => e.type === "CR").reduce((s, e) => s + e.amount, 0) * 100,
+    ) / 100;
+
+    if (Math.abs(drTotal - crTotal) > 0.01) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        `Voucher out of balance: Total Debit (₹${drTotal.toFixed(2)}) must equal Total Credit (₹${crTotal.toFixed(2)})`,
+        400,
+        { drTotal, crTotal },
+      );
+    }
+
+    return { drTotal, crTotal };
+  }
+
   static async ensureSystemLedgers(organizationId: string) {
     for (const sys of SYSTEM_LEDGERS) {
       const existing = await db.ledger.findFirst({
@@ -73,7 +90,7 @@ export class AccountingService {
           data: {
             organizationId,
             name: sys.name,
-            group: sys.group as any,
+            group: sys.group,
             openingBalance: 0,
             openingType: sys.openingType || "DR",
             isSystem: true,
@@ -98,13 +115,14 @@ export class AccountingService {
     const existing = await db.ledger.findFirst({
       where: { organizationId, name: input.name.trim() },
     });
-    if (existing) throw new Error(`Ledger "${input.name}" already exists`);
+
+    if (existing) throw new AppError("CONFLICT", `Ledger "${input.name}" already exists`, 409);
 
     const ledger = await db.ledger.create({
       data: {
         organizationId,
         name: input.name.trim(),
-        group: input.group as any,
+        group: input.group,
         openingBalance: input.openingBalance ?? 0,
         openingType: input.openingType ?? "DR",
         notes: input.notes,
@@ -126,16 +144,20 @@ export class AccountingService {
   }
 
   static async createVoucher(organizationId: string, input: VoucherInput) {
-    const drTotal = input.entries.filter((e) => e.type === "DR").reduce((s, e) => s + e.amount, 0);
-    const crTotal = input.entries.filter((e) => e.type === "CR").reduce((s, e) => s + e.amount, 0);
-    if (Math.abs(drTotal - crTotal) > 0.01) {
-      throw new Error(`Voucher out of balance: DR ₹${drTotal.toFixed(2)} ≠ CR ₹${crTotal.toFixed(2)}`);
-    }
+    const { drTotal } = this.validateVoucherBalance(input.entries);
 
-    const count = await db.journalVoucher.count({ where: { organizationId, voucherType: input.voucherType as any } });
+    const count = await db.journalVoucher.count({
+      where: { organizationId, voucherType: input.voucherType },
+    });
     const prefixMap: Record<string, string> = {
-      PAYMENT: "PAY", RECEIPT: "RCP", JOURNAL: "JRN", CONTRA: "CTR",
-      SALES: "SLV", PURCHASE: "PRV", DEBIT_NOTE: "DNV", CREDIT_NOTE: "CNV",
+      PAYMENT: "PAY",
+      RECEIPT: "RCP",
+      JOURNAL: "JRN",
+      CONTRA: "CTR",
+      SALES: "SLV",
+      PURCHASE: "PRV",
+      DEBIT_NOTE: "DNV",
+      CREDIT_NOTE: "CNV",
     };
     const voucherNumber = `${prefixMap[input.voucherType] || "VCH"}-${String(count + 1).padStart(4, "0")}`;
 
@@ -143,14 +165,14 @@ export class AccountingService {
       data: {
         organizationId,
         voucherNumber,
-        voucherType: input.voucherType as any,
+        voucherType: input.voucherType,
         date: new Date(input.date),
         narration: input.narration,
         reference: input.reference,
         entries: {
           create: input.entries.map((e) => ({
             ledgerId: e.ledgerId,
-            type: e.type as any,
+            type: e.type,
             amount: e.amount,
           })),
         },
@@ -173,11 +195,82 @@ export class AccountingService {
     return voucher;
   }
 
+  /**
+   * Automatically post double-entry Journal Voucher for an Invoice within transaction context
+   */
+  static async postInvoiceVoucher(
+    tx: any,
+    organizationId: string,
+    invoice: {
+      id: string;
+      invoiceNumber: string;
+      issueDate: Date;
+      total: number;
+      subtotal: number;
+      discount: number;
+      cgstAmount: number;
+      sgstAmount: number;
+      igstAmount: number;
+      customer: { name: string };
+    },
+  ) {
+    // Fetch default system ledgers
+    const debtorsLedger = await tx.ledger.findFirst({
+      where: { organizationId, name: "Sundry Debtors" },
+    });
+    const salesLedger = await tx.ledger.findFirst({
+      where: { organizationId, name: "Sales Account" },
+    });
+
+    if (!debtorsLedger || !salesLedger) return;
+
+    const entries: VoucherEntryLine[] = [
+      { ledgerId: debtorsLedger.id, type: "DR", amount: invoice.total },
+      { ledgerId: salesLedger.id, type: "CR", amount: Math.max(0, invoice.subtotal - invoice.discount) },
+    ];
+
+    if (invoice.cgstAmount > 0) {
+      const cgstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "CGST Output" } });
+      if (cgstLedger) entries.push({ ledgerId: cgstLedger.id, type: "CR", amount: invoice.cgstAmount });
+    }
+    if (invoice.sgstAmount > 0) {
+      const sgstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "SGST Output" } });
+      if (sgstLedger) entries.push({ ledgerId: sgstLedger.id, type: "CR", amount: invoice.sgstAmount });
+    }
+    if (invoice.igstAmount > 0) {
+      const igstLedger = await tx.ledger.findFirst({ where: { organizationId, name: "IGST Output" } });
+      if (igstLedger) entries.push({ ledgerId: igstLedger.id, type: "CR", amount: invoice.igstAmount });
+    }
+
+    this.validateVoucherBalance(entries);
+
+    const count = await tx.journalVoucher.count({ where: { organizationId, voucherType: "SALES" } });
+    const voucherNumber = `SLV-${String(count + 1).padStart(4, "0")}`;
+
+    await tx.journalVoucher.create({
+      data: {
+        organizationId,
+        voucherNumber,
+        voucherType: "SALES",
+        date: invoice.issueDate,
+        narration: `Automated Ledger Sync for Invoice #${invoice.invoiceNumber} (${invoice.customer.name})`,
+        reference: invoice.invoiceNumber,
+        entries: {
+          create: entries.map((e) => ({
+            ledgerId: e.ledgerId,
+            type: e.type,
+            amount: e.amount,
+          })),
+        },
+      },
+    });
+  }
+
   static async deleteVoucher(organizationId: string, id: string) {
     const existing = await db.journalVoucher.findFirst({
       where: { id, organizationId },
     });
-    if (!existing) throw new Error("Voucher not found");
+    if (!existing) throw new AppError("NOT_FOUND", "Voucher not found", 404);
 
     await db.journalVoucher.delete({ where: { id, organizationId } });
 

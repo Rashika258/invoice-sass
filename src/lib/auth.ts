@@ -129,6 +129,14 @@ export async function requireAdmin() {
   return requireRole(["ADMIN"]);
 }
 
+import { assertPermission, type Permission } from "@/lib/permissions";
+
+export async function requirePermission(permission: Permission) {
+  const user = await requireUser();
+  assertPermission(user.role, permission);
+  return user;
+}
+
 export async function getOrganizationId() {
   const user = await requireUser();
   return user.organizationId;

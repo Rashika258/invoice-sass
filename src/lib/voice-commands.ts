@@ -2,13 +2,19 @@
 
 import { useEffect } from "react";
 
+function navigateTo(path: string) {
+  if (typeof window !== "undefined") {
+    window.location.assign(path);
+  }
+}
+
 export function useGlobalKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+N: Create New Invoice
       if (e.ctrlKey && (e.key === "n" || e.key === "N")) {
         e.preventDefault();
-        window.location.href = "/invoices/new";
+        navigateTo("/invoices/new");
       }
 
       // Ctrl+Q: Quick Search / Command Palette
@@ -23,7 +29,7 @@ export function useGlobalKeyboardShortcuts() {
       // Ctrl+,: Settings
       if (e.ctrlKey && e.key === ",") {
         e.preventDefault();
-        window.location.href = "/settings";
+        navigateTo("/settings");
       }
     };
 
@@ -32,36 +38,56 @@ export function useGlobalKeyboardShortcuts() {
   }, []);
 }
 
+interface SpeechRecognitionResult {
+  0: {
+    transcript: string;
+  };
+}
+
+interface SpeechRecognitionEvent {
+  results: {
+    0: SpeechRecognitionResult;
+  };
+}
+
 export function startSpeechRecognition(
   onCommandParsed: (command: string) => void,
 ) {
   if (typeof window === "undefined") return;
 
-  const SpeechRecognition =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const win = window as unknown as Record<string, unknown>;
+  const SpeechRecognitionConstructor = (win.SpeechRecognition || win.webkitSpeechRecognition) as
+    | (new () => {
+        lang: string;
+        interimResults: boolean;
+        maxAlternatives: number;
+        onresult: (event: SpeechRecognitionEvent) => void;
+        start: () => void;
+      })
+    | undefined;
 
-  if (!SpeechRecognition) {
+  if (!SpeechRecognitionConstructor) {
     console.warn("Speech recognition is not supported in this browser.");
     return;
   }
 
-  const recognition = new SpeechRecognition();
+  const recognition = new SpeechRecognitionConstructor();
   recognition.lang = "en-IN";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
-  recognition.onresult = (event: any) => {
+  recognition.onresult = (event: SpeechRecognitionEvent) => {
     const transcript = event.results[0][0].transcript.toLowerCase();
     console.log("[Voice Command Recognized]:", transcript);
 
     if (transcript.includes("new invoice") || transcript.includes("create invoice")) {
-      window.location.href = "/invoices/new";
+      navigateTo("/invoices/new");
     } else if (transcript.includes("report") || transcript.includes("reports")) {
-      window.location.href = "/reports";
+      navigateTo("/reports");
     } else if (transcript.includes("customer") || transcript.includes("parties")) {
-      window.location.href = "/customers";
+      navigateTo("/customers");
     } else if (transcript.includes("inventory") || transcript.includes("items")) {
-      window.location.href = "/items";
+      navigateTo("/items");
     }
 
     onCommandParsed(transcript);

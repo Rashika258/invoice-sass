@@ -4,14 +4,14 @@ interface LogPayload {
   message: string;
   requestId?: string;
   organizationId?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: Error | string | unknown;
 }
 
 class Logger {
   private formatLog(level: LogLevel, payload: LogPayload) {
     const timestamp = new Date().toISOString();
-    const logObj: Record<string, any> = {
+    const logObj: Record<string, unknown> = {
       timestamp,
       level,
       message: payload.message,
@@ -27,19 +27,19 @@ class Logger {
     return JSON.stringify(logObj);
   }
 
-  info(message: string, context?: Record<string, any>, requestId?: string, organizationId?: string) {
+  info(message: string, context?: Record<string, unknown>, requestId?: string, organizationId?: string) {
     console.log(this.formatLog("info", { message, context, requestId, organizationId }));
   }
 
-  warn(message: string, context?: Record<string, any>, requestId?: string, organizationId?: string) {
+  warn(message: string, context?: Record<string, unknown>, requestId?: string, organizationId?: string) {
     console.warn(this.formatLog("warn", { message, context, requestId, organizationId }));
   }
 
-  error(message: string, error?: unknown, context?: Record<string, any>, requestId?: string, organizationId?: string) {
+  error(message: string, error?: unknown, context?: Record<string, unknown>, requestId?: string, organizationId?: string) {
     console.error(this.formatLog("error", { message, error, context, requestId, organizationId }));
   }
 
-  audit(action: string, entity: string, entityId: string, organizationId: string, changes?: Record<string, any>) {
+  audit(action: string, entity: string, entityId: string, organizationId: string, changes?: Record<string, unknown>) {
     console.log(
       this.formatLog("audit", {
         message: `AUDIT: ${action} on ${entity} (${entityId})`,

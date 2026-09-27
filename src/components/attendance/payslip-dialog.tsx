@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { format } from "date-fns";
-import { Printer, FileText, CheckCircle2, Building2 } from "lucide-react";
+import { Printer, FileText, Download } from "lucide-react";
+import { toast } from "sonner";
 import type { Employee } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/invoice-utils";
 import { numberToWordsIndian } from "@/lib/number-to-words";
+import { generatePayslipPdf } from "@/lib/payslip-pdf";
 
 export type PayslipData = {
   employee: Employee;
@@ -68,6 +70,30 @@ export function PayslipDialog({
     window.print();
   };
 
+  const handleDownloadPdf = () => {
+    try {
+      const doc = generatePayslipPdf({
+        employeeName: employee.name,
+        position: employee.position,
+        employeeEmail: employee.email,
+        monthYear: monthName,
+        baseSalary: regularPay,
+        overtimePay: overtimePay,
+        grossSalary: totalPay,
+        pfDeduction: Math.round(regularPay * 0.12),
+        esiDeduction: Math.round(regularPay * 0.0075),
+        taxDeduction: 0,
+        netSalary: totalPay - Math.round(regularPay * 0.12) - Math.round(regularPay * 0.0075),
+        companyName: companyName,
+        companyAddress: address || undefined,
+      });
+      doc.save(`payslip-${employee.name.toLowerCase().replace(/\s+/g, "_")}-${month}.pdf`);
+      toast.success("Payslip PDF downloaded successfully!");
+    } catch {
+      toast.error("Failed to generate Payslip PDF");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
@@ -86,14 +112,25 @@ export function PayslipDialog({
             <FileText className="size-4 text-primary" />
             Salary Slip &mdash; {employee.name} ({monthName})
           </DialogTitle>
-          <Button
-            size="sm"
-            onClick={handlePrint}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs gap-1.5 font-semibold"
-          >
-            <Printer className="size-3.5" />
-            Print / PDF
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDownloadPdf}
+              className="h-8 text-xs gap-1.5 font-semibold"
+            >
+              <Download className="size-3.5 text-primary" />
+              Download PDF
+            </Button>
+            <Button
+              size="sm"
+              onClick={handlePrint}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs gap-1.5 font-semibold"
+            >
+              <Printer className="size-3.5" />
+              Print / PDF
+            </Button>
+          </div>
         </DialogHeader>
 
         {/* Printable Slip Container */}

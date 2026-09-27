@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { getItems } from "@/actions/items";
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.toLowerCase();
     const barcode = searchParams.get("barcode");
@@ -35,10 +41,8 @@ export async function GET(req: Request) {
       success: true,
       items,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Failed to fetch items" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to fetch items";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

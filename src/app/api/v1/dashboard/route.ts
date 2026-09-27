@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { getBusinessSummary } from "@/actions/reports";
 import { getBusinessInsights } from "@/lib/analytics";
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const orgId = searchParams.get("organizationId");
 
@@ -15,10 +21,8 @@ export async function GET(req: Request) {
       summary,
       insights,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Failed to fetch dashboard metrics" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to fetch dashboard metrics";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

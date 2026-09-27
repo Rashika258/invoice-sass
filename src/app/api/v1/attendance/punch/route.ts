@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { createAttendance } from "@/actions/employees";
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { employeeId, date, hoursWorked, notes } = body;
 
@@ -24,10 +30,8 @@ export async function POST(req: Request) {
       success: true,
       record,
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Failed to record attendance punch" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to record attendance punch";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

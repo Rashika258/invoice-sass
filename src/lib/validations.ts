@@ -97,6 +97,8 @@ export const companyProfileSchema = z.object({
       "SALON_CLINIC",
       "RESTAURANT",
       "GENERAL_SERVICES",
+      "REAL_ESTATE",
+      "EDUCATION",
       "OTHER",
     ])
     .optional()
