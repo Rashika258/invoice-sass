@@ -1,5 +1,7 @@
 # 🧾 Billora — Modern All-in-One Business ERP & Invoice SaaS
 
+[![CI Quality & Security Gate](https://github.com/Rashika258/invoice-sass/actions/workflows/ci.yml/badge.svg)](https://github.com/Rashika258/invoice-sass/actions/workflows/ci.yml)
+
 **Billora** is an intuitive, fast, and feature-rich Business Operating System designed for retail stores, wholesalers, manufacturers, service providers, and accountants. It streamlines billing, inventory, staff attendance/payroll, multi-currency invoicing, Tally-style accounting, and customer management into one seamless application.
 
 ---
@@ -34,7 +36,7 @@ For complete step-by-step local installation instructions, environment configura
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/Rashika258/invoice-sass.git
-   cd invoice-saas
+   cd invoice-sass
    ```
 
 2. **Install dependencies**:
@@ -64,7 +66,11 @@ For complete step-by-step local installation instructions, environment configura
    npm run dev
    ```
    Open **[http://localhost:3000](http://localhost:3000)** in your browser!
-   Log in with pre-seeded demo credentials:
+
+> [!WARNING]
+> **DEVELOPMENT DEMO CREDENTIALS NOTICE**: The pre-seeded demo accounts (`admin@billora.app`, `staff@billora.app`, `auditor@billora.app`) are strictly intended for local testing and demonstration in non-production environments (`NODE_ENV=development`). Database seeding is automatically blocked in production mode.
+
+   Log in with local development demo accounts:
    - **Admin**: `admin@billora.app` / `admin123`
    - **Staff**: `staff@billora.app` / `staff123`
    - **Auditor**: `auditor@billora.app` / `password123`

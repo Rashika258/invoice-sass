@@ -1,12 +1,10 @@
-// Billora POS & Invoice PWA Service Worker
+// Billora PWA Service Worker for Offline POS Billing & Asset Caching
 const CACHE_NAME = "billora-pwa-v1";
 const STATIC_ASSETS = [
-  "/",
-  "/offline",
   "/pos",
+  "/dashboard",
   "/favicon.ico",
-  "/icon.png",
-  "/manifest.json",
+  "/globals.css"
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,11 +20,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
     })
   );
@@ -35,34 +29,22 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-
-  const url = new URL(event.request.url);
-
-  // Skip API requests and Chrome extensions from SW cache
-  if (url.pathname.startsWith("/api/") || url.protocol !== "http:" && url.protocol !== "https:") {
-    return;
-  }
-
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
+    caches.match(event.request).then((cached) => {
+      return (
+        cached ||
+        fetch(event.request).then((response) => {
+          if (response.status === 200 && event.request.url.startsWith("http")) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           }
-          if (event.request.mode === "navigate") {
-            return caches.match("/offline");
+          return response;
+        }).catch(() => {
+          if (event.request.headers.get("accept")?.includes("text/html")) {
+            return caches.match("/pos");
           }
-        });
-      })
+        })
+      );
+    })
   );
 });

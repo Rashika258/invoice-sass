@@ -22,7 +22,7 @@
 # production
 /build
 
-# database & backups (prevent committing live customer data)
+# database, backups & generated artifacts
 *.db
 *.db-journal
 *.sqlite
@@ -31,6 +31,9 @@ prisma/*.db
 prisma/*.db-journal
 /backups/
 /tmp/
+/scratch/
+*.docx
+*.pdf
 
 # misc & OS
 .DS_Store

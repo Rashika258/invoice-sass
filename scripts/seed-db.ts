@@ -5,7 +5,12 @@ import { PrismaClient, DocumentType, InvoiceStatus, PaymentMode, PaymentDirectio
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 [Billora OS] Generating comprehensive realistic dummy data for ALL features...');
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    console.error("❌ ERROR: Database seed script blocked in production mode. Set ALLOW_PRODUCTION_SEED=true to override.");
+    process.exit(1);
+  }
+
+  console.log("🌱 [Billora OS] Generating comprehensive realistic dummy data for local development...");
 
   try {
     // ══════════════════════════════════════════════════════════════════════════

@@ -189,6 +189,22 @@ export function assertPermission(role: UserRole, permission: Permission): void {
 }
 
 /**
+ * Evaluate if a custom role configuration or user role contains target permission
+ */
+export function checkCustomPermission(
+  userRole: UserRole,
+  customPermissions: Permission[] | null | undefined,
+  targetPermission: Permission
+): boolean {
+  if (userRole === "ADMIN") return true;
+  if (customPermissions && customPermissions.length > 0) {
+    const equivalents = PERMISSION_MAP[targetPermission] || [targetPermission];
+    return customPermissions.some((p) => equivalents.includes(p));
+  }
+  return hasPermission(userRole, targetPermission);
+}
+
+/**
  * Server action / service helper to get active user and verify permission
  */
 export async function requirePermission(permission: Permission): Promise<User> {
