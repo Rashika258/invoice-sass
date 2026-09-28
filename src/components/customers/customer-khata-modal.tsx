@@ -85,7 +85,7 @@ export function CustomerKhataModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl p-0 overflow-hidden select-none">
         {/* Header */}
-        <div className="p-5 border-b border-border bg-card">
+        <div className="p-5 border-b border-border bg-card pr-12">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-black text-lg border border-emerald-500/20">

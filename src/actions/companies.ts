@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { SidebarFeature } from "@/generated/prisma/client";
 import { requireOrganization } from "@/lib/organization";
 
 export interface CompanySummaryItem {
@@ -197,4 +198,37 @@ export async function createCompanyAction(data: {
     organizationId: newOrg.id,
     companyName: newOrg.profile?.companyName || newOrg.name,
   };
+}
+
+// ---------- Feature toggling ----------
+export async function getCompanyFeatures(orgId: string): Promise<SidebarFeature[]> {
+  const cf = await db.companyFeature.findUnique({
+    where: { organizationId: orgId },
+    include: { featureAssignments: true },
+  });
+  if (!cf) {
+    // No specific config, return all features as default enabled
+    return Object.values(SidebarFeature);
+  }
+  return cf.featureAssignments.map((fa) => fa.feature);
+}
+
+export async function updateCompanyFeatures(orgId: string, features: SidebarFeature[]): Promise<void> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") {
+    throw new Error("Unauthorized");
+  }
+  await db.companyFeature.upsert({
+    where: { organizationId: orgId },
+    create: {
+      organizationId: orgId,
+      featureAssignments: { create: features.map((f) => ({ feature: f })) },
+    },
+    update: {
+      featureAssignments: {
+        deleteMany: {},
+        create: features.map((f) => ({ feature: f })),
+      },
+    },
+  });
 }

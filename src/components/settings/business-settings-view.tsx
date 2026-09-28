@@ -69,9 +69,11 @@ import { BrandThemeSettings } from "@/components/settings/sections/brand-theme-s
 import { TeamManagement } from "@/components/settings/team-management";
 import { TwoFactorSetupDialog } from "@/components/auth/two-factor-dialog";
 import { PaymentSettingsView } from "@/components/settings/payment-settings-view";
+import { CompanyFeatureToggle } from "@/components/companies/company-feature-toggle";
 
 const SETTINGS_SECTIONS = [
   { id: "GENERAL", label: "General Settings", icon: Sliders },
+  { id: "COMPANY", label: "Company & Modules", icon: Building2 },
   { id: "PAYMENT GATEWAY", label: "Payment Gateway", icon: CreditCard },
   { id: "TEAM", label: "Team Members & Roles", icon: UserCheck },
   { id: "BRAND & THEME", label: "Brand & Theme Studio", icon: Palette },
@@ -561,6 +563,15 @@ export function BusinessSettingsView({
                     <Edit2 className="size-3.5" />
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveSection("COMPANY")}
+                  className="w-full py-1.5 px-3 rounded-xl border border-brand/30 bg-brand-light/30 hover:bg-brand-light/60 text-xs font-semibold text-brand flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Sliders className="size-3.5" />
+                  <span>Configure Enterprise Sidebar Features</span>
+                </button>
               </div>
 
               {/* Godowns Card */}
@@ -718,6 +729,13 @@ export function BusinessSettingsView({
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* SECTION: COMPANY & ENTERPRISE SIDEBAR FEATURES */}
+        {activeSection === "COMPANY" && (
+          <div className="max-w-4xl space-y-6 text-xs">
+            <CompanyFeatureToggle />
           </div>
         )}
 

@@ -55,6 +55,9 @@ import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { useAppName } from "@/hooks/use-app-name";
+import { useActiveOrganization } from "@/hooks/useActiveOrganization";
+import { SidebarFeature } from "@/generated/prisma/client";
+import { getCompanyFeatures } from "@/actions/companies";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +76,7 @@ interface NavItem {
   icon?: any;
   plusHref?: string;
   badge?: string;
+  featureKey?: SidebarFeature;
 }
 
 interface NavGroup {
@@ -81,6 +85,7 @@ interface NavGroup {
   icon: any;
   collapsible?: boolean;
   defaultOpen?: boolean;
+  featureKey?: SidebarFeature;
   items: NavItem[];
 }
 
@@ -109,6 +114,7 @@ const navConfig: NavGroup[] = [
     icon: Users,
     collapsible: true,
     defaultOpen: false,
+    featureKey: SidebarFeature.CUSTOMERS,
     items: [
       { href: "/customers", label: "Parties Directory", icon: Users, plusHref: "/customers" },
     ],
@@ -119,6 +125,7 @@ const navConfig: NavGroup[] = [
     icon: Package,
     collapsible: true,
     defaultOpen: true,
+    featureKey: SidebarFeature.ITEMS,
     items: [
       { href: "/items", label: "Items & Inventory", icon: Package, plusHref: "/items" },
       { href: "/items/stock-transfer", label: "Stock Transfer & Godowns", icon: ArrowRightLeft, badge: "NEW" },
@@ -130,6 +137,7 @@ const navConfig: NavGroup[] = [
     icon: FileText,
     collapsible: true,
     defaultOpen: true,
+    featureKey: SidebarFeature.INVOICES,
     items: [
       { href: "/invoices", label: "Sale Invoices", icon: FileText, plusHref: "/invoices/new" },
       { href: "/estimates", label: "Estimate/ Quotation", icon: FileSpreadsheet, plusHref: "/estimates/new" },
@@ -147,6 +155,7 @@ const navConfig: NavGroup[] = [
     icon: ShoppingBag,
     collapsible: true,
     defaultOpen: true,
+    featureKey: SidebarFeature.PURCHASES,
     items: [
       { href: "/purchases", label: "Purchase Bills", icon: ShoppingBag, plusHref: "/purchases/new" },
       { href: "/payment-out", label: "Payment-Out", icon: Wallet, plusHref: "/payment-out" },
@@ -173,6 +182,7 @@ const navConfig: NavGroup[] = [
     icon: CalendarClock,
     collapsible: true,
     defaultOpen: false,
+    featureKey: SidebarFeature.STAFF,
     items: [
       { href: "/employees", label: "Employees & Staff", icon: Users, plusHref: "/employees" },
       { href: "/attendance", label: "Attendance & OT", icon: CalendarClock, badge: "8H OT" },
@@ -185,6 +195,7 @@ const navConfig: NavGroup[] = [
     icon: Building2,
     collapsible: true,
     defaultOpen: false,
+    featureKey: SidebarFeature.PAYMENTS,
     items: [
       { href: "/cash-bank/banks", label: "Bank Accounts", icon: Building2, plusHref: "/cash-bank/banks" },
       { href: "/cash-bank/cash", label: "Cash In Hand", icon: Wallet, plusHref: "/cash-bank/cash" },
@@ -214,6 +225,7 @@ const navConfig: NavGroup[] = [
     icon: BarChart3,
     collapsible: true,
     defaultOpen: false,
+    featureKey: SidebarFeature.REPORTS,
     items: [
       { href: "/analytics", label: "Analytics & Graphs", icon: TrendingUp, badge: "GRAPHS" },
       { href: "/reports", label: "Reports Directory", icon: BarChart3 },
@@ -283,6 +295,7 @@ const navConfig: NavGroup[] = [
     title: "Settings",
     icon: Settings,
     collapsible: false,
+    featureKey: SidebarFeature.SETTINGS,
     items: [{ href: "/settings", label: "Settings", icon: Settings }],
   },
   {
@@ -308,9 +321,27 @@ function NavLinks({
   const query = searchQuery.trim().toLowerCase();
   const isSearching = query.length > 0;
 
+  const { organizationId } = useActiveOrganization();
+  const [enabledFeatures, setEnabledFeatures] = useState<SidebarFeature[]>(Object.values(SidebarFeature));
+
+  useEffect(() => {
+    if (!organizationId) return;
+    getCompanyFeatures(organizationId)
+      .then(setEnabledFeatures)
+      .catch(() => setEnabledFeatures(Object.values(SidebarFeature)));
+  }, [organizationId]);
+
   const filteredNavConfig = useMemo(() => {
-    if (!query) return navConfig;
-    return navConfig
+    const featureFiltered = navConfig
+      .filter((grp) => !grp.featureKey || enabledFeatures.includes(grp.featureKey))
+      .map((grp) => ({
+        ...grp,
+        items: grp.items.filter((it) => !it.featureKey || enabledFeatures.includes(it.featureKey)),
+      }))
+      .filter((grp) => grp.items.length > 0);
+
+    if (!query) return featureFiltered;
+    return featureFiltered
       .map((grp) => {
         const matchesGroup = grp.title.toLowerCase().includes(query);
         const matchingItems = grp.items.filter(
@@ -325,7 +356,7 @@ function NavLinks({
         };
       })
       .filter((grp) => grp.items.length > 0);
-  }, [query]);
+  }, [query, enabledFeatures]);
 
   // Find exact or longest matching item href across navConfig so ONLY ONE item is active at a time
   const activeHref = (() => {

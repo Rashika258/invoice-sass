@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { createSession, deleteSession } from "@/lib/auth";
+import { createSession, deleteSession, getCurrentUser } from "@/lib/auth";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -97,4 +97,16 @@ export async function loginUser(formData: FormData) {
 export async function logoutUser() {
   await deleteSession();
   redirect("/login");
+}
+
+export async function getCurrentUserInfo() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    organizationId: user.organizationId,
+  };
 }

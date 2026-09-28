@@ -9,6 +9,7 @@ import {
 import { getAvailableCompanies } from "@/actions/companies";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { CompaniesListView } from "@/components/companies/companies-list-view";
+import { CompanyFeatureToggle } from "@/components/companies/company-feature-toggle";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,11 @@ export default async function CompaniesPage() {
 
       {/* Interactive Companies Grid with Logo & Favicon Upload */}
       <CompaniesListView initialCompanies={companies} />
+
+      {/* Enterprise Feature Access Controls */}
+      <div className="pt-4">
+        <CompanyFeatureToggle />
+      </div>
     </div>
   );
 }

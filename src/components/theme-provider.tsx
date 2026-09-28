@@ -72,6 +72,8 @@ export function ThemeScript() {
   return (
     <script
       id="theme-initializer"
+      type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{
         __html: themeInitScript,
       }}

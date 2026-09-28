@@ -48,6 +48,7 @@ export const metadata: Metadata = {
 };
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { OrganizationProvider } from "@/context/OrganizationContext";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -60,12 +61,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeScript />
       </head>
       <body suppressHydrationWarning className="flex min-h-full flex-col">
-        <ThemeProvider>
-          <TooltipProvider delay={250}>
-            {children}
-            <Toaster richColors position="top-right" />
-          </TooltipProvider>
-        </ThemeProvider>
+        <OrganizationProvider>
+          <ThemeProvider>
+            <TooltipProvider delay={250}>
+              {children}
+              <Toaster richColors position="top-right" />
+            </TooltipProvider>
+          </ThemeProvider>
+        </OrganizationProvider>
       </body>
     </html>
   );

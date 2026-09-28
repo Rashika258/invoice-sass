@@ -27,12 +27,15 @@ import {
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { CompanySwitcher } from "@/components/layout/company-switcher";
+import { SidebarFeature } from "@/generated/prisma/client";
+import { getCompanyFeatures } from "@/actions/companies";
 import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
+import { CompanySwitcher } from "@/components/layout/company-switcher";
 import { AlertsNotificationBell } from "@/components/layout/alerts-notification-bell";
 import { CommandPalette } from "@/components/command-palette/command-palette";
 import { AiChatDrawer } from "@/components/ai/ai-chat-drawer";
 import { useAppName } from "@/hooks/use-app-name";
+import { useActiveOrganization } from "@/hooks/useActiveOrganization";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -74,6 +77,7 @@ export function AppTopHeader({
 }: AppTopHeaderProps) {
   const router = useRouter();
   const { appName } = useAppName();
+  const { organizationId } = useActiveOrganization();
   const [calcOpen, setCalcOpen] = useState(false);
   const [endOfDayOpen, setEndOfDayOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -165,22 +169,33 @@ export function AppTopHeader({
   }, [calcOpen, calcInput, calcResult]);
 
   const quickNav = [
-    { title: "Sale Invoices", href: "/invoices", icon: FileText, category: "Sales" },
-    { title: "New Sale Invoice", href: "/invoices/new", icon: Plus, category: "Sales" },
-    { title: "Purchase Bills", href: "/purchases", icon: ShoppingBag, category: "Purchases" },
-    { title: "New Purchase Bill", href: "/purchases/new", icon: Plus, category: "Purchases" },
-    { title: "Parties Directory", href: "/customers", icon: Users, category: "Parties" },
-    { title: "Items & Inventory", href: "/items", icon: Package, category: "Inventory" },
-    { title: "Attendance & OT", href: "/attendance", icon: CalendarClock, category: "Operations" },
-    { title: "Payment In / Out", href: "/payments", icon: Wallet, category: "Cash & Bank" },
-    { title: "Cash & Bank Accounts", href: "/cash-bank", icon: Wallet, category: "Cash & Bank" },
-    { title: "Expenses", href: "/expenses", icon: Banknote, category: "Cash & Bank" },
-    { title: "Staff Directory", href: "/employees", icon: Users, category: "Staff" },
-    { title: "Reports & GST", href: "/reports", icon: FileText, category: "Reports" },
-    { title: "Settings & Company", href: "/settings", icon: Settings, category: "Settings" },
+    { title: "Sale Invoices", href: "/invoices", icon: FileText, category: "Sales", featureKey: SidebarFeature.INVOICES },
+    { title: "New Sale Invoice", href: "/invoices/new", icon: Plus, category: "Sales", featureKey: SidebarFeature.INVOICES },
+    { title: "Purchase Bills", href: "/purchases", icon: ShoppingBag, category: "Purchases", featureKey: SidebarFeature.PURCHASES },
+    { title: "New Purchase Bill", href: "/purchases/new", icon: Plus, category: "Purchases", featureKey: SidebarFeature.PURCHASES },
+    { title: "Parties Directory", href: "/customers", icon: Users, category: "Parties", featureKey: SidebarFeature.CUSTOMERS },
+    { title: "Items & Inventory", href: "/items", icon: Package, category: "Inventory", featureKey: SidebarFeature.ITEMS },
+    { title: "Attendance & OT", href: "/attendance", icon: CalendarClock, category: "Operations", featureKey: SidebarFeature.ATTENDANCE },
+    { title: "Payment In / Out", href: "/payments", icon: Wallet, category: "Cash & Bank", featureKey: SidebarFeature.PAYMENTS },
+    { title: "Cash & Bank Accounts", href: "/cash-bank", icon: Wallet, category: "Cash & Bank", featureKey: SidebarFeature.PAYMENTS },
+    { title: "Expenses", href: "/expenses", icon: Banknote, category: "Cash & Bank", featureKey: SidebarFeature.PAYMENTS },
+    { title: "Staff Directory", href: "/employees", icon: Users, category: "Staff", featureKey: SidebarFeature.STAFF },
+    { title: "Reports & GST", href: "/reports", icon: FileText, category: "Reports", featureKey: SidebarFeature.REPORTS },
+    { title: "Settings & Company", href: "/settings", icon: Settings, category: "Settings", featureKey: SidebarFeature.SETTINGS },
   ];
 
+  // Enabled features for the active organization – default to all features
+  const [enabledFeatures, setEnabledFeatures] = useState<SidebarFeature[]>(Object.values(SidebarFeature));
+
+  useEffect(() => {
+    if (!organizationId) return;
+    getCompanyFeatures(organizationId)
+      .then(setEnabledFeatures)
+      .catch(() => setEnabledFeatures(Object.values(SidebarFeature)));
+  }, [organizationId]);
+
   const filteredNav = quickNav.filter((item) =>
+    (!item.featureKey || enabledFeatures.includes(item.featureKey)) &&
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 

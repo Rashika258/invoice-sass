@@ -98,6 +98,7 @@ model Organization {
   auditLogs     AuditLog[]
   notifications Notification[]
   recurringInvoices RecurringInvoice[]
+
   stockMovements StockMovementLog[]
   appointments  Appointment[]
   prescriptions PrescriptionAttachment[]
@@ -106,7 +107,44 @@ model Organization {
   stockTransfers   StockTransfer[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
+  companyFeature CompanyFeature?
 }
+
+enum SidebarFeature {
+  INVOICES
+  PURCHASES
+  ITEMS
+  CUSTOMERS
+  PAYMENTS
+  REPORTS
+  SETTINGS
+  ANALYTICS
+  INVENTORY
+  ATTENDANCE
+  STAFF
+
+
+}
+
+model CompanyFeature {
+  id               String          @id @default(cuid())
+  organizationId   String          @unique
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  featureAssignments FeatureAssignment[]
+
+}
+
+model FeatureAssignment {
+  id               String          @id @default(cuid())
+  companyFeatureId String
+  companyFeature   CompanyFeature @relation(fields: [companyFeatureId], references: [id], onDelete: Cascade)
+  feature          SidebarFeature
+}
+
+
+
+
+
 
 enum BusinessVertical {
   RETAIL_WHOLESALE

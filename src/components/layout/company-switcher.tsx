@@ -40,6 +40,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAppName } from "@/hooks/use-app-name";
+import { useActiveOrganization } from "@/hooks/useActiveOrganization";
 
 export function CompanySwitcher({
   currentCompanyName,
@@ -138,6 +139,9 @@ export function CompanySwitcher({
     companies.find((c) => c.isActive) ||
     (companies.length > 0 ? companies[0] : null);
 
+  const { userRole } = useActiveOrganization();
+  const canSwitch = userRole === "ADMIN" && companies.length > 1;
+
   const displayName =
     activeCompany?.companyName ||
     currentCompanyName ||
@@ -145,116 +149,149 @@ export function CompanySwitcher({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <button
-              type="button"
-              className={
-                className ||
-                "flex items-center gap-2 rounded-xl border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/60 transition-colors shadow-2xs max-w-[210px] sm:max-w-[240px] cursor-pointer shrink-0"
-              }
-            >
-              {activeCompany?.logoUrl ? (
-                <img
-                  src={activeCompany.logoUrl}
-                  alt=""
-                  className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
-                />
-              ) : (
-                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                  <Building2 className="size-4" />
-                </div>
-              )}
-              <div className="min-w-0 text-left flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate font-bold text-foreground text-xs leading-tight">
-                    {displayName}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                  <span className="text-primary font-semibold">{appName}</span>
-                  <span>•</span>
-                  <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
-                </div>
-              </div>
-              {isPending ? (
-                <Loader2 className="size-3.5 animate-spin text-muted-foreground shrink-0" />
-              ) : (
-                <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
-              )}
-            </button>
+      {!canSwitch ? (
+        <div
+          className={
+            className ||
+            "flex items-center gap-2 rounded-xl border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground shadow-2xs max-w-[210px] sm:max-w-[240px] shrink-0"
           }
-        />
+        >
+          {activeCompany?.logoUrl ? (
+            <img
+              src={activeCompany.logoUrl}
+              alt=""
+              className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
+            />
+          ) : (
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <Building2 className="size-4" />
+            </div>
+          )}
+          <div className="min-w-0 text-left flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate font-bold text-foreground text-xs leading-tight">
+                {displayName}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+              <span className="text-primary font-semibold">{appName}</span>
+              <span>•</span>
+              <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className={
+                  className ||
+                  "flex items-center gap-2 rounded-xl border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/60 transition-colors shadow-2xs max-w-[210px] sm:max-w-[240px] cursor-pointer shrink-0"
+                }
+              >
+                {activeCompany?.logoUrl ? (
+                  <img
+                    src={activeCompany.logoUrl}
+                    alt=""
+                    className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
+                  />
+                ) : (
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                    <Building2 className="size-4" />
+                  </div>
+                )}
+                <div className="min-w-0 text-left flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate font-bold text-foreground text-xs leading-tight">
+                      {displayName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                    <span className="text-primary font-semibold">{appName}</span>
+                    <span>•</span>
+                    <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
+                  </div>
+                </div>
+                {isPending ? (
+                  <Loader2 className="size-3.5 animate-spin text-muted-foreground shrink-0" />
+                ) : (
+                  <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+                )}
+              </button>
+            }
+          />
 
-        <DropdownMenuContent align="start" className="w-72 p-1.5">
-          <DropdownMenuLabel className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground">
-            <span>Companies in {appName}</span>
-            <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0">
-              {companies.length} Firms
-            </Badge>
-          </DropdownMenuLabel>
+          <DropdownMenuContent align="start" className="w-72 p-1.5">
+            <DropdownMenuLabel className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground">
+              <span>Companies in {appName}</span>
+              <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0">
+                {companies.length} Firms
+              </Badge>
+            </DropdownMenuLabel>
 
-          <DropdownMenuSeparator />
+            <DropdownMenuSeparator />
 
-          <div className="max-h-60 overflow-y-auto space-y-0.5">
-            {companies.map((comp) => {
-              const isSelected = comp.isActive;
-              return (
-                <DropdownMenuItem
-                  key={comp.id}
-                  onClick={() => handleSwitch(comp.id, comp.companyName)}
-                  className="flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs group"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {comp.logoUrl ? (
-                      <img
-                        src={comp.logoUrl}
-                        alt=""
-                        className="size-6 shrink-0 rounded-md object-contain border border-border bg-background p-0.5"
-                      />
-                    ) : (
-                      <div
-                        className={`flex size-6 shrink-0 items-center justify-center rounded-md font-black text-[11px] ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground group-hover:text-foreground"
-                        }`}
-                      >
-                        {comp.companyName.charAt(0)}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-foreground text-xs">
-                        {comp.companyName}
-                      </p>
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono truncate">
-                        <span>{comp.taxId || comp.state || "India"}</span>
-                        <span>•</span>
-                        <span>{comp.itemsCount} items</span>
+            <div className="max-h-60 overflow-y-auto space-y-0.5">
+              {companies.map((comp) => {
+                const isSelected = comp.isActive;
+                return (
+                  <DropdownMenuItem
+                    key={comp.id}
+                    onClick={() => handleSwitch(comp.id, comp.companyName)}
+                    className="flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs group"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {comp.logoUrl ? (
+                        <img
+                          src={comp.logoUrl}
+                          alt=""
+                          className="size-6 shrink-0 rounded-md object-contain border border-border bg-background p-0.5"
+                        />
+                      ) : (
+                        <div
+                          className={`flex size-6 shrink-0 items-center justify-center rounded-md font-black text-[11px] ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground group-hover:text-foreground"
+                          }`}
+                        >
+                          {comp.companyName.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-foreground text-xs">
+                          {comp.companyName}
+                        </p>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono truncate">
+                          <span>{comp.taxId || comp.state || "India"}</span>
+                          <span>•</span>
+                          <span>{comp.itemsCount} items</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {isSelected && (
-                    <Check className="size-4 text-emerald-600 shrink-0 ml-2" />
-                  )}
-                </DropdownMenuItem>
-              );
-            })}
-          </div>
+                    {isSelected && (
+                      <Check className="size-4 text-emerald-600 shrink-0 ml-2" />
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
+            </div>
 
-          <DropdownMenuSeparator />
+            <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onClick={() => setAddDialogOpen(true)}
-            className="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-bold text-primary hover:text-primary hover:bg-primary/10"
-          >
-            <Plus className="size-3.5" />
-            <span>Add New Company / Firm</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuItem
+              onClick={() => setAddDialogOpen(true)}
+              className="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-bold text-primary hover:text-primary hover:bg-primary/10"
+            >
+              <Plus className="size-3.5" />
+              <span>Add New Company / Firm</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       {/* Add New Company Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
