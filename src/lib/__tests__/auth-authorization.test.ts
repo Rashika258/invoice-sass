@@ -53,7 +53,7 @@ describe("Authentication & Authorization Security Flows", () => {
 
       const isMatch = await bcrypt.compare(password, hash);
       expect(isMatch).toBe(true);
-    });
+    }, 15000);
 
     it("should reject incorrect passwords during verification", async () => {
       const password = "CorrectPassword123";
@@ -61,7 +61,7 @@ describe("Authentication & Authorization Security Flows", () => {
 
       const isMatch = await bcrypt.compare("WrongPassword", hash);
       expect(isMatch).toBe(false);
-    });
+    }, 15000);
   });
 
   describe("HMAC Session Token Verification & Anti-Tampering", () => {

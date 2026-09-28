@@ -279,6 +279,89 @@ export function applyBrandTheme(primaryHex: string, presetName?: string, seconda
   }
 }
 
+export function updateBrowserFavicon(url: string | null | undefined) {
+  if (typeof document === "undefined") return;
+  const faviconUrl = url?.trim() || "/favicon.ico";
+
+  // Standard icon link
+  let iconLink = document.querySelector("link[rel*='icon']:not([rel*='apple'])") as HTMLLinkElement | null;
+  if (!iconLink) {
+    iconLink = document.createElement("link");
+    iconLink.rel = "icon";
+    document.head.appendChild(iconLink);
+  }
+  iconLink.href = faviconUrl;
+
+  // Shortcut icon
+  let shortcutLink = document.querySelector("link[rel='shortcut icon']") as HTMLLinkElement | null;
+  if (shortcutLink) {
+    shortcutLink.href = faviconUrl;
+  }
+
+  // Apple touch icon
+  let appleLink = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement | null;
+  if (!appleLink) {
+    appleLink = document.createElement("link");
+    appleLink.rel = "apple-touch-icon";
+    document.head.appendChild(appleLink);
+  }
+  appleLink.href = faviconUrl;
+}
+
+/**
+ * Resizes and optimizes an uploaded image file into a clean, crisp PNG data URL.
+ * Preserves transparency and keeps the file lightweight (~30-60KB) for fast
+ * database storage, instant loading, and sharp rendering both as a brand logo
+ * and as a browser tab favicon.
+ */
+export async function processImageFile(file: File, maxSize = 512): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) {
+      reject(new Error("Please select a valid image file (PNG, JPG, SVG, WebP)"));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Failed to decode image"));
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          } else {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(width, 16);
+        canvas.height = Math.max(height, 16);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL("image/png");
+        resolve(dataUrl);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function applyFullBrandConfig(config: Partial<BrandConfig>) {
   if (typeof document === "undefined") return;
 
@@ -293,6 +376,7 @@ export function applyFullBrandConfig(config: Partial<BrandConfig>) {
     try {
       const root = document.documentElement;
       root.style.setProperty("--brand-logo", `url(${config.logoUrl})`);
+      updateBrowserFavicon(config.logoUrl);
     } catch {
       // ignore
     }

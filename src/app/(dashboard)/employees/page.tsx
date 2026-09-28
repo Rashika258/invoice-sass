@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { CalendarCheck, FileText, Plus, UserCircle } from "lucide-react";
+import { CalendarCheck, FileText, Pencil, Plus, UserCircle } from "lucide-react";
 import { getEmployees } from "@/actions/employees";
 import {
   DeleteEmployeeButton,
@@ -87,15 +87,28 @@ export default async function EmployeesPage() {
                     <TableCell>{formatCurrency(employee.overtimeRate)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2 items-center">
-                        <Link href="/attendance">
-                          <Button variant="outline" size="sm" className="h-8 text-xs font-semibold gap-1.5 cursor-pointer">
+                        <Link href="/attendance" title="View Payslip & Attendance">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="size-8 p-0 flex items-center justify-center cursor-pointer rounded-lg hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30"
+                            title="View Payslip & Attendance"
+                          >
                             <FileText className="size-3.5 text-indigo-600 dark:text-indigo-400" />
-                            <span>Payslip</span>
                           </Button>
                         </Link>
                         <EmployeeFormDialog
                           employee={employee}
-                          trigger={<Button variant="ghost" size="sm" className="h-8 text-xs cursor-pointer">Edit</Button>}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="size-8 p-0 flex items-center justify-center cursor-pointer rounded-lg hover:bg-muted"
+                              title="Edit Employee"
+                            >
+                              <Pencil className="size-3.5 text-muted-foreground" />
+                            </Button>
+                          }
                         />
                         <DeleteEmployeeButton employeeId={employee.id} />
                       </div>

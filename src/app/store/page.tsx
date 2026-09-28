@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { useAppName } from "@/hooks/use-app-name";
 
 export default function StoreLandingPage() {
+  const { appName } = useAppName();
   const [searchQuery, setSearchQuery] = useState("");
 
   const stores = [
@@ -46,7 +48,7 @@ export default function StoreLandingPage() {
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-foreground">
-                Billora Online Stores
+                {appName} Online Stores
               </h1>
               <p className="text-[11px] text-muted-foreground">
                 Digital storefront directory

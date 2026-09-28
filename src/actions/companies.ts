@@ -92,6 +92,47 @@ export async function switchActiveCompanyAction(targetOrgId: string) {
   return {
     success: true,
     activeCompanyName: targetOrg.profile?.companyName || targetOrg.name,
+    logoUrl: targetOrg.profile?.logoUrl || null,
+  };
+}
+
+export async function updateCompanyLogoAction(targetOrgId: string, logoUrl: string | null) {
+  const user = await requireUser();
+
+  const targetOrg = await db.organization.findUnique({
+    where: { id: targetOrgId },
+    include: { profile: true },
+  });
+
+  if (!targetOrg) {
+    throw new Error("Target company not found");
+  }
+
+  const cleanLogo = logoUrl?.trim() || null;
+
+  await db.companyProfile.upsert({
+    where: { organizationId: targetOrgId },
+    create: {
+      organizationId: targetOrgId,
+      companyName: targetOrg.name,
+      logoUrl: cleanLogo,
+    },
+    update: {
+      logoUrl: cleanLogo,
+    },
+  });
+
+  revalidatePath("/", "layout");
+  revalidatePath("/dashboard");
+  revalidatePath("/companies");
+  revalidatePath("/settings");
+
+  return {
+    success: true,
+    targetOrgId,
+    logoUrl: cleanLogo,
+    isCurrentOrg: targetOrgId === user.organizationId,
+    companyName: targetOrg.profile?.companyName || targetOrg.name,
   };
 }
 

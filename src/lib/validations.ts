@@ -18,6 +18,7 @@ export const customerSchema = z.object({
 export const itemSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  imageUrl: z.string().optional().or(z.literal("")),
   hsn: z.string().optional(),
   unitPrice: z.coerce.number().min(0, "Price must be positive"),
   estimatePrice: z.coerce.number().min(0).optional().default(0),

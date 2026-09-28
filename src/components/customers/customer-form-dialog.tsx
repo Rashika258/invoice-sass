@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Customer } from "@/generated/prisma/client";
 import { createCustomer, deleteCustomer, updateCustomer } from "@/actions/customers";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   FormDialog,
@@ -117,12 +118,14 @@ export function CustomerFormDialog({
           value={partyType}
           onValueChange={(val) => setPartyType(val)}
           options={partyOptions}
+          tooltip="Customer: Buyer of goods/services. Supplier: Vendor you purchase from. Both: Dual billing relationship."
         />
         <FormFieldNumber
           label="Opening balance"
           name="openingBalance"
           defaultValue={customer?.openingBalance ?? 0}
           step="0.01"
+          tooltip="Starting ledger balance. Enter positive (+) if the party owes you, or negative (-) if you owe them."
         />
       </div>
 
@@ -148,7 +151,12 @@ export function CustomerFormDialog({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <FormFieldInput label="City" name="city" defaultValue={customer?.city ?? ""} />
-        <FormFieldInput label="State" name="state" defaultValue={customer?.state ?? ""} />
+        <FormFieldInput
+          label="State"
+          name="state"
+          defaultValue={customer?.state ?? ""}
+          tooltip="Determines Place of Supply for intra-state (CGST+SGST) vs inter-state (IGST) tax calculation."
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -156,7 +164,12 @@ export function CustomerFormDialog({
         <FormFieldInput label="Country" name="country" defaultValue={customer?.country ?? ""} />
       </div>
 
-      <FormFieldInput label="GSTIN" name="taxId" defaultValue={customer?.taxId ?? ""} />
+      <FormFieldInput
+        label="GSTIN"
+        name="taxId"
+        defaultValue={customer?.taxId ?? ""}
+        tooltip="15-digit GST Identification Number for B2B tax invoice compliance and input tax credit (ITC)."
+      />
       <FormFieldTextarea label="Notes" name="notes" defaultValue={customer?.notes ?? ""} rows={3} />
     </FormDialog>
   );
@@ -185,8 +198,10 @@ export function DeleteCustomerButton({
       onConfirm={handleDelete}
       variant="ghost"
       size="sm"
+      className="size-7 p-0 flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer rounded-lg"
+      title="Delete Party"
     >
-      Delete
+      <Trash2 className="size-3.5" />
     </ConfirmActionButton>
   );
 }

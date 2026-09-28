@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import type { BankAccount } from "@/generated/prisma/client";
 import { createBankAccount, deleteBankAccount, updateBankAccount } from "@/actions/money";
 import {
@@ -109,9 +110,11 @@ export function DeleteBankAccountButton({ id }: { id: string }) {
       confirmMessage="Delete this account?"
       onConfirm={handleDelete}
       variant="ghost"
-      size="sm"
+      size="icon"
+      className="size-7 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+      title="Delete Bank Account"
     >
-      Delete
+      <Trash2 className="size-3.5 text-rose-500" />
     </ConfirmActionButton>
   );
 }

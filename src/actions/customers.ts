@@ -71,6 +71,7 @@ export async function getOrCreateWalkinCustomer() {
     walkin = await CustomerService.create(organization.id, {
       name: "Walk-in Customer",
       partyType: "CUSTOMER",
+      openingBalance: 0,
     });
   }
   return walkin;

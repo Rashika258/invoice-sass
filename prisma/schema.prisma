@@ -195,6 +195,7 @@ model Item {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   description    String?
+  imageUrl       String?
   hsn            String?
   unitPrice      Float
   estimatePrice  Float        @default(0)

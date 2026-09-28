@@ -14,17 +14,71 @@ type SelectContextValue = {
 
 const SelectContext = React.createContext<SelectContextValue | null>(null);
 
+/**
+ * Recursively extracts all item values and labels from JSX children
+ * so Select and SelectValue can immediately render friendly display names
+ * instead of raw uppercase database enum values when modals open.
+ */
+function extractItemsFromChildren(
+  children: React.ReactNode,
+  record: Record<string, React.ReactNode> = {}
+): Record<string, React.ReactNode> {
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+
+    const props = child.props as any;
+    if (!props) return;
+
+    if (props.value !== undefined && props.value !== null && props.children !== undefined) {
+      record[String(props.value)] = props.children;
+    }
+
+    if (props.children && typeof props.children !== "function") {
+      extractItemsFromChildren(props.children, record);
+    }
+  });
+  return record;
+}
+
 function Select<Value = any, Multiple extends boolean = false>({
   value,
   defaultValue,
   children,
+  onValueChange,
+  items: itemsProp,
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
+  // Synchronously extract items from the children React element tree
+  const extractedItems = React.useMemo(() => {
+    const map = extractItemsFromChildren(children);
+    if (itemsProp && typeof itemsProp === "object" && !Array.isArray(itemsProp)) {
+      return { ...map, ...itemsProp };
+    }
+    return map;
+  }, [children, itemsProp]);
+
+  // Track value for uncontrolled mode
+  const [uncontrolledValue, setUncontrolledValue] = React.useState<any>(defaultValue);
+  const currentValue = value !== undefined ? value : uncontrolledValue;
+
+  const handleValueChange = React.useCallback(
+    (val: any, details: any) => {
+      setUncontrolledValue(val);
+      (onValueChange as any)?.(val, details);
+    },
+    [onValueChange]
+  );
+
   const itemsMap = React.useRef(new Map<string, React.ReactNode>());
   const [, setTick] = React.useState(0);
 
+  // Synchronously populate itemsMap from extracted items on every render
+  for (const [k, v] of Object.entries(extractedItems)) {
+    itemsMap.current.set(k, v);
+  }
+
   const registerItem = React.useCallback((val: string, label: React.ReactNode) => {
-    if (!itemsMap.current.has(val)) {
+    if (!itemsMap.current.has(val) || itemsMap.current.get(val) !== label) {
       itemsMap.current.set(val, label);
       setTick((t) => t + 1);
     }
@@ -35,10 +89,16 @@ function Select<Value = any, Multiple extends boolean = false>({
       value={{
         itemsMap,
         registerItem,
-        currentValue: value ?? defaultValue,
+        currentValue,
       }}
     >
-      <SelectPrimitive.Root<Value, Multiple> value={value} defaultValue={defaultValue} {...props}>
+      <SelectPrimitive.Root<Value, Multiple>
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={handleValueChange}
+        items={extractedItems}
+        {...props}
+      >
         {children}
       </SelectPrimitive.Root>
     </SelectContext.Provider>
@@ -71,10 +131,23 @@ function SelectValue({ className, children, placeholder, ...props }: SelectPrimi
     );
   }
 
-  const registeredLabel =
-    ctx?.currentValue !== undefined && ctx?.currentValue !== null
-      ? ctx.itemsMap.current.get(String(ctx.currentValue))
-      : undefined;
+  const currentVal = ctx?.currentValue;
+  const hasValue = currentVal !== undefined && currentVal !== null && currentVal !== "";
+
+  let displayLabel: React.ReactNode = undefined;
+  if (hasValue && ctx?.itemsMap.current) {
+    displayLabel = ctx.itemsMap.current.get(String(currentVal));
+  }
+
+  // Graceful fallback for any raw unmapped uppercase enums (e.g. IN_PROGRESS -> In Progress)
+  if (hasValue && displayLabel === undefined && typeof currentVal === "string") {
+    if (/^[A-Z0-9_]+$/.test(currentVal)) {
+      displayLabel = currentVal
+        .split("_")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+    }
+  }
 
   return (
     <SelectPrimitive.Value
@@ -83,7 +156,7 @@ function SelectValue({ className, children, placeholder, ...props }: SelectPrimi
       placeholder={placeholder}
       {...props}
     >
-      {registeredLabel || undefined}
+      {hasValue ? displayLabel : undefined}
     </SelectPrimitive.Value>
   );
 }

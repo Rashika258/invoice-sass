@@ -7,21 +7,28 @@ import {
   Camera,
   Check,
   ChevronDown,
+  ImageIcon,
   Info,
+  Link as LinkIcon,
+  Loader2,
   Package,
   Plus,
   Search,
   Settings,
   Sparkles,
+  Trash2,
   Wrench,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Item } from "@/generated/prisma/client";
 import { createItem, deleteItem, updateItem } from "@/actions/items";
+import { processImageFile } from "@/lib/brand-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { ConfirmActionButton } from "@/components/ui/action-button";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -116,6 +123,25 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
   const [minStock, setMinStock] = useState<number | string>(item?.minStock ?? 0);
   const [locationRack, setLocationRack] = useState("");
   const [isPublic, setIsPublic] = useState(item?.isPublic ?? true);
+  const [imageUrl, setImageUrl] = useState((item as any)?.imageUrl ?? "");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingImage(true);
+    try {
+      const dataUrl = await processImageFile(file, 640);
+      setImageUrl(dataUrl);
+      toast.success("Product image attached");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process image");
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
   // Auto assign item code
   const handleAssignCode = () => {
@@ -154,6 +180,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
         ]
           .filter(Boolean)
           .join(" | "),
+        imageUrl: imageUrl.trim() || undefined,
         hsn: hsn.trim(),
         unitPrice: effectiveSalePrice,
         estimatePrice: Number(estimatePrice) || effectiveSalePrice,
@@ -179,6 +206,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
       if (andNew) {
         // Reset fields for new entry
         setItemName("");
+        setImageUrl("");
         setHsn("");
         setSalePrice("");
         setEstimatePrice("");
@@ -282,9 +310,12 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             {/* Item HSN */}
             <div className="sm:col-span-3 space-y-1">
               <div className="relative rounded-lg border border-input focus-within:border-foreground px-3 pt-2 pb-1 bg-background">
-                <label className="text-[10px] font-medium text-muted-foreground block leading-none">
-                  Item HSN
-                </label>
+                <div className="flex items-center gap-1">
+                  <label className="text-[10px] font-medium text-muted-foreground block leading-none">
+                    Item HSN
+                  </label>
+                  <InfoTooltip text="Harmonized System of Nomenclature code for GST tax compliance." />
+                </div>
                 <div className="flex items-center justify-between">
                   <input
                     type="text"
@@ -316,18 +347,99 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
 
             {/* Add Item Image */}
             <div className="sm:col-span-2">
-              <label className="flex items-center justify-center gap-1.5 h-[42px] rounded-lg border border-dashed border-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-xs font-semibold cursor-pointer px-2 text-center bg-muted/20">
-                <Camera className="size-3.5 shrink-0" />
-                <span className="truncate text-[11px]">+ Image</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={() => toast.success("Image attached")}
-                />
-              </label>
+              {imageUrl ? (
+                <div className="relative group h-[42px] rounded-lg border border-border overflow-hidden bg-muted/40 flex items-center justify-between px-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <img
+                      src={imageUrl}
+                      alt="Item preview"
+                      className="size-7 rounded object-cover border border-border/80 shrink-0 bg-background"
+                    />
+                    <span className="text-[11px] font-medium text-foreground truncate">
+                      Photo set
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <label
+                      title="Replace image"
+                      className="cursor-pointer p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    >
+                      <Camera className="size-3.5" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={isUploadingImage}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      title="Remove image"
+                      onClick={() => setImageUrl("")}
+                      className="cursor-pointer p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-1.5 h-[42px] rounded-lg border border-dashed border-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-xs font-semibold cursor-pointer px-2 text-center bg-muted/20 ${
+                      isUploadingImage ? "opacity-60 pointer-events-none" : ""
+                    }`}
+                  >
+                    {isUploadingImage ? (
+                      <Loader2 className="size-3.5 animate-spin text-primary" />
+                    ) : (
+                      <Camera className="size-3.5 shrink-0" />
+                    )}
+                    <span className="truncate text-[11px]">
+                      {isUploadingImage ? "Uploading..." : "+ Image"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      disabled={isUploadingImage}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(!showUrlInput)}
+                    title="Paste Image URL"
+                    className="h-[42px] px-2 rounded-lg border border-border bg-muted/20 hover:bg-muted/50 text-muted-foreground hover:text-foreground text-xs flex items-center justify-center cursor-pointer"
+                  >
+                    <LinkIcon className="size-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
+          {showUrlInput && !imageUrl && (
+            <div className="flex items-center gap-2 p-2 rounded-lg border border-primary/30 bg-primary/5">
+              <LinkIcon className="size-3.5 text-primary shrink-0" />
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Paste product image URL (e.g. https://.../photo.jpg)"
+                className="w-full bg-transparent border-none outline-hidden text-xs text-foreground placeholder:text-muted-foreground"
+              />
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setShowUrlInput(false)}
+                  className="text-[10px] font-semibold text-primary hover:underline shrink-0"
+                >
+                  Done
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Row 2: Category & Item Code */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -350,7 +462,10 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
 
             {/* Item Code */}
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-muted-foreground">Item Code</label>
+              <div className="flex items-center gap-1">
+                <label className="text-[11px] font-medium text-muted-foreground">Item Code / SKU</label>
+                <InfoTooltip text="Unique barcode or inventory code used for quick scanner lookup in billing and POS." />
+              </div>
               <div className="flex items-center gap-2">
                 <Input
                   value={itemCode}
@@ -450,9 +565,12 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 {/* Estimate Price for Quotations (Dual Pricing Feature) */}
                 <div className="pt-1">
                   <div className="flex items-center gap-2 max-w-sm rounded-lg border border-border bg-muted/20 p-2 text-xs">
-                    <span className="text-[11px] font-bold text-foreground whitespace-nowrap">
-                      Estimate Price:
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[11px] font-bold text-foreground whitespace-nowrap">
+                        Estimate Price:
+                      </span>
+                      <InfoTooltip text="Alternative pricing used automatically on Quotations & Estimates instead of standard sale price." />
+                    </div>
                     <Input
                       type="number"
                       placeholder="Rate for Estimates"
@@ -579,18 +697,21 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
 
                   <div className="space-y-1">
                     <label className="text-[11px] font-medium text-muted-foreground">As of Date</label>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={asOfDate}
-                      onChange={(e) => setAsOfDate(e.target.value)}
-                      className="h-9 text-xs font-sans"
+                      onChange={setAsOfDate}
+                      dateFormat="dd-MM-yyyy"
+                      className="h-9"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-muted-foreground">Min Stock Alert Level</label>
+                    <div className="flex items-center gap-1">
+                      <label className="text-[11px] font-medium text-muted-foreground">Min Stock Alert Level</label>
+                      <InfoTooltip text="Triggers low-inventory warnings when current stock falls at or below this threshold." />
+                    </div>
                     <Input
                       type="number"
                       value={minStock}
@@ -625,19 +746,20 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onChange={(e) => setIsPublic(e.target.checked)}
                 className="size-4 rounded accent-primary cursor-pointer"
               />
-              <label htmlFor="isPublicToggle" className="text-xs font-semibold text-foreground cursor-pointer">
-                Publish this product in My Online Store
+              <label htmlFor="isPublicToggle" className="text-xs font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+                <span>Publish this product in My Online Store</span>
+                <InfoTooltip text="Make this item visible to customers browsing your public digital store catalog." />
               </label>
             </div>
             {isPublic && (
-              <Badge className="bg-emerald-500/15 text-emerald-500 border-none text-[10px]">
+              <Badge className="bg-primary/10 text-primary border-none text-[10px]">
                 Active in Catalog
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Footer Actions matching media_1788527376142.png */}
+        {/* Footer Actions */}
         <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-border/80 bg-muted/10">
           <Button
             type="button"
@@ -653,7 +775,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
             type="button"
             onClick={() => handleSave(false)}
             disabled={isSubmitting}
-            className="h-9 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 shadow-xs transition-all active:scale-[0.98]"
+            className="h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-6 shadow-xs transition-all active:scale-[0.98]"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>
@@ -686,9 +808,10 @@ export function DeleteItemButton({
       onConfirm={handleDelete}
       variant="ghost"
       size="sm"
-      className="text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+      className="size-7 p-0 flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer rounded-lg"
+      title="Delete Item"
     >
-      Delete
+      <Trash2 className="size-3.5" />
     </ConfirmActionButton>
   );
 }

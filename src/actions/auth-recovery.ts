@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/auth";
+import { getAppName } from "@/lib/app-config";
 
 const RESET_TTL_SECONDS = 30 * 60;
 
@@ -62,7 +63,7 @@ async function sendResetEmail(to: string, resetUrl: string) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.PASSWORD_RESET_FROM, to, subject: "Reset your Billora password", html: `<p>Reset your password within 30 minutes:</p><p><a href="${resetUrl}">Reset password</a></p>` }),
+    body: JSON.stringify({ from: process.env.PASSWORD_RESET_FROM, to, subject: `Reset your ${getAppName()} password`, html: `<p>Reset your password within 30 minutes:</p><p><a href="${resetUrl}">Reset password</a></p>` }),
   });
   if (!response.ok) throw new Error("Unable to send password reset email");
 }

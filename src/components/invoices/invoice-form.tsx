@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InfoTooltip, SimpleTooltip } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -672,9 +673,12 @@ export function InvoiceForm({
             {/* Party Selector with Balance Preview */}
             <div className="space-y-1.5 sm:col-span-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  {meta.partyLabel} *
-                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    {meta.partyLabel} *
+                  </Label>
+                  <InfoTooltip text={`Select or register a ${meta.partyLabel.toLowerCase()} to track opening balances, GSTIN, and ledger accounts.`} />
+                </div>
                 {selectedParty && (
                   <span className="text-xs font-semibold">
                     Balance:{" "}
@@ -745,9 +749,12 @@ export function InvoiceForm({
 
             {/* Due Date */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Payment Due Date
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Payment Due Date
+                </Label>
+                <InfoTooltip text="Deadline for payment settlement before the invoice is flagged as overdue." />
+              </div>
               <DatePicker value={dueDate} onChange={setDueDate} />
             </div>
           </div>
@@ -755,9 +762,12 @@ export function InvoiceForm({
           <div className="grid gap-4 sm:grid-cols-3 pt-2 border-t text-xs">
             {/* Place of Supply */}
             <div className="space-y-1.5">
-              <Label htmlFor="placeOfSupply" className="text-xs text-muted-foreground">
-                Place of Supply (State)
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="placeOfSupply" className="text-xs text-muted-foreground">
+                  Place of Supply (State)
+                </Label>
+                <InfoTooltip text="Determines tax type: Intra-State (CGST + SGST) if matching your business state, or Inter-State (IGST) if different." />
+              </div>
               <Input
                 id="placeOfSupply"
                 value={placeOfSupply}
@@ -769,7 +779,10 @@ export function InvoiceForm({
 
             {/* Status (Credit vs Paid) */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Payment Status</Label>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs text-muted-foreground">Payment Status</Label>
+                <InfoTooltip text="Credit/Open leaves an unpaid balance in receivables/payables. Cash/Paid records full settlement immediately." />
+              </div>
               <Select
                 value={status}
                 onValueChange={(value) => {
@@ -792,7 +805,10 @@ export function InvoiceForm({
 
             {/* Tax Regime Indicator */}
             <div className="space-y-1.5 flex flex-col justify-center">
-              <span className="text-[11px] text-muted-foreground font-medium">GST Tax Type</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-muted-foreground font-medium">GST Tax Type</span>
+                <InfoTooltip text="Calculated automatically by comparing company state and customer place of supply." />
+              </div>
               <div className="flex items-center gap-1.5">
                 <Badge variant="outline" className={isInterState ? "text-blue-700 bg-blue-500/10" : "text-emerald-700 bg-emerald-500/10"}>
                   {isInterState ? "Inter-State (IGST)" : "Intra-State (CGST + SGST)"}
@@ -847,7 +863,12 @@ export function InvoiceForm({
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-10 text-center">#</TableHead>
                 <TableHead className="min-w-64">Item Description *</TableHead>
-                <TableHead className="w-24">HSN/SAC</TableHead>
+                <TableHead className="w-24">
+                  <div className="flex items-center gap-1">
+                    <span>HSN/SAC</span>
+                    <InfoTooltip text="Harmonized System of Nomenclature / Services Accounting Code required for GST filing." />
+                  </div>
+                </TableHead>
                 <TableHead className="w-20">Qty *</TableHead>
                 <TableHead className="w-20">Unit</TableHead>
                 <TableHead className="w-28">
@@ -1007,9 +1028,12 @@ export function InvoiceForm({
                 {showTransport && (
                   <div className="grid gap-3 sm:grid-cols-3 pt-3">
                     <div className="space-y-1">
-                      <Label htmlFor="vehicleNumber" className="text-[11px] text-muted-foreground">
-                        Vehicle No.
-                      </Label>
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="vehicleNumber" className="text-[11px] text-muted-foreground">
+                          Vehicle No.
+                        </Label>
+                        <InfoTooltip text="Vehicle registration number (Part-B of E-Way Bill) transporting the consignment." />
+                      </div>
                       <Input
                         id="vehicleNumber"
                         value={vehicleNumber}
@@ -1019,9 +1043,12 @@ export function InvoiceForm({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="ewayBill" className="text-[11px] text-muted-foreground">
-                        E-Way Bill No.
-                      </Label>
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="ewayBill" className="text-[11px] text-muted-foreground">
+                          E-Way Bill No.
+                        </Label>
+                        <InfoTooltip text="12-digit Government e-Way Bill number. Mandatory for movement of goods valued over ₹50,000." />
+                      </div>
                       <Input
                         id="ewayBill"
                         value={ewayBill}
@@ -1031,9 +1058,12 @@ export function InvoiceForm({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="orderNumber" className="text-[11px] text-muted-foreground">
-                        Purchase Order No.
-                      </Label>
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="orderNumber" className="text-[11px] text-muted-foreground">
+                          Purchase Order No.
+                        </Label>
+                        <InfoTooltip text="Customer PO reference number for cross-referencing payments and delivery orders." />
+                      </div>
                       <Input
                         id="orderNumber"
                         value={orderNumber}
@@ -1066,7 +1096,10 @@ export function InvoiceForm({
 
               {/* Discount Input */}
               <div className="flex items-center justify-between text-xs py-1">
-                <span className="text-muted-foreground">Discount (₹)</span>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <span>Discount (₹)</span>
+                  <InfoTooltip text="Lump-sum discount deducted from taxable subtotal prior to GST calculation." />
+                </div>
                 <div className="w-28">
                   <Input
                     type="number"

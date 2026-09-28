@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Building2, CreditCard, FileText, Image as ImageIcon, Save, Trash2, Upload } from "lucide-react";
+import { Building2, CreditCard, FileText, Globe, Image as ImageIcon, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { CompanyProfile } from "@/generated/prisma/client";
 import { updateCompanyProfile } from "@/actions/settings";
+import { processImageFile, updateBrowserFavicon } from "@/lib/brand-theme";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,18 +51,21 @@ export function SettingsForm({ profile }: { profile: any }) {
     toast.info(`Configured default settings for ${vertical.replace("_", " ")}`);
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image file size should be under 2MB");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file size should be under 5MB");
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogoUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const optimized = await processImageFile(file, 512);
+      setLogoUrl(optimized);
+      updateBrowserFavicon(optimized);
+      toast.success("Logo & favicon updated in preview!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process logo");
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -185,71 +189,115 @@ export function SettingsForm({ profile }: { profile: any }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-4">
-            {/* Logo Configuration Block */}
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-3.5 space-y-3">
-              <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                <ImageIcon className="size-3.5 text-primary" />
-                <span>Company Logo</span>
-              </Label>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-                {/* Logo Preview Box */}
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-card overflow-hidden shadow-xs">
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt="Logo preview"
-                      className="size-full object-contain p-1"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-muted-foreground text-[10px]">
-                      <Building2 className="size-6 text-muted-foreground/60 mb-0.5" />
-                      <span>No Logo</span>
-                    </div>
-                  )}
-                </div>
+            {/* Logo & Favicon Configuration Block */}
+            <div className="rounded-xl border border-border/70 bg-muted/20 p-4 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                  <ImageIcon className="size-3.5 text-primary" />
+                  <span>Brand Logo &amp; Browser Tab Favicon</span>
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  Updates sidebar, top header, invoices &amp; browser tab
+                </span>
+              </div>
 
-                <div className="flex-1 space-y-2 w-full">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleLogoUpload}
-                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="h-7 text-xs font-medium gap-1.5 rounded-md"
-                    >
-                      <Upload className="size-3.5 text-primary" />
-                      <span>Upload Logo</span>
-                    </Button>
-                    {logoUrl && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setLogoUrl("")}
-                        className="h-7 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded-md"
-                      >
-                        <Trash2 className="size-3.5" />
-                        <span>Remove</span>
-                      </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
+                {/* 1. Header/Sidebar Logo Box */}
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/60 bg-card">
+                  <div className="flex size-14 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background overflow-hidden p-1 shadow-2xs">
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt="Logo preview"
+                        className="size-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground text-[10px]">
+                        <Building2 className="size-5 text-muted-foreground/60 mb-0.5" />
+                        <span>No Logo</span>
+                      </div>
                     )}
                   </div>
-                  <Input
-                    placeholder="Or paste an image URL (https://...)"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    className="h-7 text-[11px] rounded-md"
-                  />
-                  <p className="text-[10px] text-muted-foreground">
-                    Supported: PNG, JPEG, SVG or WebP. Displayed on bills, sidebar, and headers.
-                  </p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-foreground">Brand Header &amp; Sidebar</p>
+                    <p className="text-[10px] text-muted-foreground">High-resolution brand logo</p>
+                  </div>
                 </div>
+
+                {/* 2. Browser Tab Favicon Preview Box */}
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/60 bg-card">
+                  <div className="flex items-center gap-2 p-1.5 rounded-md border border-border/60 bg-muted/40 max-w-full">
+                    <div className="size-4 rounded-xs border border-border/60 bg-background flex items-center justify-center overflow-hidden shrink-0">
+                      {logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt="Favicon"
+                          className="size-full object-contain"
+                        />
+                      ) : (
+                        <Globe className="size-3 text-primary" />
+                      )}
+                    </div>
+                    <span className="text-[11px] font-medium text-foreground truncate max-w-[120px]">
+                      {profile?.companyName || "My Business"}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                      <Globe className="size-3 text-primary" />
+                      <span>Tab Favicon</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Live browser tab icon</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upload Controls */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 pt-1">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoUpload}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-8 text-xs font-medium gap-1.5 rounded-lg shrink-0"
+                >
+                  <Upload className="size-3.5 text-primary" />
+                  <span>Upload Logo &amp; Favicon</span>
+                </Button>
+                {logoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setLogoUrl("");
+                      updateBrowserFavicon("/favicon.ico");
+                      toast.info("Logo and favicon reset to default");
+                    }}
+                    className="h-8 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded-lg shrink-0"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Remove</span>
+                  </Button>
+                )}
+                <Input
+                  placeholder="Or paste an image URL (https://.../logo.png)"
+                  value={logoUrl}
+                  onChange={(e) => {
+                    setLogoUrl(e.target.value);
+                    if (e.target.value.trim()) {
+                      updateBrowserFavicon(e.target.value.trim());
+                    }
+                  }}
+                  className="h-8 text-xs rounded-lg flex-1"
+                />
               </div>
             </div>
 

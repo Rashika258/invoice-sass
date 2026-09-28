@@ -19,6 +19,7 @@ import {
 import {
   ArrowLeft,
   Building2,
+  Eye,
   FileText,
   Mail,
   MapPin,
@@ -371,8 +372,16 @@ export default async function CustomerDetailPage({
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" asChild>
-                        <Link href={tx.href}>View</Link>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        asChild
+                        title="View Document"
+                      >
+                        <Link href={tx.href}>
+                          <Eye className="size-3.5" />
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>

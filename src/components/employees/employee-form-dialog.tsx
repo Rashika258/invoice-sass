@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Employee } from "@/generated/prisma/client";
 import { createEmployee, deleteEmployee, updateEmployee } from "@/actions/employees";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   FormDialog,
@@ -138,8 +139,10 @@ export function DeleteEmployeeButton({ employeeId }: { employeeId: string }) {
       onConfirm={handleDelete}
       variant="ghost"
       size="sm"
+      className="size-8 p-0 flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer rounded-lg"
+      title="Delete employee"
     >
-      Delete
+      <Trash2 className="size-3.5" />
     </ConfirmActionButton>
   );
 }

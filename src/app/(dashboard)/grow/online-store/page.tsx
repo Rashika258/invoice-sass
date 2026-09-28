@@ -18,6 +18,7 @@ import {
   Layers,
   MessageCircle,
   Package,
+  Pencil,
   Plus,
   Printer,
   QrCode,
@@ -52,6 +53,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FormDialog, FormFieldInput, FormFieldSelect } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -335,7 +337,7 @@ export default function OnlineStorePage() {
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
                         onClick={() => {
                           setEditProduct(p);
@@ -343,9 +345,10 @@ export default function OnlineStorePage() {
                           setEditPriceVal(p.onlinePrice);
                           setEditDiscVal(p.discountPercent);
                         }}
-                        className="h-7 text-xs text-primary hover:underline cursor-pointer"
+                        className="size-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                        title="Edit Stock & Price"
                       >
-                        Edit Stock &amp; Price
+                        <Pencil className="size-3.5" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -429,21 +432,21 @@ export default function OnlineStorePage() {
                         {formatCurrency(b.total, "INR")}
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center gap-1">
                           <Link
                             href={`/grow/online-store/bill/${b.id}`}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold hover:bg-muted text-primary"
+                            className="inline-flex size-7 items-center justify-center rounded-lg hover:bg-muted text-primary transition-colors"
+                            title="View GST Bill"
                           >
-                            <Eye className="size-3" />
-                            <span>View</span>
+                            <Eye className="size-3.5" />
                           </Link>
                           <Link
                             href={`/grow/online-store/bill/${b.id}`}
                             target="_blank"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold hover:bg-muted text-muted-foreground"
+                            className="inline-flex size-7 items-center justify-center rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             title="Print GST Bill"
                           >
-                            <Printer className="size-3" />
+                            <Printer className="size-3.5" />
                           </Link>
                         </div>
                       </TableCell>
@@ -680,108 +683,90 @@ export default function OnlineStorePage() {
       </Dialog>
 
       {/* Create New Store Bill Dialog */}
-      <Dialog open={newBillOpen} onOpenChange={setNewBillOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <Receipt className="size-4 text-[#ef4444]" />
-              Create Online Store GST Bill
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreateStoreBill} className="flex flex-col flex-1 overflow-hidden">
-            <DialogBody className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Customer Name *</Label>
-                  <Input
-                    value={custName}
-                    onChange={(e) => setCustName(e.target.value)}
-                    placeholder="e.g. Ramesh Hardware"
-                    className="h-8 text-xs"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>Customer Phone *</Label>
-                  <Input
-                    value={custPhone}
-                    onChange={(e) => setCustPhone(e.target.value)}
-                    placeholder="e.g. 9845012345"
-                    className="h-8 text-xs font-mono"
-                    required
-                  />
-                </div>
-              </div>
+      <FormDialog
+        open={newBillOpen}
+        onOpenChange={setNewBillOpen}
+        title={
+          <span className="flex items-center gap-2">
+            <Receipt className="size-4 text-primary" />
+            <span>Create Online Store GST Bill</span>
+          </span>
+        }
+        description="Generate a tax invoice for an online store order."
+        onSubmit={handleCreateStoreBill}
+        isSubmitting={loading}
+        submitText="Generate GST Bill"
+        loadingText="Generating..."
+        maxWidthClass="sm:max-w-lg"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormFieldInput
+            label="Customer Name"
+            value={custName}
+            onChange={(e) => setCustName(e.target.value)}
+            placeholder="e.g. Ramesh Hardware"
+            required
+          />
+          <FormFieldInput
+            label="Customer Phone"
+            value={custPhone}
+            onChange={(e) => setCustPhone(e.target.value)}
+            placeholder="e.g. 9845012345"
+            className="font-mono"
+            required
+          />
+        </div>
 
-              <div className="space-y-1">
-                <Label>Delivery Address</Label>
-                <Input
-                  value={custAddress}
-                  onChange={(e) => setCustAddress(e.target.value)}
-                  placeholder="Address for shipping"
-                  className="h-8 text-xs"
-                />
-              </div>
+        <FormFieldInput
+          label="Delivery Address"
+          value={custAddress}
+          onChange={(e) => setCustAddress(e.target.value)}
+          placeholder="Address for shipping"
+        />
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="sm:col-span-2 space-y-1">
-                  <Label>Select Product *</Label>
-                  <Select value={selectedProductId} onValueChange={(val) => val && setSelectedProductId(val)}>
-                    <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                      <SelectValue placeholder="Select Product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {storeProducts.map((p) => (
-                        <SelectItem key={p.id} value={p.id} className="text-xs">
-                          {p.name} (₹{p.onlinePrice} | Stock: {p.onlineStock})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2">
+            <FormFieldSelect
+              label="Select Product"
+              value={selectedProductId}
+              onValueChange={setSelectedProductId}
+              options={storeProducts.map((p) => ({
+                label: `${p.name} (₹${p.onlinePrice} | Stock: ${p.onlineStock})`,
+                value: p.id,
+              }))}
+              placeholder="Select Product"
+              required
+            />
+          </div>
+          <div>
+            <FormFieldInput
+              label="Quantity"
+              type="number"
+              min={1}
+              value={selectedQty}
+              onChange={(e) => setSelectedQty(Number(e.target.value))}
+              className="font-mono"
+            />
+          </div>
+        </div>
 
-                <div className="space-y-1">
-                  <Label>Quantity</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={selectedQty}
-                    onChange={(e) => setSelectedQty(Number(e.target.value))}
-                    className="h-8 text-xs font-mono"
-                  />
-                </div>
-              </div>
+        <FormFieldSelect
+          label="Payment Mode"
+          value={paymentMode}
+          onValueChange={setPaymentMode}
+          options={[
+            { label: "UPI (Google Pay / PhonePe / Paytm)", value: "UPI" },
+            { label: "Cash on Delivery (COD)", value: "COD" },
+            { label: "Net Banking / NEFT", value: "NET_BANKING" },
+            { label: "Credit / Debit Card", value: "CARD" },
+          ]}
+          placeholder="Select Payment Mode"
+        />
 
-              <div className="space-y-1">
-                <Label>Payment Mode</Label>
-                <Select value={paymentMode} onValueChange={(val) => val && setPaymentMode(val)}>
-                  <SelectTrigger className="w-full h-8 rounded-lg border border-input bg-background px-2 text-xs">
-                    <SelectValue placeholder="Select Payment Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="UPI" className="text-xs">UPI (Google Pay / PhonePe / Paytm)</SelectItem>
-                    <SelectItem value="COD" className="text-xs">Cash on Delivery (COD)</SelectItem>
-                    <SelectItem value="NET_BANKING" className="text-xs">Net Banking / NEFT</SelectItem>
-                    <SelectItem value="CARD" className="text-xs">Credit / Debit Card</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 text-[11px] text-muted-foreground">
-                ⚡ This will generate a separate Store Tax Invoice with HSN and GST calculation, and deduct stock only from the online store pool.
-              </div>
-            </DialogBody>
-            <DialogFooter>
-              <Button type="button" variant="outline" size="sm" onClick={() => setNewBillOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" disabled={loading} className="bg-brand hover:bg-brand/90 text-white font-bold">
-                {loading ? "Generating..." : "Generate GST Bill"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+          ⚡ This will generate a separate Store Tax Invoice with HSN and GST calculation, and deduct stock only from the online store pool.
+        </div>
+      </FormDialog>
 
       {/* QR Code Standee Dialog */}
       <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>

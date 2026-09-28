@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
+import { InfoTooltip } from "@/components/ui/tooltip";
 
 type Voucher = {
   id: string;
@@ -67,11 +69,10 @@ export function DayBookView({ initialDate, vouchers }: DayBookViewProps) {
           <button type="button" onClick={prevDay} className="p-1.5 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
             <ChevronLeft className="size-4" />
           </button>
-          <Input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="h-8 text-xs font-mono w-36"
+            onChange={setDate}
+            className="h-8 text-xs font-mono w-44"
           />
           <button type="button" onClick={nextDay} className="p-1.5 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
             <ChevronRight className="size-4" />
@@ -86,11 +87,13 @@ export function DayBookView({ initialDate, vouchers }: DayBookViewProps) {
           <span className="font-bold text-foreground">{vouchers.length}</span>
           <span className="text-muted-foreground">Vouchers</span>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/20 bg-rose-500/5">
           <span className="font-bold text-rose-600">Dr ₹{totalDr.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+          <InfoTooltip text="Total Debit entries for the day (expenses incurred, asset additions, or payments made)." />
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
           <span className="font-bold text-emerald-600">Cr ₹{totalCr.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+          <InfoTooltip text="Total Credit entries for the day (revenues earned, liabilities incurred, or receipts received)." />
         </div>
       </div>
 

@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, Package } from "lucide-react";
+import { ArrowLeft, Package, PlusCircle, ShieldCheck } from "lucide-react";
 import { getPublicProducts } from "@/actions/items";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/invoice-utils";
+import { PublicCatalogView } from "@/components/products/public-catalog-view";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -14,89 +13,68 @@ export default async function PublicProductsPage() {
   const products = await getPublicProducts();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "rounded-xl")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div>
-              <h1 className="text-lg font-bold">Product Catalog</h1>
-              <p className="text-sm text-muted-foreground">No login required</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-bold text-foreground">Product Catalog</h1>
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  <ShieldCheck className="size-3" /> Verified Directory
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Public storefront &amp; order inquiries • No login required
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link
               href="/login"
-              className={cn(buttonVariants({ variant: "outline" }))}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-xl font-semibold text-xs")}
             >
-              Business login
+              Business Login
+            </Link>
+            <Link
+              href="/register"
+              className={cn(buttonVariants({ size: "sm" }), "rounded-xl font-semibold text-xs hidden sm:flex")}
+            >
+              <PlusCircle className="mr-1.5 size-3.5" />
+              List Products
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {products.length === 0 ? (
-          <Card className="mt-8">
+          <Card className="mt-8 rounded-2xl border border-border/80 shadow-xs">
             <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-              <Package className="h-12 w-12 text-muted-foreground" />
+              <Package className="h-12 w-12 text-muted-foreground/60" />
               <div>
-                <h2 className="text-xl font-semibold">No products available yet</h2>
-                <p className="mt-1 text-muted-foreground">
-                  Check back soon or sign in to publish your own catalog.
+                <h2 className="text-xl font-semibold text-foreground">No products available yet</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Check back soon or sign in to publish your business catalog.
                 </p>
               </div>
               <Link
                 href="/register"
-                className={cn(buttonVariants())}
+                className={cn(buttonVariants({ size: "sm" }), "rounded-xl font-semibold")}
               >
                 Create a business account
               </Link>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
-              <Card
-                key={product.id}
-                className="group overflow-hidden transition-shadow hover:shadow-lg"
-              >
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Package className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.organization.profile?.companyName ?? "Business"}
-                    </p>
-                  </div>
-                  {product.description && (
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
-                      {product.description}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between border-t pt-4">
-                    <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {product.unit ?? "unit"}
-                    </span>
-                    <span className="text-lg font-bold text-primary">
-                      {formatCurrency(
-                        product.unitPrice,
-                        product.organization.profile?.currency ?? "USD",
-                      )}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PublicCatalogView products={products as any} />
         )}
       </main>
     </div>

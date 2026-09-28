@@ -16,3 +16,11 @@ export { PageHeader } from "./page-header";
 export { Skeleton } from "./skeleton";
 export { StatusBadge } from "./status-badge";
 export { VirtualTable } from "./virtual-table";
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+  SimpleTooltip,
+  InfoTooltip,
+} from "./tooltip";

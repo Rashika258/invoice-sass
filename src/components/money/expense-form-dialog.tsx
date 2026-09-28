@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import type { BankAccount } from "@/generated/prisma/client";
 import { createExpense, deleteExpense } from "@/actions/money";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -138,9 +139,11 @@ export function DeleteExpenseButton({ id }: { id: string }) {
       confirmMessage="Delete this expense?"
       onConfirm={handleDelete}
       variant="ghost"
-      size="sm"
+      size="icon"
+      className="size-7 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+      title="Delete Expense"
     >
-      Delete
+      <Trash2 className="size-3.5 text-rose-500" />
     </ConfirmActionButton>
   );
 }

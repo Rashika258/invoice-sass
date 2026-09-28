@@ -3,6 +3,7 @@
 import { requireOrganization } from "@/lib/organization";
 import { AI_TOOL_DEFINITIONS, executeAiTool } from "@/lib/ai-tools";
 import { askBusinessAi } from "@/actions/business-ai";
+import { getAppName } from "@/lib/app-config";
 
 export type MessageRole = "user" | "assistant" | "system" | "tool";
 
@@ -46,7 +47,7 @@ export async function processAiUserQuery(
           messages: [
             {
               role: "system",
-              content: `You are the AI Business Brain of Billora Business OS for ${org.name}. Answer user questions concisely based on live tool data. Speak professionally, encouraging growth and tight cash management.`,
+              content: `You are the AI Business Brain of ${getAppName()} Business OS for ${org.name}. Answer user questions concisely based on live tool data. Speak professionally, encouraging growth and tight cash management.`,
             },
             ...history.map((m) => ({ role: m.role, content: m.content })),
             { role: "user", content: query },
@@ -83,7 +84,7 @@ export async function processAiUserQuery(
             messages: [
               {
                 role: "system",
-                content: `You are the AI Business Brain of Billora Business OS for ${org.name}. Summarize tool execution cleanly for the user.`,
+                content: `You are the AI Business Brain of ${getAppName()} Business OS for ${org.name}. Summarize tool execution cleanly for the user.`,
               },
               ...history.map((m) => ({ role: m.role, content: m.content })),
               { role: "user", content: query },

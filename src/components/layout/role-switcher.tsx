@@ -42,10 +42,11 @@ export function RoleSwitcher({ currentRole }: RoleSwitcherProps) {
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs font-semibold gap-1.5 border-border/80 bg-muted/30 select-none"
+            className="h-8 text-xs font-semibold gap-1.5 border-border/80 bg-muted/30 select-none cursor-pointer shrink-0"
+            title={`Perspective: ${activeObj.label}`}
           >
-            <ActiveIcon className="size-3.5 text-brand" />
-            <span className="hidden sm:inline font-bold">{activeObj.label}</span>
+            <ActiveIcon className="size-3.5 text-primary" />
+            <span className="hidden 2xl:inline font-bold">{activeObj.label}</span>
           </Button>
         }
       />

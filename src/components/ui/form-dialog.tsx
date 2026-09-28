@@ -18,13 +18,16 @@ import { cn } from "@/lib/utils";
 export interface FormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
+  title: React.ReactNode;
   description?: string;
   trigger?: React.ReactNode;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isSubmitting?: boolean;
   submitText?: string;
+  loadingText?: string;
   cancelText?: string;
+  submitClassName?: string;
+  bodyClassName?: string;
   maxWidthClass?: string;
   children: React.ReactNode;
   headerActions?: React.ReactNode;
@@ -40,7 +43,10 @@ export function FormDialog({
   onSubmit,
   isSubmitting = false,
   submitText = "Save",
+  loadingText = "Saving...",
   cancelText = "Cancel",
+  submitClassName,
+  bodyClassName,
   maxWidthClass = "sm:max-w-lg",
   children,
   headerActions,
@@ -57,7 +63,7 @@ export function FormDialog({
       >
         <DialogHeader className="flex flex-row items-center justify-between px-6 py-4 border-b border-border/80 shrink-0 bg-card z-10">
           <div>
-            <DialogTitle className="text-base font-bold text-foreground">{title}</DialogTitle>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">{title}</DialogTitle>
             {description && (
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                 {description}
@@ -68,7 +74,7 @@ export function FormDialog({
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <DialogBody className="flex-1 overflow-y-auto p-6 space-y-4">{children}</DialogBody>
+          <DialogBody className={cn("flex-1 overflow-y-auto p-6 space-y-4", bodyClassName)}>{children}</DialogBody>
 
           <DialogFooter className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border/80 bg-muted/10 shrink-0">
             {footerExtraActions}
@@ -84,8 +90,11 @@ export function FormDialog({
             <ActionButton
               type="submit"
               isLoading={isSubmitting}
-              loadingText="Saving..."
-              className="h-9 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 shadow-xs transition-all active:scale-[0.98]"
+              loadingText={loadingText}
+              className={cn(
+                "h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-6 shadow-xs transition-all active:scale-[0.98]",
+                submitClassName
+              )}
             >
               {submitText}
             </ActionButton>

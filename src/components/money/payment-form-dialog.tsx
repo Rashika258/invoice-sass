@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import type { BankAccount, Customer, Invoice } from "@/generated/prisma/client";
 import { createPayment, deletePayment } from "@/actions/money";
 import { Button } from "@/components/ui/button";
@@ -175,7 +176,7 @@ export function PaymentFormDialog({
           </DialogBody>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">{isSubmitting ? "Saving..." : "Save Payment"}</Button>
+            <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">{isSubmitting ? "Saving..." : "Save Payment"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -188,7 +189,9 @@ export function DeletePaymentButton({ id }: { id: string }) {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
+      className="size-7 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+      title="Delete Payment"
       disabled={busy}
       onClick={async () => {
         if (!confirm("Delete this payment?")) return;
@@ -203,7 +206,7 @@ export function DeletePaymentButton({ id }: { id: string }) {
         }
       }}
     >
-      Delete
+      <Trash2 className="size-3.5 text-rose-500" />
     </Button>
   );
 }

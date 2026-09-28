@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "@/components/ui/date-picker";
+import { InfoTooltip, SimpleTooltip } from "@/components/ui/tooltip";
 import { createVoucher } from "@/actions/accounting";
 
 type VoucherType = "CONTRA" | "PAYMENT" | "RECEIPT" | "JOURNAL" | "SALES" | "PURCHASE";
@@ -31,14 +33,14 @@ interface VoucherEntryProps {
 }
 
 const VOUCHER_CONFIG: Record<VoucherType, {
-  label: string; key: string; color: string; defaultDr: string; defaultCr: string;
+  label: string; key: string; color: string; defaultDr: string; defaultCr: string; help: string;
 }> = {
-  CONTRA:   { label: "Contra",   key: "F4", color: "bg-zinc-700 text-zinc-200",        defaultDr: "Bank Account",     defaultCr: "Cash" },
-  PAYMENT:  { label: "Payment",  key: "F5", color: "bg-rose-600 text-white",            defaultDr: "Sundry Creditors", defaultCr: "Cash" },
-  RECEIPT:  { label: "Receipt",  key: "F6", color: "bg-emerald-600 text-white",         defaultDr: "Cash",             defaultCr: "Sundry Debtors" },
-  JOURNAL:  { label: "Journal",  key: "F7", color: "bg-violet-600 text-white",          defaultDr: "",                 defaultCr: "" },
-  SALES:    { label: "Sales",    key: "F8", color: "bg-brand text-white",               defaultDr: "Sundry Debtors",   defaultCr: "Sales Account" },
-  PURCHASE: { label: "Purchase", key: "F9", color: "bg-amber-600 text-white",           defaultDr: "Purchase Account", defaultCr: "Sundry Creditors" },
+  CONTRA:   { label: "Contra",   key: "F4", color: "bg-zinc-700 text-zinc-200",        defaultDr: "Bank Account",     defaultCr: "Cash", help: "Internal transfers between Cash and Bank accounts without affecting profit." },
+  PAYMENT:  { label: "Payment",  key: "F5", color: "bg-rose-600 text-white",            defaultDr: "Sundry Creditors", defaultCr: "Cash", help: "Cash or bank outflow to suppliers, vendors, or expenses." },
+  RECEIPT:  { label: "Receipt",  key: "F6", color: "bg-emerald-600 text-white",         defaultDr: "Cash",             defaultCr: "Sundry Debtors", help: "Cash or bank inflow from customers, debtors, or miscellaneous income." },
+  JOURNAL:  { label: "Journal",  key: "F7", color: "bg-violet-600 text-white",          defaultDr: "",                 defaultCr: "", help: "Non-cash adjustments, depreciation, accruals, or asset transfers." },
+  SALES:    { label: "Sales",    key: "F8", color: "bg-brand text-white",               defaultDr: "Sundry Debtors",   defaultCr: "Sales Account", help: "Direct accounting entry for credit or cash sales billing." },
+  PURCHASE: { label: "Purchase", key: "F9", color: "bg-amber-600 text-white",           defaultDr: "Purchase Account", defaultCr: "Sundry Creditors", help: "Direct accounting entry for vendor purchases." },
 };
 
 const VOUCHER_ORDER: VoucherType[] = ["CONTRA", "PAYMENT", "RECEIPT", "JOURNAL", "SALES", "PURCHASE"];
@@ -132,18 +134,19 @@ export function VoucherEntry({ ledgers }: VoucherEntryProps) {
             const c = VOUCHER_CONFIG[type];
             const isActive = type === voucherType;
             return (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setVoucherType(type)}
-                className={`flex-1 py-2.5 text-center text-xs font-bold cursor-pointer transition-all relative ${
-                  isActive ? c.color : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span className="hidden sm:inline">{c.label} </span>
-                <span className="text-[10px] opacity-70 font-mono">({c.key})</span>
-                {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-current rounded-t" />}
-              </button>
+              <SimpleTooltip key={type} content={c.help}>
+                <button
+                  type="button"
+                  onClick={() => setVoucherType(type)}
+                  className={`flex-1 py-2.5 text-center text-xs font-bold cursor-pointer transition-all relative ${
+                    isActive ? c.color : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="hidden sm:inline">{c.label} </span>
+                  <span className="text-[10px] opacity-70 font-mono">({c.key})</span>
+                  {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-current rounded-t" />}
+                </button>
+              </SimpleTooltip>
             );
           })}
         </div>
@@ -152,7 +155,10 @@ export function VoucherEntry({ ledgers }: VoucherEntryProps) {
           {/* Voucher Meta */}
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1">
-              <Label className="text-xs font-semibold">Voucher Type</Label>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs font-semibold">Voucher Type</Label>
+                <InfoTooltip text={cfg.help} />
+              </div>
               <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black ${cfg.color}`}>
                 {cfg.label} Voucher
                 <Badge variant="outline" className="border-current text-[9px] font-mono opacity-70">{cfg.key}</Badge>
@@ -160,15 +166,17 @@ export function VoucherEntry({ ledgers }: VoucherEntryProps) {
             </div>
             <div className="space-y-1 flex-1 min-w-[140px] max-w-[180px]">
               <Label className="text-xs font-semibold">Date</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 className="h-8 text-xs font-mono"
               />
             </div>
             <div className="space-y-1 flex-1 min-w-[150px]">
-              <Label className="text-xs font-semibold">Reference / Cheque No.</Label>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs font-semibold">Reference / Cheque No.</Label>
+                <InfoTooltip text="Cheque number, bank UTR reference, or external billing reference." />
+              </div>
               <Input
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
@@ -183,7 +191,12 @@ export function VoucherEntry({ ledgers }: VoucherEntryProps) {
             <table className="w-full text-xs">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="py-2 px-3 text-left font-bold text-muted-foreground w-20">Dr / Cr</th>
+                  <th className="py-2 px-3 text-left font-bold text-muted-foreground w-24">
+                    <div className="flex items-center gap-1">
+                      <span>Dr / Cr</span>
+                      <InfoTooltip text="Double-entry rule: Dr (Debit) accounts for what comes in or expenses; Cr (Credit) accounts for what goes out or income. Total Dr must equal Total Cr." />
+                    </div>
+                  </th>
                   <th className="py-2 px-3 text-left font-bold text-muted-foreground">Ledger Account</th>
                   <th className="py-2 px-3 text-right font-bold text-muted-foreground w-36">Amount (₹)</th>
                   <th className="py-2 px-3 w-8" />
@@ -308,7 +321,10 @@ export function VoucherEntry({ ledgers }: VoucherEntryProps) {
 
           {/* Narration */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Narration</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-semibold">Narration</Label>
+              <InfoTooltip text="Brief description explaining the transaction purpose for auditing, ledger statements, and accounts verification." />
+            </div>
             <Input
               ref={narrationRef}
               value={narration}

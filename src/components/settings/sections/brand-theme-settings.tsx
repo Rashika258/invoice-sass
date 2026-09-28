@@ -16,6 +16,7 @@ import {
   Receipt,
   QrCode,
   ShieldCheck,
+  Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -23,10 +24,13 @@ import {
   BRAND_FONTS,
   applyFullBrandConfig,
   getStoredBrandTheme,
+  processImageFile,
+  updateBrowserFavicon,
   type BrandThemePreset,
   type BrandFontOption,
   type BrandConfig,
 } from "@/lib/brand-theme";
+import { useAppName } from "@/hooks/use-app-name";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +42,10 @@ interface BrandThemeSettingsProps {
 }
 
 export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
-  const [activeTab, setActiveTab] = useState<"colors" | "fonts" | "logo" | "documents">("colors");
+  const { appName, appDomain, setAppName, setAppDomain } = useAppName();
+  const [inputAppName, setInputAppName] = useState(appName);
+  const [inputAppDomain, setInputAppDomain] = useState(appDomain);
+  const [activeTab, setActiveTab] = useState<"app_brand" | "colors" | "fonts" | "logo" | "documents">("app_brand");
   const [config, setConfig] = useState<BrandConfig>({
     primary: "#10b981",
     secondary: "#047857",
@@ -108,31 +115,34 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
     toast.success(`Font set to ${font.name}`);
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Logo file size must be less than 2MB");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Logo file size must be less than 5MB");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+    try {
+      const result = await processImageFile(file, 512);
       setLogoPreview(result);
       const updated = { ...config, logoUrl: result };
       setConfig(updated);
       applyFullBrandConfig(updated);
-      toast.success("Logo uploaded! Click 'Save Brand Identity' to persist to your company profile.");
-    };
-    reader.readAsDataURL(file);
+      updateBrowserFavicon(result);
+      toast.success("Logo & favicon updated! Click 'Save Brand Identity' to persist.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process logo image");
+    }
   };
 
   const handleSaveAll = async () => {
     setSaving(true);
     try {
       applyFullBrandConfig(config);
+      setAppName(inputAppName);
+      setAppDomain(inputAppDomain);
       // Save logo to CompanyProfile in database
       if (profile) {
         await updateCompanyProfile({
@@ -150,7 +160,7 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
           logoUrl: logoPreview || undefined,
         });
       }
-      toast.success("Brand identity & theme successfully saved!");
+      toast.success("Brand identity & application settings saved!");
     } catch (e: any) {
       toast.error(e.message || "Failed to save brand settings");
     } finally {
@@ -167,11 +177,11 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
             <Palette className="size-5 text-brand" />
             <h3 className="text-base font-bold text-foreground">Brand Identity &amp; Theme Studio</h3>
             <Badge className="bg-brand text-white border-none font-semibold text-[10px]">
-              {config.name}
+              {inputAppName || config.name}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
-            Customize primary and secondary brand colors, select brand typography, upload your company logo, and format document headers.
+            Configure application name, custom web domain, brand colors, typography, company logo, and document templates.
           </p>
         </div>
 
@@ -182,14 +192,15 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
             className="bg-brand text-white hover:opacity-90 font-bold text-xs h-8 rounded-xl shadow-xs cursor-pointer"
           >
             {saving ? <RefreshCw className="mr-1.5 size-3.5 animate-spin" /> : <Check className="mr-1.5 size-3.5" />}
-            {saving ? "Saving..." : "Save Brand Identity"}
+            {saving ? "Saving..." : "Save Brand & Domain"}
           </Button>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex border-b border-border/80 gap-1 text-xs">
+      <div className="flex border-b border-border/80 gap-1 text-xs overflow-x-auto">
         {[
+          { id: "app_brand" as const, label: "App Name & Domain", icon: Globe },
           { id: "colors" as const, label: "Colors & Palettes", icon: Palette },
           { id: "fonts" as const, label: "Brand Typography", icon: Type },
           { id: "logo" as const, label: "Logo & Identity", icon: ImageIcon },
@@ -202,7 +213,7 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 font-semibold rounded-t-xl border-b-2 transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 font-semibold rounded-t-xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 isActive
                   ? "border-brand text-brand bg-brand-light font-bold"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -214,6 +225,97 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
           );
         })}
       </div>
+
+      {/* ── TAB 0: APP NAME & DOMAIN ────────────────────────────────────────── */}
+      {activeTab === "app_brand" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-5">
+            <div>
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Globe className="size-4 text-brand" />
+                <span>Application Name &amp; Custom Domain</span>
+              </h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Customize your software product name and web domain. All headers, emails, storefronts, and document titles update dynamically.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">Application / SaaS Name</Label>
+                <Input
+                  value={inputAppName}
+                  onChange={(e) => setInputAppName(e.target.value)}
+                  placeholder="e.g. Billora, Acme ERP, VyaparIQ"
+                  className="h-10 text-xs font-medium"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Shown in browser title, sidebar header, mobile bar, and system notices.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">Custom Web Domain</Label>
+                <Input
+                  value={inputAppDomain}
+                  onChange={(e) => setInputAppDomain(e.target.value)}
+                  placeholder="e.g. billora.in, mycompany.com"
+                  className="h-10 text-xs font-mono"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Your public storefronts, payment receipts, and links will use this domain.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-xs text-muted-foreground space-y-2">
+              <div className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <Sparkles className="size-4" />
+                <span>Domain &amp; Environment Configuration Guide</span>
+              </div>
+              <p>
+                Haven't bought your domain yet? You can test and refine your brand name here at any time. Once you purchase your domain from GoDaddy, Namecheap, or Cloudflare:
+              </p>
+              <ul className="list-disc pl-5 space-y-1 text-[11px]">
+                <li>Set <code className="font-mono text-foreground font-semibold bg-muted px-1 py-0.5 rounded">NEXT_PUBLIC_APP_NAME="{inputAppName || "Billora"}"</code> in your <code className="font-mono text-foreground">.env</code> file.</li>
+                <li>Set <code className="font-mono text-foreground font-semibold bg-muted px-1 py-0.5 rounded">NEXT_PUBLIC_APP_DOMAIN="{inputAppDomain || "billora.in"}"</code> in your <code className="font-mono text-foreground">.env</code> file.</li>
+                <li>Set <code className="font-mono text-foreground font-semibold bg-muted px-1 py-0.5 rounded">NEXT_PUBLIC_APP_URL="https://{inputAppDomain || "billora.in"}"</code> in your <code className="font-mono text-foreground">.env</code> file.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Live Branding Preview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
+                <span className="text-[10px] text-muted-foreground font-medium uppercase">Sidebar Header</span>
+                <div className="flex items-center gap-2">
+                  <div className="size-7 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-xs">
+                    {(inputAppName || "B")[0]?.toUpperCase() || "B"}
+                  </div>
+                  <span className="text-xs font-bold text-foreground">{inputAppName || "Billora"}</span>
+                  <Badge className="bg-brand text-white text-[8px] px-1 py-0">BUSINESS OS</Badge>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
+                <span className="text-[10px] text-muted-foreground font-medium uppercase">Storefront Footer</span>
+                <div className="text-xs text-muted-foreground font-mono">
+                  Powered by <span className="font-bold text-foreground">{inputAppName || "Billora"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
+                <span className="text-[10px] text-muted-foreground font-medium uppercase">Live URL Structure</span>
+                <div className="text-xs font-mono text-brand truncate">
+                  https://{inputAppDomain || "billora.in"}/store/zenith
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── TAB 1: COLORS & PALETTES ────────────────────────────────────────── */}
       {activeTab === "colors" && (
@@ -410,8 +512,8 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-              {/* Logo Preview */}
-              <div className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-border bg-muted/20 text-center space-y-3">
+              {/* Logo Preview & Browser Tab Simulation */}
+              <div className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-border bg-muted/20 text-center space-y-3">
                 {logoPreview ? (
                   <div className="relative size-24 rounded-2xl overflow-hidden border border-border bg-background shadow-md flex items-center justify-center p-2">
                     <img
@@ -426,7 +528,23 @@ export function BrandThemeSettings({ profile }: BrandThemeSettingsProps) {
                   </div>
                 )}
                 <div className="text-xs font-semibold text-foreground">
-                  {logoPreview ? "Active Logo" : "Default Initial Emblem"}
+                  {logoPreview ? "Active Brand Logo" : "Default Initial Emblem"}
+                </div>
+
+                {/* Live Favicon Preview Tab */}
+                <div className="w-full pt-1 border-t border-border/60">
+                  <div className="rounded-lg border border-border bg-card shadow-2xs p-1.5 flex items-center gap-1.5 text-left">
+                    <div className="size-4 rounded-xs border border-border/60 bg-muted/50 flex items-center justify-center overflow-hidden shrink-0">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="" className="size-full object-contain" />
+                      ) : (
+                        <Globe className="size-3 text-brand" />
+                      )}
+                    </div>
+                    <span className="text-[10px] font-medium text-foreground truncate max-w-[120px]">
+                      {inputAppName || "Billora"} Tab Favicon
+                    </span>
+                  </div>
                 </div>
               </div>
 

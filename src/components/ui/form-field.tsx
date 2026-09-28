@@ -11,11 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export interface FormFieldInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  tooltip?: string;
   error?: string;
   helperText?: string;
   containerClassName?: string;
@@ -23,6 +25,7 @@ export interface FormFieldInputProps
 
 export function FormFieldInput({
   label,
+  tooltip,
   error,
   helperText,
   containerClassName,
@@ -36,9 +39,12 @@ export function FormFieldInput({
   return (
     <div className={cn("space-y-1.5", containerClassName)}>
       {label && (
-        <Label htmlFor={inputId} className="text-xs font-semibold text-foreground">
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor={inputId} className="text-xs font-semibold text-foreground">
+            {label} {required && <span className="text-destructive">*</span>}
+          </Label>
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </div>
       )}
       <Input
         id={inputId}
@@ -67,6 +73,7 @@ export interface OptionItem {
 
 export interface FormFieldSelectProps {
   label?: string;
+  tooltip?: string;
   value?: string;
   onValueChange?: (value: string) => void;
   options: OptionItem[] | readonly string[];
@@ -82,6 +89,7 @@ export interface FormFieldSelectProps {
 
 export function FormFieldSelect({
   label,
+  tooltip,
   value,
   onValueChange,
   options,
@@ -101,9 +109,12 @@ export function FormFieldSelect({
   return (
     <div className={cn("space-y-1.5", containerClassName)}>
       {label && (
-        <Label className="text-xs font-semibold text-foreground">
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label className="text-xs font-semibold text-foreground">
+            {label} {required && <span className="text-destructive">*</span>}
+          </Label>
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </div>
       )}
       {name && <input type="hidden" name={name} value={value ?? ""} />}
       <Select
@@ -144,6 +155,7 @@ export function FormFieldSelect({
 export interface FormFieldTextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
+  tooltip?: string;
   error?: string;
   helperText?: string;
   containerClassName?: string;
@@ -151,6 +163,7 @@ export interface FormFieldTextareaProps
 
 export function FormFieldTextarea({
   label,
+  tooltip,
   error,
   helperText,
   containerClassName,
@@ -165,9 +178,12 @@ export function FormFieldTextarea({
   return (
     <div className={cn("space-y-1.5", containerClassName)}>
       {label && (
-        <Label htmlFor={textareaId} className="text-xs font-semibold text-foreground">
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor={textareaId} className="text-xs font-semibold text-foreground">
+            {label} {required && <span className="text-destructive">*</span>}
+          </Label>
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </div>
       )}
       <Textarea
         id={textareaId}
@@ -192,6 +208,7 @@ export function FormFieldTextarea({
 export interface FormFieldNumberProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
   label?: string;
+  tooltip?: string;
   value?: number | string;
   onChange?: (val: number) => void;
   error?: string;
@@ -202,6 +219,7 @@ export interface FormFieldNumberProps
 
 export function FormFieldNumber({
   label,
+  tooltip,
   value,
   onChange,
   error,
@@ -235,9 +253,12 @@ export function FormFieldNumber({
   return (
     <div className={cn("space-y-1.5", containerClassName)}>
       {label && (
-        <Label htmlFor={inputId} className="text-xs font-semibold text-foreground">
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor={inputId} className="text-xs font-semibold text-foreground">
+            {label} {required && <span className="text-destructive">*</span>}
+          </Label>
+          {tooltip && <InfoTooltip text={tooltip} />}
+        </div>
       )}
       <div className="relative flex items-center">
         {currencySymbol && (

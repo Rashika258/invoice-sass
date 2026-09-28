@@ -11,6 +11,7 @@ import {
   FileText,
   Package,
   Plus,
+  Sparkles,
   TrendingDown,
   TrendingUp,
   Users,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { getBusinessSummary } from "@/actions/reports";
 import { getCompanyProfile } from "@/actions/settings";
+import { getAppName } from "@/lib/app-config";
 import { QuickCreateDropdown } from "@/components/dashboard/quick-create-dropdown";
 import { RecentTransactionsTabs } from "@/components/dashboard/recent-transactions-tabs";
 import { SalesAnalyticsChart } from "@/components/dashboard/sales-analytics-chart";
@@ -36,6 +38,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/invoice-utils";
 
@@ -101,7 +104,7 @@ export default async function DashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-primary" />
-                <h3 className="text-sm font-bold text-foreground">Getting Started with Billora ERP</h3>
+                <h3 className="text-sm font-bold text-foreground">Getting Started with {getAppName()} ERP</h3>
                 <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">4 Quick Steps</Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -155,9 +158,12 @@ export default async function DashboardPage() {
         {/* Card 1: Total Revenue */}
         <Card className="shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Total Revenue
-            </CardTitle>
+            <div className="flex items-center gap-1.5">
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Total Revenue
+              </CardTitle>
+              <InfoTooltip text="Gross value of all sale invoices issued in the current period." />
+            </div>
             <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground">
               <DollarSign className="size-4" />
             </span>
@@ -180,9 +186,12 @@ export default async function DashboardPage() {
         <Link href="/customers" className="block group">
           <Card className="shadow-xs transition-colors group-hover:border-foreground/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Total Receivable
-              </CardTitle>
+              <div className="flex items-center gap-1.5">
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Total Receivable
+                </CardTitle>
+                <InfoTooltip text="Total outstanding unpaid balances awaiting collection from customers." />
+              </div>
               <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground">
                 <ArrowDownRight className="size-4 text-emerald-600 dark:text-emerald-400" />
               </span>
@@ -206,9 +215,12 @@ export default async function DashboardPage() {
         <Link href="/purchases" className="block group">
           <Card className="shadow-xs transition-colors group-hover:border-foreground/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Total Payable
-              </CardTitle>
+              <div className="flex items-center gap-1.5">
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Total Payable
+                </CardTitle>
+                <InfoTooltip text="Pending payment amounts owed to vendors and raw material suppliers." />
+              </div>
               <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground">
                 <ArrowUpRight className="size-4 text-amber-500" />
               </span>
@@ -231,9 +243,12 @@ export default async function DashboardPage() {
         {/* Card 4: Growth Rate / Net Margin */}
         <Card className="shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Net Margin
-            </CardTitle>
+            <div className="flex items-center gap-1.5">
+              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Net Margin
+              </CardTitle>
+              <InfoTooltip text="Operational profit after deducting purchase bills and operating expenses from net sales." />
+            </div>
             <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground">
               <TrendingUp className="size-4 text-emerald-600 dark:text-emerald-400" />
             </span>

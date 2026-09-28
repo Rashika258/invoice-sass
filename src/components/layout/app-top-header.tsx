@@ -32,8 +32,10 @@ import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { AlertsNotificationBell } from "@/components/layout/alerts-notification-bell";
 import { CommandPalette } from "@/components/command-palette/command-palette";
 import { AiChatDrawer } from "@/components/ai/ai-chat-drawer";
+import { useAppName } from "@/hooks/use-app-name";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -71,6 +73,7 @@ export function AppTopHeader({
   logoUrl,
 }: AppTopHeaderProps) {
   const router = useRouter();
+  const { appName } = useAppName();
   const [calcOpen, setCalcOpen] = useState(false);
   const [endOfDayOpen, setEndOfDayOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -183,26 +186,26 @@ export function AppTopHeader({
 
   return (
     <>
-      <header className="flex h-14 w-full items-center justify-between px-6 border-b border-border bg-background">
-        {/* Left: Multi-Company Switcher in Billora */}
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0" title="Billora — Business OS">
+      <header className="flex h-14 w-full items-center justify-between px-3 sm:px-5 border-b border-border bg-background gap-2 sm:gap-4 overflow-hidden">
+        {/* Left: Multi-Company Switcher */}
+        <div className="flex items-center gap-2 shrink-0 min-w-0">
+          <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0" title={`${appName} — Business OS`}>
             <img
-              src="/icon.png"
-              alt="Billora OS"
-              className="size-7 rounded-lg object-contain border border-border/60 shadow-2xs"
+              src={logoUrl || "/icon.png"}
+              alt={`${appName} OS`}
+              className="size-7 rounded-lg object-contain border border-border/60 shadow-2xs bg-background p-0.5"
             />
           </Link>
           <CompanySwitcher currentCompanyName={companyName} />
         </div>
 
         {/* Center: Command Palette */}
-        <div className="flex items-center justify-center max-w-md w-full px-4">
+        <div className="hidden lg:flex items-center justify-center flex-1 min-w-0 max-w-xs mx-2">
           <CommandPalette />
         </div>
 
         {/* Right: Quick Action Buttons, Calculator, User */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Role Perspective Switcher */}
           <RoleSwitcher currentRole="ADMIN" />
 
@@ -211,10 +214,10 @@ export function AppTopHeader({
             variant="outline"
             size="sm"
             onClick={() => setEndOfDayOpen(true)}
-            className="h-8 text-xs font-bold gap-1.5 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer hidden md:flex"
+            className="h-8 text-xs font-bold gap-1.5 border-border bg-muted/40 hover:bg-muted cursor-pointer hidden 2xl:flex"
             title="Close Daily Register"
           >
-            <CalendarCheck className="size-3.5 text-emerald-600" />
+            <CalendarCheck className="size-3.5 text-primary" />
             <span>End-of-Day Close</span>
           </Button>
 
@@ -224,7 +227,7 @@ export function AppTopHeader({
             href="/invoices/new"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs"
+              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs bg-primary hover:bg-primary/90 text-primary-foreground"
             )}
           >
             <Plus className="size-3.5" />
@@ -239,7 +242,7 @@ export function AppTopHeader({
             href="/purchases/new"
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs"
+              "h-8 px-3 text-xs font-medium gap-1.5 shadow-2xs hidden xl:flex"
             )}
           >
             <Plus className="size-3.5" />
@@ -307,45 +310,66 @@ export function AppTopHeader({
           </DropdownMenu>
 
           {/* Calculator Tool */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => setCalcOpen(true)}
-            title="Calculator"
-          >
-            <Calculator className="size-4" />
-          </Button>
+          <SimpleTooltip content="Quick Calculator for fast math">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              onClick={() => setCalcOpen(true)}
+              aria-label="Calculator"
+            >
+              <Calculator className="size-4" />
+            </Button>
+          </SimpleTooltip>
 
           {/* Business Dictionary & Help Center */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => setHelpOpen(true)}
-            title="Business Dictionary & Help"
-          >
-            <HelpCircle className="size-4 text-brand" />
-          </Button>
+          <SimpleTooltip content="Business Dictionary & GST Guidance">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-foreground"
+              onClick={() => setHelpOpen(true)}
+              aria-label="Business Dictionary & Help"
+            >
+              <HelpCircle className="size-4 text-brand" />
+            </Button>
+          </SimpleTooltip>
 
           <HelpCenterModal open={helpOpen} onOpenChange={setHelpOpen} />
 
           {/* Alerts & Reminders Notification Bell */}
-          <AlertsNotificationBell />
+          <SimpleTooltip content="Overdue Bills & Inventory Alerts">
+            <div>
+              <AlertsNotificationBell />
+            </div>
+          </SimpleTooltip>
+
+          {/* Light / Dark Mode Toggle */}
+          <SimpleTooltip content="Toggle Light / Dark Theme">
+            <div>
+              <ThemeToggle />
+            </div>
+          </SimpleTooltip>
 
           {/* Brand & Theme Color Customizer */}
-          <BrandThemePicker />
+          <SimpleTooltip content="Brand Palette & Theme Customizer">
+            <div>
+              <BrandThemePicker />
+            </div>
+          </SimpleTooltip>
 
           {/* AI Business Brain Quick Drawer */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setAiDrawerOpen(true)}
-            className="size-8 relative text-brand hover:bg-brand-light transition-colors cursor-pointer"
-            title="AI Business Brain & Autopilot"
-          >
-            <Sparkles className="size-4" />
-          </Button>
+          <SimpleTooltip content="Ask AI Business Brain & CFO">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setAiDrawerOpen(true)}
+              className="size-8 relative text-brand hover:bg-brand-light transition-colors cursor-pointer"
+              aria-label="AI Business Brain & Autopilot"
+            >
+              <Sparkles className="size-4" />
+            </Button>
+          </SimpleTooltip>
 
           <AiChatDrawer isOpen={aiDrawerOpen} onClose={() => setAiDrawerOpen(false)} />
 

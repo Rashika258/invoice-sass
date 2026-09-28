@@ -99,9 +99,13 @@ export function PayslipDialog({
       <DialogTrigger
         render={
           (trigger ?? (
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">
-              <FileText className="size-3.5 text-primary" />
-              Payslip
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+              title="Generate / Print Payslip"
+            >
+              <FileText className="size-3.5" />
             </Button>
           )) as React.ReactElement
         }

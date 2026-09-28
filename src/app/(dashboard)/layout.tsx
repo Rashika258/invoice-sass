@@ -4,6 +4,7 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { RoleOnboardingTour } from "@/components/common/role-onboarding-tour";
 import { NetworkStatusBanner } from "@/components/common/network-status-banner";
 import { QuickCreateMenu } from "@/components/common/quick-create-menu";
+import { BrandFaviconSync } from "@/components/layout/brand-favicon-sync";
 import { requireUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen h-dvh w-full overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white">
+      {/* Dynamic Browser Favicon Synchronizer */}
+      <BrandFaviconSync logoUrl={logoUrl} />
+
       {/* Role Interactive Tour (Session #1, #2, #3) */}
       <div className="print:hidden">
         <RoleOnboardingTour userRole={user.role} />

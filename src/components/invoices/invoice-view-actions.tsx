@@ -26,6 +26,7 @@ import type { Customer, Invoice, InvoiceItem } from "@/generated/prisma/client";
 import { deleteInvoice } from "@/actions/invoices";
 import { sendWhatsAppInvoiceAction } from "@/actions/whatsapp-api";
 import { InvoiceTemplate, type TemplateId } from "@/components/invoices/invoice-template";
+import { WhatsAppShareDialog } from "@/components/invoices/whatsapp-share-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UnifiedRecordPage } from "@/components/common/unified-record-page";
@@ -108,6 +109,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("CLASSIC");
   const [copyType, setCopyType] = useState<"ORIGINAL" | "DUPLICATE" | "TRIPLICATE">("ORIGINAL");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
 
   // Load saved preference from localStorage or searchParams
   useEffect(() => {
@@ -247,6 +249,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
   const remainingBalance = Math.max(0, invoice.total - invoice.paidAmount);
 
   return (
+    <>
     <UnifiedRecordPage
       title={invoice.invoiceNumber || "Sales Invoice"}
       subtitle={`Billed to ${invoice.customer.name} • ${invoice.companyName}`}
@@ -288,16 +291,16 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
       ]}
       onEdit={() => router.push(`/invoices/${invoice.id}/edit`)}
       onPrint={handleDownloadPdf}
-      onShare={handleShareWhatsApp}
+      onShare={() => setIsWhatsAppOpen(true)}
       extraActions={
         <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 text-xs text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+          variant="outline"
+          size="icon"
+          className="size-8 text-rose-600 hover:bg-rose-500/10 hover:border-rose-300 transition-colors cursor-pointer"
           onClick={handleDelete}
+          title="Delete Invoice"
         >
-          <Trash2 className="size-3.5 mr-1" />
-          <span>Delete</span>
+          <Trash2 className="size-3.5" />
         </Button>
       }
       overviewContent={
@@ -306,7 +309,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
           <div className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
               <div className="flex items-center gap-2">
-                <LayoutTemplate className="size-4 text-emerald-600 dark:text-emerald-400" />
+                <LayoutTemplate className="size-4 text-primary" />
                 <span className="text-xs font-bold text-foreground">Choose Invoice Template Design:</span>
                 <Badge className={`font-mono text-[10px] ${activeConfig.badgeColor}`}>{activeConfig.badge}</Badge>
               </div>
@@ -316,7 +319,7 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
                   size="sm"
                   onClick={handleDownloadPdf}
                   disabled={isGeneratingPdf}
-                  className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs cursor-pointer"
+                  className="h-8 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Printer className="size-3.5" />
                   <span>{isGeneratingPdf ? "Generating PDF..." : "Print / Export PDF"}</span>
@@ -410,5 +413,12 @@ export function InvoiceViewActions({ invoice, currency, logoUrl }: InvoiceViewPr
         </div>
       }
     />
+    <WhatsAppShareDialog
+      open={isWhatsAppOpen}
+      onOpenChange={setIsWhatsAppOpen}
+      invoice={invoice}
+      currency={currency}
+    />
+    </>
   );
 }

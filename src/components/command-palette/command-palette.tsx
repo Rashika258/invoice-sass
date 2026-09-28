@@ -99,6 +99,18 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handler);
   }, [open, go]);
 
+  useEffect(() => {
+    const openHandler = (e: Event) => {
+      const customEvent = e as CustomEvent<{ search?: string }>;
+      setOpen(true);
+      if (customEvent.detail?.search) {
+        setSearch(customEvent.detail.search);
+      }
+    };
+    window.addEventListener("open-command-palette", openHandler);
+    return () => window.removeEventListener("open-command-palette", openHandler);
+  }, []);
+
   const groups: CommandGroup[] = [
     {
       heading: "Quick Create & AI",
@@ -390,13 +402,15 @@ export function CommandPalette() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden lg:flex items-center gap-2 h-8 px-3 rounded-xl border border-border bg-muted/50 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-all cursor-pointer group"
+        className="flex items-center justify-between gap-2 h-8 px-2.5 rounded-xl border border-border/80 bg-muted/40 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-all cursor-pointer group w-full max-w-[200px] sm:max-w-[220px] select-none"
         aria-label="Open command palette"
       >
-        <Search className="size-3.5" />
-        <span>Search or command...</span>
-        <kbd className="ml-2 inline-flex items-center gap-0.5 rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono font-bold text-muted-foreground group-hover:text-foreground transition-colors">
-          <span className="text-xs">⌘</span>K
+        <span className="flex items-center gap-1.5 min-w-0 truncate">
+          <Search className="size-3.5 shrink-0" />
+          <span className="truncate">Search or command...</span>
+        </span>
+        <kbd className="inline-flex items-center gap-0.5 rounded-md border border-border bg-background px-1 py-0.5 text-[10px] font-mono font-bold text-muted-foreground group-hover:text-foreground shrink-0 transition-colors">
+          <span className="text-[9px]">⌘</span>K
         </kbd>
       </button>
 
@@ -448,11 +462,80 @@ export function CommandPalette() {
 
               {/* Results */}
               <Command.List className="max-h-[400px] overflow-y-auto p-2">
-                <Command.Empty className="py-10 text-center text-sm text-muted-foreground space-y-2">
+                <Command.Empty className="py-8 text-center text-sm text-muted-foreground space-y-3">
                   <Search className="size-8 mx-auto text-muted-foreground/40" />
-                  <p>No results for <strong>"{search}"</strong></p>
-                  <p className="text-xs">Try: "new invoice", "trial balance", "dark mode"</p>
+                  <div>
+                    <p className="font-semibold text-foreground">No menu command for "{search}"</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Search your database records instead:</p>
+                  </div>
+                  <div className="flex flex-col gap-1.5 max-w-sm mx-auto pt-1">
+                    <button
+                      type="button"
+                      onClick={() => go(`/customers?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-card hover:bg-accent text-xs text-foreground cursor-pointer text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Users className="size-3.5 text-primary" />
+                        <span>Search in <strong>Customers &amp; Parties</strong></span>
+                      </span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => go(`/invoices?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-card hover:bg-accent text-xs text-foreground cursor-pointer text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <FileText className="size-3.5 text-primary" />
+                        <span>Search in <strong>Sale Invoices &amp; Bills</strong></span>
+                      </span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => go(`/items?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-card hover:bg-accent text-xs text-foreground cursor-pointer text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Package className="size-3.5 text-primary" />
+                        <span>Search in <strong>Inventory &amp; Items</strong></span>
+                      </span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </button>
+                  </div>
                 </Command.Empty>
+
+                {search.trim().length > 0 && (
+                  <Command.Group heading={`Database Search for "${search}"`}>
+                    <Command.Item
+                      value={`search-customers-${search}`}
+                      onSelect={() => go(`/customers?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs cursor-pointer hover:bg-muted text-foreground"
+                    >
+                      <Users className="size-3.5 text-primary" />
+                      <span className="flex-1">Search <strong>"{search}"</strong> in Customers &amp; Parties</span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </Command.Item>
+                    <Command.Item
+                      value={`search-invoices-${search}`}
+                      onSelect={() => go(`/invoices?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs cursor-pointer hover:bg-muted text-foreground"
+                    >
+                      <FileText className="size-3.5 text-primary" />
+                      <span className="flex-1">Search <strong>"{search}"</strong> in Sale Invoices &amp; Bills</span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </Command.Item>
+                    <Command.Item
+                      value={`search-items-${search}`}
+                      onSelect={() => go(`/items?search=${encodeURIComponent(search)}`)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs cursor-pointer hover:bg-muted text-foreground"
+                    >
+                      <Package className="size-3.5 text-primary" />
+                      <span className="flex-1">Search <strong>"{search}"</strong> in Products &amp; Inventory</span>
+                      <ArrowRight className="size-3 text-muted-foreground" />
+                    </Command.Item>
+                  </Command.Group>
+                )}
 
                 {groups.map((group) => (
                   <Command.Group

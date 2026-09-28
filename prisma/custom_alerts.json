@@ -9,6 +9,19 @@
   },
   "customAlerts": [
     {
+      "id": "alert-1790558186174",
+      "title": "test",
+      "description": "",
+      "category": "CUSTOM",
+      "priority": "HIGH",
+      "triggerDate": "2026-09-28",
+      "recurrence": "MONTHLY",
+      "monthlyDay": 1,
+      "isDismissed": false,
+      "createdAt": "2026-09-28T01:16:26.174Z",
+      "notifyWhatsApp": true
+    },
+    {
       "id": "alert-1",
       "title": "Order Raw Steel Plates & Channels",
       "description": "Review factory fabrication sheet stock and place bulk procurement order with Jindal Steel distributor.",

@@ -17,6 +17,7 @@ import {
   switchActiveCompanyAction,
   createCompanyAction,
 } from "@/actions/companies";
+import { updateBrowserFavicon } from "@/lib/brand-theme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAppName } from "@/hooks/use-app-name";
 
 export function CompanySwitcher({
   currentCompanyName,
@@ -47,6 +49,7 @@ export function CompanySwitcher({
   className?: string;
 }) {
   const router = useRouter();
+  const { appName } = useAppName();
   const [companies, setCompanies] = useState<CompanySummaryItem[]>([]);
   const [isPending, startTransition] = useTransition();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -73,13 +76,28 @@ export function CompanySwitcher({
   }, []);
 
   const handleSwitch = (companyId: string, name: string) => {
+    // 1. Instantly update local state so checkmark, name, and logo update immediately
+    setCompanies((prev) =>
+      prev.map((c) => ({
+        ...c,
+        isActive: c.id === companyId,
+      }))
+    );
+
     startTransition(async () => {
       try {
-        await switchActiveCompanyAction(companyId);
+        const res = await switchActiveCompanyAction(companyId);
+        if (res.logoUrl) {
+          updateBrowserFavicon(res.logoUrl);
+        } else {
+          updateBrowserFavicon("/favicon.ico");
+        }
         toast.success(`Switched active company to ${name}`);
-        router.refresh();
+        // 2. Immediately reload page so all dashboard KPIs, invoices, items, and ledgers fetch fresh
+        window.location.reload();
       } catch (err: any) {
         toast.error(err.message || "Failed to switch company");
+        loadCompanies();
       }
     });
   };
@@ -108,8 +126,7 @@ export function CompanySwitcher({
       setNewGstin("");
       setNewPhone("");
       setNewAddress("");
-      await loadCompanies();
-      router.refresh();
+      window.location.reload();
     } catch (err: any) {
       toast.error(err.message || "Failed to create company");
     } finally {
@@ -135,12 +152,20 @@ export function CompanySwitcher({
               type="button"
               className={
                 className ||
-                "flex items-center gap-2.5 rounded-xl border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/60 transition-colors shadow-2xs max-w-[280px] cursor-pointer"
+                "flex items-center gap-2 rounded-xl border border-border/80 bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/60 transition-colors shadow-2xs max-w-[210px] sm:max-w-[240px] cursor-pointer shrink-0"
               }
             >
-              <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 shrink-0">
-                <Building2 className="size-4" />
-              </div>
+              {activeCompany?.logoUrl ? (
+                <img
+                  src={activeCompany.logoUrl}
+                  alt=""
+                  className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
+                />
+              ) : (
+                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Building2 className="size-4" />
+                </div>
+              )}
               <div className="min-w-0 text-left flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate font-bold text-foreground text-xs leading-tight">
@@ -148,7 +173,7 @@ export function CompanySwitcher({
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Billora</span>
+                  <span className="text-primary font-semibold">{appName}</span>
                   <span>•</span>
                   <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
                 </div>
@@ -164,7 +189,7 @@ export function CompanySwitcher({
 
         <DropdownMenuContent align="start" className="w-72 p-1.5">
           <DropdownMenuLabel className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground">
-            <span>Companies in Billora</span>
+            <span>Companies in {appName}</span>
             <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0">
               {companies.length} Firms
             </Badge>
@@ -182,15 +207,23 @@ export function CompanySwitcher({
                   className="flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs group"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div
-                      className={`flex size-6 shrink-0 items-center justify-center rounded-md font-black text-[11px] ${
-                        isSelected
-                          ? "bg-emerald-600 text-white"
-                          : "bg-muted text-muted-foreground group-hover:text-foreground"
-                      }`}
-                    >
-                      {comp.companyName.charAt(0)}
-                    </div>
+                    {comp.logoUrl ? (
+                      <img
+                        src={comp.logoUrl}
+                        alt=""
+                        className="size-6 shrink-0 rounded-md object-contain border border-border bg-background p-0.5"
+                      />
+                    ) : (
+                      <div
+                        className={`flex size-6 shrink-0 items-center justify-center rounded-md font-black text-[11px] ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground group-hover:text-foreground"
+                        }`}
+                      >
+                        {comp.companyName.charAt(0)}
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground text-xs">
                         {comp.companyName}
@@ -229,10 +262,10 @@ export function CompanySwitcher({
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Building2 className="size-4 text-primary" />
-              <span>Register New Company in Billora</span>
+              <span>Register New Company in {appName}</span>
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Billora manages multiple business firms, GST books, inventory, and online stores under one account.
+              {appName} manages multiple business firms, GST books, inventory, and online stores under one account.
             </DialogDescription>
           </DialogHeader>
 

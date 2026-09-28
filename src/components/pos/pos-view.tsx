@@ -33,6 +33,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { useAppName } from "@/hooks/use-app-name";
+import { InfoTooltip, SimpleTooltip } from "@/components/ui/tooltip";
 
 type POSCartItem = {
   itemId: string;
@@ -65,6 +67,7 @@ export function PosView({
 }) {
   const WALK_IN_ID = "__WALK_IN__";
   const router = useRouter();
+  const { appName } = useAppName();
   const [cart, setCart] = useState<POSCartItem[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(
@@ -236,7 +239,7 @@ export function PosView({
       <div className="flex items-center justify-between pb-2 border-b">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <span>Billora POS Billing</span>
+            <span>{appName} POS Billing</span>
             <Badge className="bg-rose-600 text-white font-semibold text-[10px]">
               Fast Counter
             </Badge>
@@ -256,9 +259,11 @@ export function PosView({
             </span>
           )}
           {enableBarcodes && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-              • Barcode Scanner Ready
-            </span>
+            <SimpleTooltip content="Barcode scanner listener is active. Scanning any SKU barcode will immediately insert the item into the cart.">
+              <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium cursor-help">
+                • Barcode Scanner Ready
+              </span>
+            </SimpleTooltip>
           )}
         </div>
       </div>
@@ -351,7 +356,7 @@ export function PosView({
 
               {/* Customer Selector */}
               <div className="mt-2.5 flex items-center gap-1.5">
-                <div className="flex-1">
+                <div className="flex-1 flex items-center gap-1.5">
                   <Select value={selectedCustomerId} onValueChange={(val) => val && setSelectedCustomerId(val)}>
                     <SelectTrigger className="w-full h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 font-medium">
                       <SelectValue placeholder="Select Customer">
@@ -373,18 +378,20 @@ export function PosView({
                       ))}
                     </SelectContent>
                   </Select>
+                  <InfoTooltip text="Walk-in creates anonymous cash bills without opening a customer account; choosing a registered party tracks ledger balance & credit limits." />
                 </div>
                 {selectedCustomerId !== WALK_IN_ID && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setSelectedCustomerId(WALK_IN_ID)}
-                    className="h-8 text-[11px] px-2 rounded-lg shrink-0 font-medium"
-                    title="Switch to Walk-in Customer"
-                  >
-                    Reset Walk-in
-                  </Button>
+                  <SimpleTooltip content="Reset to default walk-in customer for quick counter checkout.">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedCustomerId(WALK_IN_ID)}
+                      className="h-8 text-[11px] px-2 rounded-lg shrink-0 font-medium cursor-pointer"
+                    >
+                      + Walk-in
+                    </Button>
+                  </SimpleTooltip>
                 )}
               </div>
             </CardHeader>
@@ -503,9 +510,12 @@ export function PosView({
               {paymentMode === "CASH" && (
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                   <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">
-                      Cash Received (₹)
-                    </label>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="text-[10px] text-muted-foreground block">
+                        Cash Received (₹)
+                      </label>
+                      <InfoTooltip text="Enter amount received from the customer to automatically compute the exact change to return." />
+                    </div>
                     <Input
                       type="number"
                       value={amountTendered}
@@ -515,9 +525,11 @@ export function PosView({
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-muted-foreground block mb-1">
-                      Change Due (₹)
-                    </label>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="text-[10px] text-muted-foreground block">
+                        Change Due (₹)
+                      </label>
+                    </div>
                     <div className="h-8 rounded-lg bg-muted px-2 flex items-center font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       {formatCurrency(changeDue, currency)}
                     </div>

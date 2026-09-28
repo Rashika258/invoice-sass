@@ -42,7 +42,8 @@ function Calendar({
           buttonVariants({ variant: "ghost" }),
           "size-9 p-0 font-medium text-sm text-foreground dark:text-zinc-200 hover:bg-muted dark:hover:bg-zinc-800/80 rounded-xl cursor-pointer transition-colors"
         ),
-        selected: "bg-muted dark:bg-zinc-800 text-foreground dark:text-white font-semibold hover:bg-muted dark:hover:bg-zinc-800 focus:bg-muted dark:focus:bg-zinc-800 rounded-xl shadow-2xs",
+        selected:
+          "bg-primary text-primary-foreground font-bold hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground rounded-xl shadow-xs",
         range_start: "bg-primary text-primary-foreground font-bold rounded-l-xl",
         range_end: "bg-primary text-primary-foreground font-bold rounded-r-xl",
         range_middle: "bg-primary/20 text-foreground font-medium rounded-none",

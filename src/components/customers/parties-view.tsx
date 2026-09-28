@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, BookOpen, FileText, Phone, Plus, Search, Users } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, BookOpen, FileText, Pencil, Phone, Plus, Search, Users } from "lucide-react";
 import { CustomerFormDialog, DeleteCustomerButton } from "@/components/customers/customer-form-dialog";
 import { CustomerKhataModal } from "@/components/customers/customer-khata-modal";
 import { Badge } from "@/components/ui/badge";
@@ -300,28 +300,33 @@ export function PartiesView({
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedKhataParty(party)}
-                          className="h-7 px-2 text-xs font-semibold text-emerald-600 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 cursor-pointer"
+                          className="size-7 p-0 flex items-center justify-center text-emerald-600 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/15 cursor-pointer rounded-lg"
+                          title="Digital Khata Ledger"
                         >
-                          <BookOpen className="size-3 mr-1" />
-                          Khata
+                          <BookOpen className="size-3.5" />
                         </Button>
                         <Link
                           href={`/invoices/new?customerId=${party.id}`}
-                          className="inline-flex items-center justify-center rounded-md border border-border h-7 px-2 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+                          className="inline-flex items-center justify-center rounded-lg border border-border size-7 p-0 text-primary hover:bg-primary/10 transition-colors"
+                          title="Create Sale Bill"
                         >
-                          <FileText className="size-3 mr-1" />
-                          + Bill
+                          <FileText className="size-3.5" />
                         </Link>
                         <CustomerFormDialog
                           customer={party as any}
                           trigger={
-                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                              Edit
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="size-7 p-0 flex items-center justify-center hover:bg-muted rounded-lg cursor-pointer"
+                              title="Edit Party"
+                            >
+                              <Pencil className="size-3.5 text-muted-foreground" />
                             </Button>
                           }
                         />

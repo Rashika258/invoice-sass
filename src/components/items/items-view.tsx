@@ -7,6 +7,7 @@ import {
   Boxes,
   FileText,
   Package,
+  Pencil,
   Plus,
   Search,
   Tag,
@@ -47,6 +48,7 @@ type ItemRecord = {
   unit?: string | null;
   gstRate: number;
   itemType: "PRODUCT" | "SERVICE";
+  imageUrl?: string | null;
   stockQty: number;
   minStock: number;
   isPublic: boolean;
@@ -114,15 +116,17 @@ export function ItemsView({
         </div>
         <div className="flex items-center gap-2">
           <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="font-semibold h-8 px-3 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-              >
-                <Upload className="size-3.5 text-muted-foreground" />
-                <span>Import CSV</span>
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="font-semibold h-8 px-3 gap-1.5 rounded-lg text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  <Upload className="size-3.5 text-muted-foreground" />
+                  <span>Import CSV</span>
+                </Button>
+              }
+            />
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold">Bulk Import Products &amp; Services</DialogTitle>
@@ -304,19 +308,34 @@ export function ItemsView({
                   return (
                     <TableRow key={item.id} className="group hover:bg-muted/40 transition-colors">
                       <TableCell className="font-bold text-sm">
-                        <div className="flex items-center gap-2">
-                          <span>{item.name}</span>
-                          {item.unit && (
-                            <span className="text-[11px] font-mono text-muted-foreground">
-                              ({item.unit})
-                            </span>
+                        <div className="flex items-center gap-2.5">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="size-9 rounded-lg object-cover border border-border/80 shrink-0 bg-muted/20"
+                            />
+                          ) : (
+                            <div className="size-9 rounded-lg bg-muted/60 border border-border/60 flex items-center justify-center shrink-0 text-muted-foreground">
+                              <Package className="size-4" />
+                            </div>
                           )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate">{item.name}</span>
+                              {item.unit && (
+                                <span className="text-[11px] font-mono text-muted-foreground">
+                                  ({item.unit})
+                                </span>
+                              )}
+                            </div>
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground font-normal line-clamp-1">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        {item.description && (
-                          <p className="text-xs text-muted-foreground font-normal line-clamp-1">
-                            {item.description}
-                          </p>
-                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
@@ -369,8 +388,13 @@ export function ItemsView({
                           <ItemFormDialog
                             item={item as any}
                             trigger={
-                              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                                Edit
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="size-7 p-0 flex items-center justify-center hover:bg-muted rounded-lg cursor-pointer"
+                                title="Edit Item"
+                              >
+                                <Pencil className="size-3.5 text-muted-foreground" />
                               </Button>
                             }
                           />

@@ -11,6 +11,7 @@ import {
   FileCheck,
   Landmark,
   MoreVertical,
+  Pencil,
   Plus,
   Printer,
   QrCode,
@@ -27,6 +28,7 @@ import {
 } from "@/components/money/bank-account-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -323,8 +325,13 @@ export function CashBankHub({
                         <BankAccountFormDialog
                           account={account}
                           trigger={
-                            <Button variant="ghost" size="sm" className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground">
-                              Edit
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              title="Edit Bank Account"
+                            >
+                              <Pencil className="size-3.5" />
                             </Button>
                           }
                         />
@@ -550,10 +557,9 @@ export function CashBankHub({
 
                 <div className="space-y-1">
                   <Label>Date</Label>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={transferDate}
-                    onChange={(e) => setTransferDate(e.target.value)}
+                    onChange={setTransferDate}
                     className="h-8 text-xs font-sans"
                   />
                 </div>
