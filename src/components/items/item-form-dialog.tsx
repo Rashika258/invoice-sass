@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import type { Item } from "@/generated/prisma/client";
 import { createItem, deleteItem, updateItem } from "@/actions/items";
 import { processImageFile } from "@/lib/brand-theme";
+import { useActiveOrganization } from "@/hooks/useActiveOrganization";
+import { getVerticalConfig } from "@/lib/verticals";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -90,15 +92,34 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { businessVertical } = useActiveOrganization();
+  const verticalConfig = useMemo(() => getVerticalConfig(businessVertical), [businessVertical]);
+
+  const unitsList = useMemo(() => {
+    return Array.from(new Set([...verticalConfig.units, ...COMMON_UNITS]));
+  }, [verticalConfig]);
+
+  const categoriesList = useMemo(() => {
+    return Array.from(new Set([...verticalConfig.categories, ...COMMON_CATEGORIES]));
+  }, [verticalConfig]);
+
   // Form Field States
   const [itemType, setItemType] = useState<"PRODUCT" | "SERVICE">(
-    item?.itemType === "SERVICE" ? "SERVICE" : "PRODUCT"
+    item?.itemType ? item.itemType : verticalConfig.defaultItemType
   );
   const [itemName, setItemName] = useState(item?.name ?? "");
   const [hsn, setHsn] = useState(item?.hsn ?? "");
-  const [unit, setUnit] = useState(item?.unit ?? "PCS");
-  const [category, setCategory] = useState("General");
+  const [unit, setUnit] = useState(item?.unit ?? verticalConfig.defaultUnit);
+  const [category, setCategory] = useState(verticalConfig.categories[0] || "General");
   const [itemCode, setItemCode] = useState("");
+
+  useEffect(() => {
+    if (!item && open) {
+      setItemType(verticalConfig.defaultItemType);
+      setUnit(verticalConfig.defaultUnit);
+      setCategory(verticalConfig.categories[0] || "General");
+    }
+  }, [open, item, verticalConfig]);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<"pricing" | "stock">("pricing");
@@ -268,6 +289,10 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 Service
               </button>
             </div>
+
+            <Badge variant="outline" className="hidden sm:inline-flex text-[10px] font-mono border-primary/30 text-primary">
+              {verticalConfig.label}
+            </Badge>
           </div>
 
           <div className="flex items-center gap-1.5 mr-8">
@@ -331,14 +356,17 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
 
             {/* Select Unit Button */}
             <div className="sm:col-span-2 space-y-1">
-              <Select value={unit || "PCS"} onValueChange={(val) => val && setUnit(val)}>
+              <Select value={unit || verticalConfig.defaultUnit} onValueChange={(val) => val && setUnit(val)}>
                 <SelectTrigger className="w-full h-[42px] rounded-lg border border-primary/40 bg-primary/10 text-primary font-semibold text-xs hover:bg-primary/20">
                   <SelectValue placeholder="Select Unit" />
                 </SelectTrigger>
-                <SelectContent className="max-h-48">
-                  {COMMON_UNITS.map((u) => (
+                <SelectContent className="max-h-56">
+                  <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {verticalConfig.label} Units
+                  </div>
+                  {unitsList.map((u) => (
                     <SelectItem key={u} value={u} className="text-xs">
-                      {u}
+                      {u} {verticalConfig.units.includes(u) && <span className="text-[10px] text-primary font-mono ml-1">(Preset)</span>}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -450,8 +478,11 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 <SelectTrigger className="w-full h-9 rounded-lg border border-input bg-background px-3 text-xs text-foreground">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
-                <SelectContent>
-                  {COMMON_CATEGORIES.map((cat) => (
+                <SelectContent className="max-h-56">
+                  <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {verticalConfig.label} Categories
+                  </div>
+                  {categoriesList.map((cat) => (
                     <SelectItem key={cat} value={cat} className="text-xs">
                       {cat}
                     </SelectItem>

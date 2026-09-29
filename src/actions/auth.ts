@@ -108,5 +108,7 @@ export async function getCurrentUserInfo() {
     email: user.email,
     role: user.role,
     organizationId: user.organizationId,
+    businessVertical: user.organization?.profile?.businessVertical ?? "RETAIL_WHOLESALE",
   };
 }
+

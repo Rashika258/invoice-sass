@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CompanyLogoDialog } from "@/components/companies/company-logo-dialog";
+import { getVerticalConfig } from "@/lib/verticals";
 import { cn } from "@/lib/utils";
 
 interface CompaniesListViewProps {
@@ -134,9 +135,14 @@ export function CompaniesListView({ initialCompanies }: CompaniesListViewProps) 
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-sm font-bold text-foreground truncate">
-                        {comp.companyName}
-                      </CardTitle>
+                      <div className="flex items-center gap-1.5">
+                        <CardTitle className="text-sm font-bold text-foreground truncate">
+                          {comp.companyName}
+                        </CardTitle>
+                        <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 border-primary/30 text-primary shrink-0">
+                          {getVerticalConfig(comp.businessVertical).label.split(" ")[0]}
+                        </Badge>
+                      </div>
                       <p className="text-[11px] text-muted-foreground font-mono truncate">
                         {comp.taxId ? `GSTIN: ${comp.taxId}` : "Regular / Unregistered"}
                       </p>

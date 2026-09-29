@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import type { Customer } from "@/generated/prisma/client";
 import { createCustomer, deleteCustomer, updateCustomer } from "@/actions/customers";
@@ -14,6 +14,11 @@ import {
   FormFieldNumber,
   ConfirmActionButton,
 } from "@/components/ui";
+import {
+  COUNTRIES,
+  getStatesForCountry,
+  getStateFromGstin,
+} from "@/lib/geo-data";
 
 type CustomerFormDialogProps = {
   customer?: Customer;
@@ -33,13 +38,68 @@ export function CustomerFormDialog({
   const [partyType, setPartyType] = useState<string>(
     customer?.partyType ?? defaultPartyType ?? "CUSTOMER"
   );
+  const [country, setCountry] = useState<string>(
+    customer?.country || "India"
+  );
+  const [state, setState] = useState<string>(
+    customer?.state || ""
+  );
+  const [taxId, setTaxId] = useState<string>(
+    customer?.taxId || ""
+  );
+
+  useEffect(() => {
+    if (open) {
+      setPartyType(customer?.partyType ?? defaultPartyType ?? "CUSTOMER");
+      setCountry(customer?.country || "India");
+      setState(customer?.state || "");
+      setTaxId(customer?.taxId || "");
+    }
+  }, [open, customer, defaultPartyType]);
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (newOpen && !customer) {
-      setPartyType(defaultPartyType ?? "CUSTOMER");
+    if (newOpen) {
+      setPartyType(customer?.partyType ?? defaultPartyType ?? "CUSTOMER");
+      setCountry(customer?.country || "India");
+      setState(customer?.state || "");
+      setTaxId(customer?.taxId || "");
     }
   };
+
+  const handleCountryChange = (newCountry: string) => {
+    setCountry(newCountry);
+    const newStates = getStatesForCountry(newCountry);
+    if (!newStates.includes(state)) {
+      setState("");
+    }
+  };
+
+  const handleTaxIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.toUpperCase();
+    setTaxId(val);
+
+    // Auto-detect State & Country from GSTIN if 2+ characters match a GST state code
+    if (val.length >= 2) {
+      const detectedState = getStateFromGstin(val);
+      if (detectedState) {
+        setCountry("India");
+        setState(detectedState);
+      }
+    }
+  };
+
+  const availableStates = useMemo(() => {
+    return getStatesForCountry(country);
+  }, [country]);
+
+  // Ensure current state is included in options so default value is always in the dropdown options
+  const stateOptions = useMemo(() => {
+    if (state && !availableStates.includes(state)) {
+      return [state, ...availableStates];
+    }
+    return availableStates;
+  }, [state, availableStates]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,10 +112,10 @@ export function CustomerFormDialog({
       phone: String(formData.get("phone") ?? ""),
       address: String(formData.get("address") ?? ""),
       city: String(formData.get("city") ?? ""),
-      state: String(formData.get("state") ?? ""),
+      state: String(formData.get("state") || state),
       zipCode: String(formData.get("zipCode") ?? ""),
-      country: String(formData.get("country") ?? ""),
-      taxId: String(formData.get("taxId") ?? ""),
+      country: String(formData.get("country") || country),
+      taxId: String(formData.get("taxId") || taxId),
       notes: String(formData.get("notes") ?? ""),
       partyType: String(formData.get("partyType") ?? (defaultPartyType ?? "CUSTOMER")) as
         | "CUSTOMER"
@@ -150,25 +210,47 @@ export function CustomerFormDialog({
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormFieldInput label="City" name="city" defaultValue={customer?.city ?? ""} />
-        <FormFieldInput
-          label="State"
-          name="state"
-          defaultValue={customer?.state ?? ""}
-          tooltip="Determines Place of Supply for intra-state (CGST+SGST) vs inter-state (IGST) tax calculation."
+        <FormFieldSelect
+          label="Country"
+          name="country"
+          value={country}
+          onValueChange={handleCountryChange}
+          options={COUNTRIES}
         />
+        {stateOptions.length > 0 ? (
+          <FormFieldSelect
+            label="State"
+            name="state"
+            value={state || undefined}
+            onValueChange={(val) => setState(val)}
+            options={stateOptions}
+            placeholder="Select state..."
+            tooltip="Determines Place of Supply for intra-state (CGST+SGST) vs inter-state (IGST) tax calculation."
+          />
+        ) : (
+          <FormFieldInput
+            label="State"
+            name="state"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            placeholder="Enter state / province"
+            tooltip="Determines Place of Supply for intra-state (CGST+SGST) vs inter-state (IGST) tax calculation."
+          />
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <FormFieldInput label="City" name="city" defaultValue={customer?.city ?? ""} />
         <FormFieldInput label="Zip Code" name="zipCode" defaultValue={customer?.zipCode ?? ""} />
-        <FormFieldInput label="Country" name="country" defaultValue={customer?.country ?? ""} />
       </div>
 
       <FormFieldInput
         label="GSTIN"
         name="taxId"
-        defaultValue={customer?.taxId ?? ""}
-        tooltip="15-digit GST Identification Number for B2B tax invoice compliance and input tax credit (ITC)."
+        value={taxId}
+        onChange={handleTaxIdChange}
+        placeholder="e.g. 27AAAAA0000A1Z5"
+        tooltip="15-digit GST Identification Number for B2B tax invoice compliance. Country & State are automatically populated from GSTIN."
       />
       <FormFieldTextarea label="Notes" name="notes" defaultValue={customer?.notes ?? ""} rows={3} />
     </FormDialog>

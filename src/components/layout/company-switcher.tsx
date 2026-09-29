@@ -41,6 +41,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAppName } from "@/hooks/use-app-name";
 import { useActiveOrganization } from "@/hooks/useActiveOrganization";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { VERTICAL_OPTIONS } from "@/components/settings/vertical-selector";
+import { getVerticalConfig } from "@/lib/verticals";
+import type { BusinessVertical } from "@/generated/prisma/enums";
 
 export function CompanySwitcher({
   currentCompanyName,
@@ -58,7 +68,8 @@ export function CompanySwitcher({
   const [isPending, startTransition] = useTransition();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  // New Company form
+  const { userRole, setBusinessVertical } = useActiveOrganization();
+  const [newVertical, setNewVertical] = useState<BusinessVertical>("RETAIL_WHOLESALE");
   const [newCompanyName, setNewCompanyName] = useState("");
   const [newGstin, setNewGstin] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -111,6 +122,16 @@ export function CompanySwitcher({
       }))
     );
 
+    const targetComp = companies.find((c) => c.id === companyId);
+    if (targetComp?.businessVertical) {
+      setBusinessVertical(targetComp.businessVertical);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("billora_active_business_vertical", targetComp.businessVertical);
+        } catch {}
+      }
+    }
+
     startTransition(async () => {
       try {
         const res = await switchActiveCompanyAction(companyId);
@@ -145,6 +166,7 @@ export function CompanySwitcher({
         address: newAddress.trim() || undefined,
         state: newState,
         currency: "INR",
+        businessVertical: newVertical,
       });
 
       toast.success(`Registered company "${res.companyName}" successfully`);
@@ -153,6 +175,7 @@ export function CompanySwitcher({
       setNewGstin("");
       setNewPhone("");
       setNewAddress("");
+      setNewVertical("RETAIL_WHOLESALE");
       window.location.reload();
     } catch (err: any) {
       toast.error(err.message || "Failed to create company");
@@ -165,7 +188,6 @@ export function CompanySwitcher({
     companies.find((c) => c.isActive) ||
     (companies.length > 0 ? companies[0] : null);
 
-  const { userRole } = useActiveOrganization();
   const canSwitch = userRole === "ADMIN" && companies.length > 1;
 
   const displayName =
@@ -346,9 +368,14 @@ export function CompanySwitcher({
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-foreground text-xs">
-                          {comp.companyName}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="truncate font-semibold text-foreground text-xs">
+                            {comp.companyName}
+                          </p>
+                          <Badge variant="outline" className="text-[8px] font-mono px-1 py-0 border-primary/30 text-primary shrink-0">
+                            {getVerticalConfig(comp.businessVertical).label.split(" ")[0]}
+                          </Badge>
+                        </div>
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono truncate">
                           <span>{comp.taxId || comp.state || "India"}</span>
                           <span>•</span>
@@ -402,6 +429,25 @@ export function CompanySwitcher({
                   className="h-9 text-xs"
                   required
                 />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Business Industry Vertical</Label>
+                <Select value={newVertical} onValueChange={(v) => setNewVertical(v as BusinessVertical)}>
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {VERTICAL_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        {opt.title} ({opt.badge})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Configures navigation tabs, item units, invoice prefix, and feature workflows.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

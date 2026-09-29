@@ -36,6 +36,7 @@ import { CommandPalette } from "@/components/command-palette/command-palette";
 import { AiChatDrawer } from "@/components/ai/ai-chat-drawer";
 import { useAppName } from "@/hooks/use-app-name";
 import { useActiveOrganization } from "@/hooks/useActiveOrganization";
+import { getVerticalConfig } from "@/lib/verticals";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -77,7 +78,7 @@ export function AppTopHeader({
 }: AppTopHeaderProps) {
   const router = useRouter();
   const { appName } = useAppName();
-  const { organizationId } = useActiveOrganization();
+  const { organizationId, businessVertical } = useActiveOrganization();
   const [calcOpen, setCalcOpen] = useState(false);
   const [endOfDayOpen, setEndOfDayOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -88,6 +89,8 @@ export function AppTopHeader({
   // Global search modal
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const verticalConfig = getVerticalConfig(businessVertical);
 
   // Keyboard shortcut listener: F8 for Add Sale, F9 for Add Purchase, Ctrl+K for Search
   useEffect(() => {
@@ -168,7 +171,15 @@ export function AppTopHeader({
     return () => window.removeEventListener("keydown", handleCalcKeyDown);
   }, [calcOpen, calcInput, calcResult]);
 
-  const quickNav = [
+  interface QuickNavItem {
+    title: string;
+    href: string;
+    icon: any;
+    category: string;
+    featureKey?: SidebarFeature;
+  }
+
+  const quickNav: QuickNavItem[] = [
     { title: "Sale Invoices", href: "/invoices", icon: FileText, category: "Sales", featureKey: SidebarFeature.INVOICES },
     { title: "New Sale Invoice", href: "/invoices/new", icon: Plus, category: "Sales", featureKey: SidebarFeature.INVOICES },
     { title: "Purchase Bills", href: "/purchases", icon: ShoppingBag, category: "Purchases", featureKey: SidebarFeature.PURCHASES },
@@ -182,6 +193,12 @@ export function AppTopHeader({
     { title: "Staff Directory", href: "/employees", icon: Users, category: "Staff", featureKey: SidebarFeature.STAFF },
     { title: "Reports & GST", href: "/reports", icon: FileText, category: "Reports", featureKey: SidebarFeature.REPORTS },
     { title: "Settings & Company", href: "/settings", icon: Settings, category: "Settings", featureKey: SidebarFeature.SETTINGS },
+    ...verticalConfig.navigationItems.map((item) => ({
+      title: item.label,
+      href: item.href,
+      icon: FileText,
+      category: `${verticalConfig.label} Hub`,
+    })),
   ];
 
   // Enabled features for the active organization – default to all features
@@ -212,6 +229,13 @@ export function AppTopHeader({
             />
           </Link>
           <CompanySwitcher currentCompanyName={companyName} />
+          <Badge
+            variant="outline"
+            className="hidden xl:inline-flex text-[9px] font-mono border-primary/30 text-primary py-0.5 px-1.5 shrink-0"
+            title={`${verticalConfig.label} Industry Preset Active`}
+          >
+            {verticalConfig.label}
+          </Badge>
         </div>
 
         {/* Center: Command Palette */}

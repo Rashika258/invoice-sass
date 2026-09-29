@@ -36,7 +36,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchAppSettings, saveAppSettingsAction } from "@/actions/store-ops";
-import { updateCompanyProfile } from "@/actions/settings";
+import { updateCompanyProfile, updateBusinessVertical } from "@/actions/settings";
+import { VerticalSelector } from "@/components/settings/vertical-selector";
+import { useActiveOrganization } from "@/hooks/useActiveOrganization";
+import { getVerticalConfig } from "@/lib/verticals";
+import type { BusinessVertical } from "@/generated/prisma/enums";
 import {
   BRAND_THEME_PRESETS,
   applyBrandTheme,
@@ -141,6 +145,38 @@ export function BusinessSettingsView({
       }
     }
   }, [searchParams]);
+
+  // Business Vertical states
+  const { businessVertical: contextVertical, setBusinessVertical } = useActiveOrganization();
+  const [currentVertical, setCurrentVertical] = useState<BusinessVertical>(
+    (profile?.businessVertical as BusinessVertical) || contextVertical || "RETAIL_WHOLESALE"
+  );
+  const [isSavingVertical, setIsSavingVertical] = useState(false);
+
+  useEffect(() => {
+    if (profile?.businessVertical) {
+      setCurrentVertical(profile.businessVertical as BusinessVertical);
+    }
+  }, [profile?.businessVertical]);
+
+  const handleVerticalChange = async (newVertical: BusinessVertical) => {
+    if (!isAdmin) {
+      toast.error("Only Administrators can modify the business vertical preset.");
+      return;
+    }
+    setIsSavingVertical(true);
+    setCurrentVertical(newVertical);
+    setBusinessVertical(newVertical);
+    try {
+      await updateBusinessVertical(newVertical);
+      const meta = getVerticalConfig(newVertical);
+      toast.success(`Switched business industry to ${meta.label}! Navigation tabs & options updated.`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update business vertical");
+    } finally {
+      setIsSavingVertical(false);
+    }
+  };
 
   // Brand Theme states
   const [selectedThemeColor, setSelectedThemeColor] = useState("#10b981");
@@ -574,6 +610,48 @@ export function BusinessSettingsView({
                 </button>
               </div>
 
+              {/* Active Vertical Preset Card */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-2xs">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-0.5 pr-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <Sparkles className="size-4 text-primary" />
+                      <span>Business Industry Vertical</span>
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Adapts navigation tabs, dropdowns, units, and inventory tracking for your trade.
+                    </p>
+                  </div>
+                  <Badge className="bg-primary text-primary-foreground border-none text-[10px] px-2 py-0.5">
+                    {getVerticalConfig(currentVertical).badge}
+                  </Badge>
+                </div>
+
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-2 rounded-full bg-primary animate-pulse" />
+                    <div>
+                      <div className="font-bold text-foreground text-xs">
+                        {getVerticalConfig(currentVertical).label}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Invoice Prefix: <span className="font-mono font-semibold">{getVerticalConfig(currentVertical).defaultInvoicePrefix}</span> · Default Unit: <span className="font-mono font-semibold">{getVerticalConfig(currentVertical).defaultUnit}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveSection("COMPANY")}
+                    className="h-7 text-[11px] px-2.5 gap-1"
+                  >
+                    <Sliders className="size-3" />
+                    <span>Change Preset</span>
+                  </Button>
+                </div>
+              </div>
+
               {/* Godowns Card */}
               <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-2xs">
                 <div className="flex items-center justify-between">
@@ -734,7 +812,37 @@ export function BusinessSettingsView({
 
         {/* SECTION: COMPANY & ENTERPRISE SIDEBAR FEATURES */}
         {activeSection === "COMPANY" && (
-          <div className="max-w-4xl space-y-6 text-xs">
+          <div className="max-w-5xl space-y-6 text-xs">
+            {/* Business Vertical Selection Card */}
+            <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="size-4 text-primary" />
+                    <h3 className="font-bold text-foreground text-sm tracking-tight">
+                      Active Business Vertical &amp; Industry Presets
+                    </h3>
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      Current: {getVerticalConfig(currentVertical).label}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Choosing a vertical automatically enables tailored navigation tabs, invoice prefix ({getVerticalConfig(currentVertical).defaultInvoicePrefix}), item units, and inventory tracking rules.
+                  </p>
+                </div>
+
+                <Badge className="bg-primary text-primary-foreground border-none text-[10px] px-2.5 py-1 self-start sm:self-auto">
+                  {getVerticalConfig(currentVertical).badge}
+                </Badge>
+              </div>
+
+              <VerticalSelector
+                selectedVertical={currentVertical}
+                onVerticalChange={(v) => handleVerticalChange(v)}
+                disabled={isSavingVertical || !isAdmin}
+              />
+            </div>
+
             <CompanyFeatureToggle />
           </div>
         )}

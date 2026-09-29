@@ -10,6 +10,8 @@ import {
   Barcode,
   Bell,
   BookOpen,
+  Briefcase,
+  Building,
   Building2,
   CalendarClock,
   CalendarDays,
@@ -25,7 +27,9 @@ import {
   FileText,
   FileUp,
   Globe,
+  GraduationCap,
   History,
+  Layers,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -33,8 +37,10 @@ import {
   Package,
   PanelLeftClose,
   PanelLeftOpen,
+  Pill,
   Plus,
   Receipt,
+  Scissors,
   Search,
   Settings,
   ShieldCheck,
@@ -46,6 +52,7 @@ import {
   UserCheck,
   UserCircle,
   Users,
+  Utensils,
   Wallet,
   Wrench,
   X,
@@ -58,6 +65,7 @@ import { useAppName } from "@/hooks/use-app-name";
 import { useActiveOrganization } from "@/hooks/useActiveOrganization";
 import { SidebarFeature } from "@/generated/prisma/enums";
 import { getCompanyFeatures } from "@/actions/companies";
+import { getVerticalConfig } from "@/lib/verticals";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -321,7 +329,7 @@ function NavLinks({
   const query = searchQuery.trim().toLowerCase();
   const isSearching = query.length > 0;
 
-  const { organizationId } = useActiveOrganization();
+  const { organizationId, businessVertical } = useActiveOrganization();
   const [enabledFeatures, setEnabledFeatures] = useState<SidebarFeature[]>(Object.values(SidebarFeature));
 
   useEffect(() => {
@@ -331,8 +339,74 @@ function NavLinks({
       .catch(() => setEnabledFeatures(Object.values(SidebarFeature)));
   }, [organizationId]);
 
+  const verticalMeta = useMemo(() => getVerticalConfig(businessVertical), [businessVertical]);
+
   const filteredNavConfig = useMemo(() => {
-    const featureFiltered = navConfig
+    const verticalIconMap: Record<string, any> = {
+      ShoppingBag,
+      Pill,
+      Scissors,
+      Building,
+      GraduationCap,
+      Utensils,
+      Briefcase,
+      Layers,
+      Zap,
+      Package,
+      CalendarDays,
+      FileText,
+      Bell,
+      Barcode,
+      ArrowRightLeft,
+      FileCheck,
+      Receipt,
+      Users,
+      Wallet,
+      FileSpreadsheet,
+      Banknote,
+      CalendarClock,
+      Building2,
+    };
+
+    const verticalHubGroup: NavGroup = {
+      id: "vertical-hub",
+      title: `${verticalMeta.label} Hub`,
+      icon: verticalIconMap[verticalMeta.iconName] || Briefcase,
+      collapsible: true,
+      defaultOpen: true,
+      items: verticalMeta.navigationItems.map((it) => ({
+        href: it.href,
+        label: it.label,
+        icon: verticalIconMap[it.icon] || FileText,
+        badge: it.badge,
+      })),
+    };
+
+    const dynamicNavConfig = navConfig.map((grp) => {
+      // If staff group and vertical has appointments enabled, ensure appointments is available
+      if (grp.id === "staff" && (businessVertical === "SALON_CLINIC" || businessVertical === "EDUCATION" || businessVertical === "GENERAL_SERVICES")) {
+        const hasAppts = grp.items.some((i) => i.href === "/appointments");
+        if (!hasAppts) {
+          return {
+            ...grp,
+            items: [
+              { href: "/appointments", label: "Appointments & Bookings", icon: CalendarDays, badge: "BOOK" },
+              ...grp.items,
+            ],
+          };
+        }
+      }
+      return grp;
+    });
+
+    const allGroups = [
+      dynamicNavConfig[0], // home
+      dynamicNavConfig[1], // companies
+      verticalHubGroup,
+      ...dynamicNavConfig.slice(2),
+    ];
+
+    const featureFiltered = allGroups
       .filter((grp) => !grp.featureKey || enabledFeatures.includes(grp.featureKey))
       .map((grp) => ({
         ...grp,
@@ -356,12 +430,12 @@ function NavLinks({
         };
       })
       .filter((grp) => grp.items.length > 0);
-  }, [query, enabledFeatures]);
+  }, [query, enabledFeatures, verticalMeta, businessVertical]);
 
-  // Find exact or longest matching item href across navConfig so ONLY ONE item is active at a time
+  // Find exact or longest matching item href across filteredNavConfig so ONLY ONE item is active at a time
   const activeHref = (() => {
     let bestMatch = "";
-    for (const grp of navConfig) {
+    for (const grp of filteredNavConfig) {
       for (const item of grp.items) {
         if (pathname === item.href) return item.href;
         if (
@@ -378,6 +452,7 @@ function NavLinks({
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {
+      "vertical-hub": true,
       sale: true,
       purchase: true,
     };
@@ -703,8 +778,11 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const { appName } = useAppName();
+  const { businessVertical } = useActiveOrganization();
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+
+  const currentVerticalMeta = useMemo(() => getVerticalConfig(businessVertical), [businessVertical]);
 
   useEffect(() => {
     try {
@@ -762,12 +840,17 @@ export function AppSidebar({
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-black tracking-tight text-foreground">{appName}</span>
                 <Badge className="bg-brand-light text-brand border-brand/20 text-[8px] font-bold px-1 py-0">
-                  BUSINESS OS
+                  {currentVerticalMeta.badge}
                 </Badge>
               </div>
-              <p className="text-[10px] text-muted-foreground truncate max-w-[130px]" title={companyName}>
-                {companyName || "My Business"}
-              </p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <p className="text-[10px] text-muted-foreground truncate max-w-[105px]" title={companyName}>
+                  {companyName || "My Business"}
+                </p>
+                <Badge variant="outline" className="text-[8px] font-mono px-1 py-0 border-primary/30 text-primary shrink-0">
+                  {currentVerticalMeta.label.split(" ")[0]}
+                </Badge>
+              </div>
             </div>
           )}
         </div>

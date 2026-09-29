@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { DOCUMENT_META, GST_RATES } from "@/lib/documents";
+import { INDIAN_STATES } from "@/lib/geo-data";
 import {
   calculateDocumentTotals,
   calculateLineAmount,
@@ -770,11 +771,17 @@ export function InvoiceForm({
               </div>
               <Input
                 id="placeOfSupply"
+                list="indian-states-pos-list"
                 value={placeOfSupply}
                 onChange={(e) => setPlaceOfSupply(e.target.value)}
                 placeholder={selectedParty?.state || companyState || "E.g. Maharashtra"}
                 className="h-9 text-xs"
               />
+              <datalist id="indian-states-pos-list">
+                {INDIAN_STATES.map((st) => (
+                  <option key={st} value={st} />
+                ))}
+              </datalist>
             </div>
 
             {/* Status (Credit vs Paid) */}

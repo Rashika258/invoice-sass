@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { VerticalSelector, type BusinessVertical } from "@/components/settings/vertical-selector";
+import { INDIAN_STATES } from "@/lib/geo-data";
 
 export function SettingsForm({ profile }: { profile: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -406,10 +407,16 @@ export function SettingsForm({ profile }: { profile: any }) {
                 <Input
                   id="state"
                   name="state"
+                  list="settings-states-list"
                   defaultValue={profile?.state ?? ""}
                   placeholder="Maharashtra"
                   className="h-9 text-xs"
                 />
+                <datalist id="settings-states-list">
+                  {INDIAN_STATES.map((st) => (
+                    <option key={st} value={st} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="space-y-1.5">

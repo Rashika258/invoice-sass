@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { SidebarFeature } from "@/generated/prisma/client";
+import { SidebarFeature, BusinessVertical } from "@/generated/prisma/enums";
 import { requireOrganization } from "@/lib/organization";
+import { getVerticalConfig } from "@/lib/verticals";
 
 export interface CompanySummaryItem {
   id: string;
@@ -21,6 +22,7 @@ export interface CompanySummaryItem {
   itemsCount: number;
   invoicesCount: number;
   isActive: boolean;
+  businessVertical: BusinessVertical;
 }
 
 export async function getAvailableCompanies(): Promise<CompanySummaryItem[]> {
@@ -62,6 +64,7 @@ export async function getAvailableCompanies(): Promise<CompanySummaryItem[]> {
       itemsCount: org._count.items,
       invoicesCount: org._count.invoices,
       isActive: org.id === currentOrg.id,
+      businessVertical: (org.profile?.businessVertical ?? "RETAIL_WHOLESALE") as BusinessVertical,
     };
   });
 }
@@ -146,8 +149,11 @@ export async function createCompanyAction(data: {
   city?: string;
   state?: string;
   currency?: string;
+  businessVertical?: BusinessVertical;
 }) {
   const user = await requireUser();
+  const vertical = data.businessVertical || "RETAIL_WHOLESALE";
+  const verticalConfig = getVerticalConfig(vertical);
 
   // Create organization
   const newOrg = await db.organization.create({
@@ -164,7 +170,12 @@ export async function createCompanyAction(data: {
           state: data.state || "Karnataka",
           country: "India",
           currency: data.currency || "INR",
-          invoicePrefix: "INV",
+          businessVertical: vertical,
+          invoicePrefix: verticalConfig.defaultInvoicePrefix,
+          enableBatchExpiry: verticalConfig.features.enableBatchExpiry,
+          enableBarcodes: verticalConfig.features.enableBarcodes,
+          enableStaffCommission: verticalConfig.features.enableStaffCommission,
+          defaultItemType: verticalConfig.defaultItemType,
           nextInvoiceNumber: 1,
         },
       },
