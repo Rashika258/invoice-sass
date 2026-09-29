@@ -20,7 +20,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { SidebarFeature } from "@/generated/prisma/client";
+import { SidebarFeature } from "@/generated/prisma/enums";
 import { getCompanyFeatures, updateCompanyFeatures } from "@/actions/companies";
 import { useActiveOrganization } from "@/hooks/useActiveOrganization";
 import { Badge } from "@/components/ui/badge";

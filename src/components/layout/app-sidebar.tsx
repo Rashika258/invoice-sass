@@ -56,7 +56,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { useAppName } from "@/hooks/use-app-name";
 import { useActiveOrganization } from "@/hooks/useActiveOrganization";
-import { SidebarFeature } from "@/generated/prisma/client";
+import { SidebarFeature } from "@/generated/prisma/enums";
 import { getCompanyFeatures } from "@/actions/companies";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SidebarFeature } from "@/generated/prisma/client";
+import { SidebarFeature } from "@/generated/prisma/enums";
 import { getCompanyFeatures } from "@/actions/companies";
 import { BrandThemePicker } from "@/components/layout/brand-theme-picker";
 import { CompanySwitcher } from "@/components/layout/company-switcher";
