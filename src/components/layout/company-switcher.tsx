@@ -174,6 +174,8 @@ export function CompanySwitcher({
     cachedCompanyName ||
     appName;
 
+  const isPrimary = Boolean(className?.includes("bg-primary"));
+
   return (
     <>
       {!canSwitch ? (
@@ -187,21 +189,45 @@ export function CompanySwitcher({
             <img
               src={activeCompany.logoUrl}
               alt=""
-              className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
+              className={`size-7 rounded-lg object-contain p-0.5 shrink-0 ${
+                isPrimary
+                  ? "border border-white/20 bg-white/10"
+                  : "border border-border bg-background"
+              }`}
             />
           ) : (
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+            <div
+              className={`flex size-7 items-center justify-center rounded-lg shrink-0 ${
+                isPrimary
+                  ? "bg-white/20 text-white"
+                  : "bg-primary/10 text-primary"
+              }`}
+            >
               <Building2 className="size-4" />
             </div>
           )}
           <div className="min-w-0 text-left flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate font-bold text-foreground text-xs leading-tight">
+              <span
+                className={`truncate font-bold text-xs leading-tight ${
+                  isPrimary ? "text-white" : "text-foreground"
+                }`}
+              >
                 {displayName}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-              <span className="text-primary font-semibold">{appName}</span>
+            <div
+              className={`flex items-center gap-1 text-[10px] font-medium ${
+                isPrimary ? "text-white/80" : "text-muted-foreground"
+              }`}
+            >
+              <span
+                className={
+                  isPrimary ? "text-white font-semibold" : "text-primary font-semibold"
+                }
+              >
+                {appName}
+              </span>
               <span>•</span>
               <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
             </div>
@@ -222,29 +248,61 @@ export function CompanySwitcher({
                   <img
                     src={activeCompany.logoUrl}
                     alt=""
-                    className="size-7 rounded-lg object-contain border border-border bg-background p-0.5 shrink-0"
+                    className={`size-7 rounded-lg object-contain p-0.5 shrink-0 ${
+                      isPrimary
+                        ? "border border-white/20 bg-white/10"
+                        : "border border-border bg-background"
+                    }`}
                   />
                 ) : (
-                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                  <div
+                    className={`flex size-7 items-center justify-center rounded-lg shrink-0 ${
+                      isPrimary
+                        ? "bg-white/20 text-white"
+                        : "bg-primary/10 text-primary"
+                    }`}
+                  >
                     <Building2 className="size-4" />
                   </div>
                 )}
                 <div className="min-w-0 text-left flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="truncate font-bold text-foreground text-xs leading-tight">
+                    <span
+                      className={`truncate font-bold text-xs leading-tight ${
+                        isPrimary ? "text-white" : "text-foreground"
+                      }`}
+                    >
                       {displayName}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                    <span className="text-primary font-semibold">{appName}</span>
+                  <div
+                    className={`flex items-center gap-1 text-[10px] font-medium ${
+                      isPrimary ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
+                    <span
+                      className={
+                        isPrimary ? "text-white font-semibold" : "text-primary font-semibold"
+                      }
+                    >
+                      {appName}
+                    </span>
                     <span>•</span>
                     <span>{activeCompany?.taxId ? "GSTIN Active" : "Regular"}</span>
                   </div>
                 </div>
                 {isPending ? (
-                  <Loader2 className="size-3.5 animate-spin text-muted-foreground shrink-0" />
+                  <Loader2
+                    className={`size-3.5 animate-spin shrink-0 ${
+                      isPrimary ? "text-white" : "text-muted-foreground"
+                    }`}
+                  />
                 ) : (
-                  <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+                  <ChevronDown
+                    className={`size-3.5 shrink-0 ${
+                      isPrimary ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  />
                 )}
               </button>
             }
