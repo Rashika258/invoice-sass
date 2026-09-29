@@ -177,7 +177,7 @@ export function TouchPosView({ products }: { products: PosProductItem[] }) {
           <Button
             disabled={cart.length === 0}
             onClick={handleCompleteSale}
-            className="w-full h-14 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-98 transition-all cursor-pointer"
+            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md active:scale-98 transition-all cursor-pointer"
           >
             ⚡ Complete Cash / UPI Sale
           </Button>
@@ -207,14 +207,14 @@ export function TouchPosView({ products }: { products: PosProductItem[] }) {
                 </div>
                 <div className="flex justify-between text-base font-bold text-foreground border-t pt-2">
                   <span>Paid Amount</span>
-                  <span className="text-emerald-600 font-mono">{formatCurrency(completedOrder.grandTotal)}</span>
+                  <span className="text-primary font-mono">{formatCurrency(completedOrder.grandTotal)}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   onClick={() => window.print()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 gap-2 cursor-pointer"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 gap-2 cursor-pointer"
                 >
                   <Printer className="size-4" />
                   Print Thermal Receipt

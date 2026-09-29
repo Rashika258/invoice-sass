@@ -3,6 +3,7 @@
 import { Box, Flame, PackageCheck, Zap } from "lucide-react";
 import { formatCurrency } from "@/lib/invoice-utils";
 import type { AnalyticsSummary } from "@/actions/analytics";
+import { ChartEmptyState } from "@/components/ui/chart-empty-state";
 
 export function InventoryVelocityChart({
   inventory,
@@ -12,24 +13,43 @@ export function InventoryVelocityChart({
   currency?: string;
 }) {
   const { fastMoving = [], slowMoving = [], totalStockValue = 0 } = inventory;
+  const hasData = fastMoving.length > 0 || slowMoving.length > 0 || totalStockValue > 0;
 
-  // Fallback demo data if no items exist yet
-  const displayFast =
-    fastMoving.length > 0
-      ? fastMoving
-      : [
-          { id: "1", name: "Brass Fitting Elbow 1/2\"", stockQty: 45, unitPrice: 120, salesCount: 150 },
-          { id: "2", name: "Copper Wire 1.5 sq mm", stockQty: 22, unitPrice: 850, salesCount: 98 },
-          { id: "3", name: "SS Hex Bolt M8x40", stockQty: 310, unitPrice: 15, salesCount: 420 },
-        ];
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                <Flame className="size-4" />
+              </div>
+              <h2 className="text-base font-bold text-foreground tracking-tight">
+                Stock Velocity &amp; Inventory Turnover
+              </h2>
+            </div>
+            <span className="text-xs font-mono font-bold text-muted-foreground">
+              Stock Val: {formatCurrency(0, currency)}
+            </span>
+          </div>
 
-  const displaySlow =
-    slowMoving.length > 0
-      ? slowMoving
-      : [
-          { id: "4", name: "Industrial Pipe Flange 3\"", stockQty: 80, unitPrice: 1450, totalValue: 116000 },
-          { id: "5", name: "Heavy Duty Cutter Blade", stockQty: 45, unitPrice: 950, totalValue: 42750 },
-        ];
+          <div className="my-4">
+            <ChartEmptyState
+              icon="inventory"
+              title="No Inventory Movement Recorded"
+              description="Track item stock levels and record sales to identify your fastest and slowest moving inventory."
+              actionText="Manage Inventory"
+              actionHref="/inventory"
+              minHeight="min-h-[200px]"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const displayFast = fastMoving;
+  const displaySlow = slowMoving;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">
@@ -44,7 +64,7 @@ export function InventoryVelocityChart({
             </h2>
           </div>
           <span className="text-xs font-mono font-bold text-primary">
-            Stock Val: {formatCurrency(totalStockValue || 158750, currency)}
+            Stock Val: {formatCurrency(totalStockValue, currency)}
           </span>
         </div>
 

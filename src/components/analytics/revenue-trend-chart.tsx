@@ -4,6 +4,8 @@ import { useId, useMemo, useRef, useState } from "react";
 import { formatCurrency } from "@/lib/invoice-utils";
 import type { AnalyticsSummary } from "@/actions/analytics";
 
+import { ChartEmptyState } from "@/components/ui/chart-empty-state";
+
 function getCatmullRomSplinePath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
@@ -34,35 +36,22 @@ export function RevenueTrendChart({
   timeSeries: AnalyticsSummary["timeSeries"];
   currency?: string;
 }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(
-    timeSeries.length > 0 ? timeSeries.length - 1 : null
-  );
   const svgRef = useRef<SVGSVGElement | null>(null);
   const chartId = useId().replace(/:/g, "_");
 
-  // Fallback demo data if dataset is empty or flat zeroes
-  const chartData = useMemo(() => {
-    if (!timeSeries || timeSeries.length === 0) return [];
-    const hasData = timeSeries.some((d) => d.sales > 0 || d.purchases > 0);
-    if (hasData) return timeSeries;
-
-    const mockSales = [18000, 24000, 19500, 32000, 28000, 39000, 42000, 36000, 48000, 52000];
-    const mockPurchases = [11000, 14000, 12500, 18000, 16000, 22000, 24000, 20000, 26000, 29000];
-    const mockExpenses = [3000, 3500, 3200, 4000, 3800, 4500, 4800, 4200, 5000, 5500];
-
-    return timeSeries.map((item, idx) => {
-      const s = mockSales[idx % mockSales.length];
-      const p = mockPurchases[idx % mockPurchases.length];
-      const e = mockExpenses[idx % mockExpenses.length];
-      return {
-        ...item,
-        sales: s,
-        purchases: p,
-        expenses: e,
-        netProfit: s - (p + e),
-      };
-    });
+  const hasData = useMemo(() => {
+    return (
+      Array.isArray(timeSeries) &&
+      timeSeries.length > 0 &&
+      timeSeries.some((d) => d.sales > 0 || d.purchases > 0 || d.expenses > 0)
+    );
   }, [timeSeries]);
+
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(
+    timeSeries.length > 0 ? timeSeries.length - 1 : null
+  );
+
+  const chartData = timeSeries;
 
   const maxVal = useMemo(() => {
     if (chartData.length === 0) return 100;
@@ -129,6 +118,34 @@ export function RevenueTrendChart({
 
   const activeSale = hoveredIndex !== null && salesPoints[hoveredIndex] ? salesPoints[hoveredIndex] : null;
   const activePurchase = hoveredIndex !== null && purchasePoints[hoveredIndex] ? purchasePoints[hoveredIndex] : null;
+  if (!hasData) {
+    return (
+      <div className="w-full rounded-2xl border border-border bg-card p-6 shadow-xs">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-foreground tracking-tight">
+              Revenue, Purchases &amp; Net Profit Graph
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Turnover trajectory vs raw material procurement costs and net profit cashflow.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <ChartEmptyState
+            icon="trend"
+            title="No Transaction Data Recorded"
+            description="There are no sales, purchases, or expense transactions recorded for this timeframe yet."
+            actionText="Create Sales Invoice"
+            actionHref="/invoices/new"
+            minHeight="min-h-[260px]"
+          />
+        </div>
+      </div>
+    );
+  }
+
   const activeProfit = hoveredIndex !== null && profitPoints[hoveredIndex] ? profitPoints[hoveredIndex] : null;
 
   return (

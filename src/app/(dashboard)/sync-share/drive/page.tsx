@@ -523,7 +523,7 @@ export default function BackupToDrivePage() {
               size="sm"
               onClick={() => restoreItem && handleRestoreBackup(restoreItem)}
               disabled={isRestoring}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
             >
               {isRestoring ? "Restoring Database..." : "Confirm & Restore"}
             </Button>

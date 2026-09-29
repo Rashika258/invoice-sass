@@ -77,7 +77,7 @@ export default async function PaymentsPage() {
             accounts={bankAccounts}
             invoices={saleBills}
             trigger={
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 px-4 gap-1.5 shadow-xs">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-9 px-4 gap-1.5 shadow-xs">
                 <ArrowDownLeft className="size-4" />
                 <span>+ Payment In</span>
               </Button>
@@ -89,7 +89,7 @@ export default async function PaymentsPage() {
             accounts={bankAccounts}
             invoices={purchaseBills}
             trigger={
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-9 px-4 gap-1.5 shadow-xs">
+              <Button variant="outline" className="font-bold h-9 px-4 gap-1.5 shadow-xs border-border hover:bg-muted">
                 <ArrowUpRight className="size-4" />
                 <span>+ Payment Out</span>
               </Button>

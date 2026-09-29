@@ -154,7 +154,7 @@ export function ExpenseFormPageClient({
             type="submit"
             size="sm"
             disabled={loading}
-            className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 px-5"
+            className="text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 px-5 shadow-xs"
           >
             <Save className="size-3.5" />
             <span>{loading ? "Saving Expense..." : "Save Expense"}</span>

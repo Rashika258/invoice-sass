@@ -542,9 +542,9 @@ export function InvoiceForm({
 
   if (createdInvoice) {
     return (
-      <Card className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 space-y-5">
+      <Card className="rounded-2xl border border-primary/30 bg-primary/5 p-6 space-y-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-lg shadow-sm">
+          <div className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-sm">
             ✓
           </div>
           <div>
@@ -557,7 +557,7 @@ export function InvoiceForm({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-500/20">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-primary/20">
           <Link href={`/invoices/${createdInvoice.id}`}>
             <Button size="sm" className="h-8 text-xs font-bold">
               View {meta.label}
@@ -683,7 +683,7 @@ export function InvoiceForm({
                 {selectedParty && (
                   <span className="text-xs font-semibold">
                     Balance:{" "}
-                    <span className="text-emerald-600 font-bold">
+                    <span className="text-foreground font-bold font-mono">
                       {formatCurrency(selectedParty.openingBalance, currency)}
                     </span>
                   </span>
@@ -817,7 +817,7 @@ export function InvoiceForm({
                 <InfoTooltip text="Calculated automatically by comparing company state and customer place of supply." />
               </div>
               <div className="flex items-center gap-1.5">
-                <Badge variant="outline" className={isInterState ? "text-blue-700 bg-blue-500/10" : "text-emerald-700 bg-emerald-500/10"}>
+                <Badge variant="outline" className="text-primary bg-primary/10 border-primary/20">
                   {isInterState ? "Inter-State (IGST)" : "Intra-State (CGST + SGST)"}
                 </Badge>
               </div>
@@ -1124,7 +1124,7 @@ export function InvoiceForm({
                 {isInterState ? (
                   <div className="flex justify-between py-0.5">
                     <span className="text-muted-foreground">Integrated GST (IGST)</span>
-                    <span className="font-mono font-medium text-blue-600">
+                    <span className="font-mono font-medium text-foreground">
                       {formatCurrency(totals.igstAmount, currency)}
                     </span>
                   </div>
@@ -1132,13 +1132,13 @@ export function InvoiceForm({
                   <>
                     <div className="flex justify-between py-0.5">
                       <span className="text-muted-foreground">Central GST (CGST)</span>
-                      <span className="font-mono font-medium text-emerald-600">
+                      <span className="font-mono font-medium text-foreground">
                         {formatCurrency(totals.cgstAmount, currency)}
                       </span>
                     </div>
                     <div className="flex justify-between py-0.5">
                       <span className="text-muted-foreground">State GST (SGST)</span>
-                      <span className="font-mono font-medium text-emerald-600">
+                      <span className="font-mono font-medium text-foreground">
                         {formatCurrency(totals.sgstAmount, currency)}
                       </span>
                     </div>
@@ -1171,7 +1171,7 @@ export function InvoiceForm({
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-6 shadow-sm gap-1.5 cursor-pointer text-xs"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 px-6 shadow-sm gap-1.5 cursor-pointer text-xs"
                 >
                   <Printer className="size-4" />
                   <span>{isSubmitting ? "Saving..." : invoiceId ? `Update & Print ${meta.label}` : `Save & Print ${meta.label}`}</span>

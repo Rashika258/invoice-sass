@@ -142,7 +142,7 @@ export function PaymentSettingsView() {
       <Card className="rounded-2xl border shadow-2xs">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <Sparkles className="size-4 text-emerald-600" />
+            <Sparkles className="size-4 text-primary" />
             <span>Business UPI QR &amp; Auto-Reconciliation</span>
           </CardTitle>
         </CardHeader>

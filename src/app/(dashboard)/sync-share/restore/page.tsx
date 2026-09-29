@@ -177,7 +177,7 @@ export default function RestoreBackupPage() {
               <Button
                 onClick={handleRestore}
                 disabled={loading}
-                className="w-full sm:w-auto h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-8 shadow-md"
+                className="w-full sm:w-auto h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-8 shadow-md"
               >
                 {loading ? (
                   <>

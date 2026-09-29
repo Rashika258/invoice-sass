@@ -140,7 +140,7 @@ export function OperationReceiptDialog({
             <Button
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="flex-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="flex-1 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Done
             </Button>

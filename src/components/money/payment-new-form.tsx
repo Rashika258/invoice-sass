@@ -479,11 +479,7 @@ export function PaymentNewForm({
             <Button
               type="submit"
               disabled={isPending}
-              className={
-                direction === "IN"
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                  : "bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-              }
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-sm cursor-pointer"
             >
               {isPending ? "Saving Payment..." : `Save ${direction === "IN" ? "Payment-In" : "Payment-Out"}`}
             </Button>

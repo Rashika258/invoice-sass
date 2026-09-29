@@ -385,7 +385,7 @@ export function CompanySwitcher({
                     </div>
 
                     {isSelected && (
-                      <Check className="size-4 text-emerald-600 shrink-0 ml-2" />
+                      <Check className="size-4 text-primary shrink-0 ml-2" />
                     )}
                   </DropdownMenuItem>
                 );

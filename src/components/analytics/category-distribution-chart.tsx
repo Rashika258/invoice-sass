@@ -3,6 +3,7 @@
 import { Package, PieChart, Layers } from "lucide-react";
 import { formatCurrency } from "@/lib/invoice-utils";
 import type { AnalyticsSummary } from "@/actions/analytics";
+import { ChartEmptyState } from "@/components/ui/chart-empty-state";
 
 const CATEGORY_COLORS = [
   "bg-primary",
@@ -21,17 +22,40 @@ export function CategoryDistributionChart({
   currency?: string;
 }) {
   const totalCategoryRevenue = categories.reduce((sum, c) => sum + c.revenue, 0);
+  const hasData = categories.length > 0 && totalCategoryRevenue > 0;
 
-  // Fallback demo categories if dataset has no item classification yet
-  const displayCategories =
-    categories.length > 0
-      ? categories
-      : [
-          { name: "Hardware & Tools", revenue: 45000, percentage: 42, count: 120 },
-          { name: "Raw Material", revenue: 32000, percentage: 30, count: 85 },
-          { name: "Electrical Parts", revenue: 18000, percentage: 17, count: 45 },
-          { name: "General Services", revenue: 12000, percentage: 11, count: 20 },
-        ];
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">
+        <div className="flex items-center justify-between border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <PieChart className="size-4" />
+            </div>
+            <h2 className="text-base font-bold text-foreground tracking-tight">
+              Product Category Breakdown
+            </h2>
+          </div>
+          <span className="text-xs font-semibold text-muted-foreground">
+            0 Categories
+          </span>
+        </div>
+
+        <div className="my-4">
+          <ChartEmptyState
+            icon="category"
+            title="No Category Breakdown"
+            description="Categorize your items and bill them in invoices to visualize category revenue distribution."
+            actionText="View Inventory Items"
+            actionHref="/inventory"
+            minHeight="min-h-[200px]"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const displayCategories = categories;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">

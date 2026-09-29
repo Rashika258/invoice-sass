@@ -216,7 +216,7 @@ export function ComplianceView({ initialData }: { initialData: ComplianceSummary
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger
               render={
-                <Button size="sm" className="h-8 text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button size="sm" className="h-8 text-xs font-bold gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Plus className="size-3.5" />
                   <span>Log Consent</span>
                 </Button>
@@ -332,7 +332,7 @@ export function ComplianceView({ initialData }: { initialData: ComplianceSummary
                     type="submit"
                     size="sm"
                     disabled={saving}
-                    className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                    className="text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                   >
                     {saving ? "Saving..." : "Record Consent"}
                   </Button>

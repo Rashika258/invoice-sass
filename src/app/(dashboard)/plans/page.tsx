@@ -444,7 +444,7 @@ export default function PlansPricingPage() {
             {activePlan?.plan.toLowerCase() === "gold" ? (
               <Button
                 onClick={() => handleOpenCheckout("Gold")}
-                className="w-full h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                className="w-full h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 Renew Gold Plan
               </Button>
@@ -804,7 +804,7 @@ export default function PlansPricingPage() {
                       handleActivateLicense("UPI");
                     }}
                     disabled={isVerifying}
-                    className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {isVerifying ? "Verifying..." : "Verify & Activate"}
                   </Button>
@@ -1129,7 +1129,7 @@ export default function PlansPricingPage() {
                   type="button"
                   onClick={() => handleActivateLicense("NETBANKING")}
                   disabled={isVerifying}
-                  className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                  className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
                 >
                   {isVerifying ? "Authorizing with Bank..." : "Confirm Payment & Activate"}
                 </Button>
@@ -1184,7 +1184,7 @@ export default function PlansPricingPage() {
                   type="button"
                   onClick={() => handleActivateLicense("CARD")}
                   disabled={isVerifying}
-                  className="flex-1 h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {isVerifying ? "Authorizing..." : "Submit OTP & Activate"}
                 </Button>

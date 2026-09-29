@@ -64,7 +64,7 @@ export function OnlinePaymentCard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-xs flex items-center gap-1.5 text-foreground">
-          <QrCode className="size-4 text-emerald-600" />
+          <QrCode className="size-4 text-primary" />
           <span>Online Customer Payment Portal</span>
         </h4>
         <Badge
@@ -151,7 +151,7 @@ export function OnlinePaymentCard({
                 }}
                 className="h-8 text-xs font-semibold gap-1.5 justify-start"
               >
-                <Copy className="size-3.5 text-emerald-600" />
+                <Copy className="size-3.5 text-primary" />
                 <span>Copy Payment Link</span>
               </Button>
 
@@ -159,7 +159,7 @@ export function OnlinePaymentCard({
                 href={`${paymentData.payLink}?amount=${computedRemaining > 0 ? computedRemaining : amount}&name=${encodeURIComponent(customerName)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs"
+                className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs transition-all shadow-xs"
               >
                 <span>Open Payment Portal</span>
                 <ExternalLink className="size-3.5" />

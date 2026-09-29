@@ -251,7 +251,7 @@ export function RoleOnboardingTour({ userRole = "ADMIN" }: { userRole?: string }
               <Button
                 size="sm"
                 onClick={() => setOpen(false)}
-                className="h-8 text-xs font-bold bg-emerald-600 text-white"
+                className="h-8 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Check className="size-3.5 mr-1" />
                 <span>Got It! Finish Tour</span>

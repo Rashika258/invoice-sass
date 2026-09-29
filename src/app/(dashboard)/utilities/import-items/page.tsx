@@ -394,7 +394,7 @@ export default function ImportItemsPage() {
                     setIsCameraScanning(false);
                     toast.success("Barcode Scanned: 8901030382710");
                   }}
-                  className="absolute bottom-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold h-7 px-3 rounded-full shadow-lg cursor-pointer"
+                  className="absolute bottom-3 bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-bold h-7 px-3 rounded-full shadow-lg cursor-pointer"
                 >
                   <Sparkles className="size-3 mr-1" />
                   Capture Scanned Barcode
@@ -405,9 +405,9 @@ export default function ImportItemsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsCameraScanning(true)}
-                className="w-full h-10 rounded-xl border-dashed border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full h-10 rounded-xl border-dashed border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
-                <Camera className="size-4 text-emerald-600 dark:text-emerald-400" />
+                <Camera className="size-4 text-primary" />
                 <span>Scan Barcode using Device Camera</span>
               </Button>
             )}
@@ -471,7 +471,7 @@ export default function ImportItemsPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 cursor-pointer shadow-sm"
+                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-sm"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : "Add to Inventory"}
               </Button>
@@ -516,7 +516,7 @@ export default function ImportItemsPage() {
                 Choose a .CSV file from your computer
               </p>
               <p className="text-[11px] text-muted-foreground mt-1">UTF-8 encoded spreadsheet</p>
-              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 text-xs font-semibold cursor-pointer shadow-xs">
+              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 text-xs font-semibold cursor-pointer shadow-xs">
                 <span>Select File</span>
                 <input
                   type="file"
@@ -562,7 +562,7 @@ export default function ImportItemsPage() {
                 type="button"
                 disabled={csvPreview.length === 0 || loading}
                 onClick={handleCsvImportSubmit}
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 cursor-pointer shadow-sm"
+                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-sm"
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />

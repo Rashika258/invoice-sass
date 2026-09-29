@@ -136,7 +136,7 @@ export default function StoreLandingPage() {
                 <Link href={`/store/${store.slug}`}>
                   <Button
                     size="sm"
-                    className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-1 px-3 shadow-xs"
+                    className="h-8 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl gap-1 px-3 shadow-xs"
                   >
                     <span>Visit Store</span>
                     <ArrowRight className="size-3.5" />

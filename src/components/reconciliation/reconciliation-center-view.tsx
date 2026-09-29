@@ -282,7 +282,7 @@ export function ReconciliationCenterView() {
                           size="sm"
                           disabled={isPending}
                           onClick={() => handleAutoRepair(issue.id)}
-                          className="h-7 text-xs font-bold gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="h-7 text-xs font-bold gap-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <Wrench className="size-3" />
                           <span>Auto-Reconcile</span>

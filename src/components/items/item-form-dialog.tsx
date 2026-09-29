@@ -271,7 +271,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setItemType("PRODUCT")}
                 className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "PRODUCT"
-                    ? "bg-emerald-600 text-white shadow-xs font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -282,7 +282,7 @@ export function ItemFormDialog({ item, trigger, onSuccess }: ItemFormDialogProps
                 onClick={() => setItemType("SERVICE")}
                 className={`px-3 py-1 rounded-full font-semibold text-xs transition-all cursor-pointer ${
                   itemType === "SERVICE"
-                    ? "bg-emerald-600 text-white shadow-xs font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >

@@ -475,7 +475,7 @@ export function AttendanceKioskModal({
             onClick={() => setActiveTab("FACE_SCAN")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === "FACE_SCAN"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
@@ -490,7 +490,7 @@ export function AttendanceKioskModal({
             onClick={() => setActiveTab("FINGERPRINT")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === "FINGERPRINT"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
@@ -709,7 +709,7 @@ export function AttendanceKioskModal({
               size="lg"
               disabled={isProcessing || !selectedEmployee}
               onClick={handleFaceScanPunch}
-              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all active:scale-[0.98]"
+              className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
               <Camera className="size-4 mr-2" />
               {isProcessing ? "Scanning & Verifying..." : `Capture & Punch ${punchType}`}
@@ -811,7 +811,7 @@ export function AttendanceKioskModal({
               size="lg"
               disabled={isProcessing || !selectedEmployee}
               onClick={() => handleFingerprintScan(false)}
-              className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition-all active:scale-[0.98]"
+              className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
               <Fingerprint className="size-4 mr-2" />
               {isProcessing ? "Scanning Fingerprint..." : `Scan USB Device (Punch ${punchType})`}

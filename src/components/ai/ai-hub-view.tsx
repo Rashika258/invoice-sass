@@ -91,7 +91,7 @@ export function AiHubView() {
           <CardContent className="p-4 pt-2">
             <Button
               onClick={() => setOcrModalOpen(true)}
-              className="w-full h-8 text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              className="w-full h-8 text-xs font-bold gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
             >
               <Upload className="size-3.5" />
               <span>Launch AI Bill Scanner</span>

@@ -115,7 +115,7 @@ export function CompaniesListView({ initialCompanies }: CompaniesListViewProps) 
                         <div
                           className={`flex size-11 shrink-0 items-center justify-center rounded-xl font-black text-sm shadow-2xs ${
                             comp.isActive
-                              ? "bg-emerald-600 text-white"
+                              ? "bg-primary text-primary-foreground"
                               : "bg-muted text-muted-foreground"
                           }`}
                         >

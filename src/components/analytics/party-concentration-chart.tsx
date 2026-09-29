@@ -3,6 +3,7 @@
 import { AlertTriangle, ShieldAlert, User, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/invoice-utils";
 import type { AnalyticsSummary } from "@/actions/analytics";
+import { ChartEmptyState } from "@/components/ui/chart-empty-state";
 
 export function PartyConcentrationChart({
   parties = [],
@@ -12,18 +13,42 @@ export function PartyConcentrationChart({
   currency?: string;
 }) {
   const totalPartyRevenue = parties.reduce((sum, p) => sum + p.revenue, 0);
+  const hasData = parties.length > 0 && totalPartyRevenue > 0;
 
-  // Fallback demo data if no party invoices exist yet
-  const displayParties =
-    parties.length > 0
-      ? parties
-      : [
-          { id: "1", name: "Apex Wholesale Traders", revenue: 58000, percentage: 48, partyType: "CUSTOMER" },
-          { id: "2", name: "Metro Retail Store", revenue: 28000, percentage: 23, partyType: "CUSTOMER" },
-          { id: "3", name: "Sharma Electricals", revenue: 19000, percentage: 16, partyType: "CUSTOMER" },
-          { id: "4", name: "Vikas Enterprises", revenue: 15000, percentage: 13, partyType: "BOTH" },
-        ];
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">
+                <Users className="size-4" />
+              </div>
+              <h2 className="text-base font-bold text-foreground tracking-tight">
+                Party Revenue Concentration
+              </h2>
+            </div>
+            <span className="text-xs font-semibold text-muted-foreground">
+              0 Parties
+            </span>
+          </div>
 
+          <div className="my-4">
+            <ChartEmptyState
+              icon="party"
+              title="No Customer Concentration Data"
+              description="Bill your clients and customers to analyze revenue concentration and counterparty risk."
+              actionText="Add New Customer"
+              actionHref="/customers"
+              minHeight="min-h-[200px]"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const displayParties = parties;
   const highestRiskParty = displayParties[0];
   const isHighConcentration = highestRiskParty && highestRiskParty.percentage > 35;
 

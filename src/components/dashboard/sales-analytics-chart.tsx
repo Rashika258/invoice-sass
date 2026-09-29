@@ -3,6 +3,7 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
 import { formatCurrency } from "@/lib/invoice-utils";
+import { ChartEmptyState } from "@/components/ui/chart-empty-state";
 
 type TransactionRecord = {
   id: string;
@@ -141,25 +142,18 @@ export function SalesAnalyticsChart({
     });
   }, [sales, purchases, timeRange]);
 
+  const hasData = useMemo(() => {
+    return chartData.some((d) => d.sales > 0 || d.purchases > 0);
+  }, [chartData]);
+
   const enrichedData = useMemo(() => {
-    const hasSales = chartData.some((d) => d.sales > 0);
-    const hasPurchases = chartData.some((d) => d.purchases > 0);
-
-    const mockSalesWave = [120, 240, 190, 310, 260, 340, 290];
-    const mockPurchasesWave = [80, 140, 110, 160, 130, 200, 150];
-
-    return chartData.map((item, idx) => {
-      const fallbackSales = mockSalesWave[idx % mockSalesWave.length];
-      const fallbackPurchases = mockPurchasesWave[idx % mockPurchasesWave.length];
-
-      return {
-        ...item,
-        displaySales: hasSales ? item.sales : fallbackSales,
-        displayPurchases: hasPurchases ? item.purchases : fallbackPurchases,
-        isRealSales: hasSales && item.sales > 0,
-        isRealPurchases: hasPurchases && item.purchases > 0,
-      };
-    });
+    return chartData.map((item) => ({
+      ...item,
+      displaySales: item.sales,
+      displayPurchases: item.purchases,
+      isRealSales: item.sales > 0,
+      isRealPurchases: item.purchases > 0,
+    }));
   }, [chartData]);
 
   const maxVal = useMemo(() => {
@@ -289,8 +283,23 @@ export function SalesAnalyticsChart({
         </div>
       </div>
 
-      {/* SVG Chart Area */}
-      <div className="relative mt-5 h-[230px] w-full select-none">
+      {!hasData ? (
+        <div className="mt-5">
+          <ChartEmptyState
+            icon="trend"
+            title="No Transactions in Selected Timeframe"
+            description={`No sales invoices or purchase bills were recorded for the ${
+              timeRange === "7d" ? "last 7 days" : timeRange === "30d" ? "last 30 days" : "last 3 months"
+            }.`}
+            actionText="Create Invoice"
+            actionHref="/invoices/new"
+            minHeight="min-h-[230px]"
+          />
+        </div>
+      ) : (
+        <>
+          {/* SVG Chart Area */}
+          <div className="relative mt-5 h-[230px] w-full select-none">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
@@ -389,10 +398,8 @@ export function SalesAnalyticsChart({
                       <span className="size-2 rounded-full bg-emerald-500" />
                       <span>Sales</span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {activeSalePoint.isRealSales
-                        ? formatCurrency(activeSalePoint.sales, currency)
-                        : `₹${activeSalePoint.displaySales}`}
+                    <span className="font-semibold text-foreground font-mono">
+                      {formatCurrency(activeSalePoint.sales, currency)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-3">
@@ -400,10 +407,8 @@ export function SalesAnalyticsChart({
                       <span className="size-2 rounded-full bg-slate-400" />
                       <span>Purchases</span>
                     </div>
-                    <span className="font-medium text-muted-foreground">
-                      {activePurchasePoint.isRealPurchases
-                        ? formatCurrency(activePurchasePoint.purchases, currency)
-                        : `₹${activePurchasePoint.displayPurchases}`}
+                    <span className="font-medium text-muted-foreground font-mono">
+                      {formatCurrency(activePurchasePoint.purchases, currency)}
                     </span>
                   </div>
                 </div>
@@ -413,14 +418,16 @@ export function SalesAnalyticsChart({
         </svg>
       </div>
 
-      {/* X Axis Labels */}
-      <div className="flex justify-between px-3 pt-2 text-[11px] font-medium text-muted-foreground">
-        {enrichedData.map((item, idx) => (
-          <span key={`lbl-${item.label}-${idx}`} className="text-center">
-            {item.label}
-          </span>
-        ))}
-      </div>
+          {/* X Axis Labels */}
+          <div className="flex justify-between px-3 pt-2 text-[11px] font-medium text-muted-foreground">
+            {enrichedData.map((item, idx) => (
+              <span key={`lbl-${item.label}-${idx}`} className="text-center">
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

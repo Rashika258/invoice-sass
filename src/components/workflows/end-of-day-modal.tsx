@@ -184,7 +184,7 @@ export function EndOfDayModal({ open, onOpenChange }: EndOfDayModalProps) {
               <Button
                 size="sm"
                 onClick={() => setStep((s) => (s + 1) as any)}
-                className="text-xs font-bold bg-brand text-white"
+                className="text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <span>Continue</span>
                 <ArrowRight className="size-3.5 ml-1" />
@@ -193,7 +193,7 @@ export function EndOfDayModal({ open, onOpenChange }: EndOfDayModalProps) {
               <Button
                 size="sm"
                 onClick={handleFinishRegisterClose}
-                className="text-xs font-bold bg-emerald-600 text-white shadow-xs"
+                className="text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
               >
                 <CheckCircle2 className="size-3.5 mr-1" />
                 <span>Close Register &amp; Save</span>

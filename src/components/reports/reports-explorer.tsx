@@ -222,7 +222,7 @@ export function ReportsExplorer({
 
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/analytics">
-              <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs">
+              <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs">
                 <TrendingUp className="size-3.5" />
                 Interactive Analytics &amp; Graphs
               </Button>
@@ -243,7 +243,7 @@ export function ReportsExplorer({
               onClick={handlePrint}
               className="h-8 text-xs font-semibold rounded-xl border-border hover:bg-muted cursor-pointer"
             >
-              <Printer className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Printer className="mr-1.5 size-3.5 text-primary" />
               <span>Print PDF Report</span>
             </Button>
             <Button
@@ -252,7 +252,7 @@ export function ReportsExplorer({
               onClick={handleExportCsv}
               className="h-8 text-xs font-semibold rounded-xl border-border hover:bg-muted cursor-pointer gap-1.5"
             >
-              <Download className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Download className="size-3.5 text-primary" />
               Export CSV
             </Button>
           </div>
