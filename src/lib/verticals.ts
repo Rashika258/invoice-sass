@@ -60,9 +60,9 @@ export const VERTICAL_CONFIGS: Record<BusinessVertical, VerticalMeta> = {
     },
     navigationItems: [
       { href: "/pos", label: "POS Express Billing", badge: "EXPRESS", icon: "Zap" },
-      { href: "/items", label: "Inventory & Barcodes", badge: "SCAN", icon: "Package" },
+      { href: "/items", label: "Inventory & Barcodes", badge: "SCAN", icon: "Barcode" },
       { href: "/items/stock-transfer", label: "Godowns & Transfer", icon: "ArrowRightLeft" },
-      { href: "/challans", label: "Delivery Challans", icon: "FileCheck" },
+      { href: "/challans", label: "Delivery Challans", icon: "Truck" },
     ],
   },
   PHARMACY: {
@@ -97,7 +97,7 @@ export const VERTICAL_CONFIGS: Record<BusinessVertical, VerticalMeta> = {
     },
     navigationItems: [
       { href: "/items", label: "Drug Inventory & Expiry", badge: "FEFO", icon: "Pill" },
-      { href: "/invoices/new", label: "Chemist Fast Billing", badge: "RX", icon: "FileText" },
+      { href: "/invoices/new", label: "Chemist Fast Billing", badge: "RX", icon: "Receipt" },
       { href: "/alerts", label: "Expiry & Low Stock Alerts", badge: "LIVE", icon: "Bell" },
       { href: "/utilities/barcode-generator", label: "Medicine Barcodes", icon: "Barcode" },
     ],
