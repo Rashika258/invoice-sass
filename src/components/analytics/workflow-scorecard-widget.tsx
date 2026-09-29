@@ -34,19 +34,30 @@ export function WorkflowScorecardWidget() {
 
   if (!scorecard) return null;
 
+  const totalRuns =
+    scorecard.flows.CREATE_INVOICE.totalAttempts +
+    scorecard.flows.RECORD_PAYMENT.totalAttempts +
+    scorecard.flows.POS_CHECKOUT.totalAttempts;
+
   return (
     <Card className="border border-border/80 shadow-xs overflow-hidden">
       <CardHeader className="p-4 bg-muted/30 border-b flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <Activity className="size-4" />
           </div>
           <div>
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <span>Core Workflow Quality Scorecard</span>
-              <Badge className="bg-emerald-600 text-white text-[10px] font-mono font-bold">
-                {scorecard.overallHealthScore}% HEALTH
-              </Badge>
+              {totalRuns > 0 ? (
+                <Badge className="bg-primary text-primary-foreground text-[10px] font-mono font-bold">
+                  {scorecard.overallHealthScore}% HEALTH
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground text-[10px] font-mono font-bold">
+                  READY (AWAITING ACTIVITY)
+                </Badge>
+              )}
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               Production telemetry on completion speed, failure rates &amp; reconciliation accuracy
@@ -126,6 +137,8 @@ function FlowCard({
   summary: FlowScorecardSummary;
   details: { label: string; value: string; isWarn?: boolean; isGood?: boolean }[];
 }) {
+  const hasRuns = summary.totalAttempts > 0;
+
   return (
     <div className="p-3.5 rounded-xl border bg-card/80 space-y-2.5">
       <div className="flex items-center justify-between">
@@ -133,36 +146,48 @@ function FlowCard({
           {icon}
           <span>{title}</span>
         </div>
-        <Badge
-          className={`text-[9px] font-mono font-bold ${
-            summary.qualityRating === "EXCELLENT"
-              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-              : summary.qualityRating === "GOOD"
-              ? "bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/20"
-              : "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20"
-          }`}
-        >
-          {summary.successRate}% SUCCESS
-        </Badge>
+        {hasRuns ? (
+          <Badge
+            className={`text-[9px] font-mono font-bold ${
+              summary.qualityRating === "EXCELLENT"
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                : summary.qualityRating === "GOOD"
+                ? "bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/20"
+                : "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+            }`}
+          >
+            {summary.successRate}% SUCCESS
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-[9px] font-mono text-muted-foreground">
+            0 RUNS
+          </Badge>
+        )}
       </div>
 
       <div className="space-y-1.5 text-xs">
-        {details.map((d, i) => (
-          <div key={i} className="flex items-center justify-between text-muted-foreground">
-            <span>{d.label}:</span>
-            <span
-              className={`font-semibold font-mono ${
-                d.isWarn
-                  ? "text-rose-600 dark:text-rose-400"
-                  : d.isGood
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-foreground"
-              }`}
-            >
-              {d.value}
-            </span>
+        {hasRuns ? (
+          details.map((d, i) => (
+            <div key={i} className="flex items-center justify-between text-muted-foreground">
+              <span>{d.label}:</span>
+              <span
+                className={`font-semibold font-mono ${
+                  d.isWarn
+                    ? "text-rose-600 dark:text-rose-400"
+                    : d.isGood
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-foreground"
+                }`}
+              >
+                {d.value}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="py-2 text-center text-[11px] text-muted-foreground">
+            No telemetry events recorded yet
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

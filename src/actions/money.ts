@@ -27,24 +27,43 @@ function refreshMoney() {
   revalidatePath("/reports");
 }
 
-async function ensureCashAccount(organizationId: string) {
-  const existing = await db.bankAccount.findFirst({
-    where: { organizationId, accountType: "CASH" },
-  });
-  if (existing) return existing;
-  return db.bankAccount.create({
-    data: {
-      organizationId,
-      name: "Cash in Hand",
-      accountType: "CASH",
-      openingBalance: 0,
-    },
-  });
+async function ensureDefaultAccounts(organizationId: string) {
+  const [cashAccount, bankAccount] = await Promise.all([
+    db.bankAccount.findFirst({
+      where: { organizationId, accountType: "CASH" },
+    }),
+    db.bankAccount.findFirst({
+      where: { organizationId, accountType: "BANK" },
+    }),
+  ]);
+
+  if (!cashAccount) {
+    await db.bankAccount.create({
+      data: {
+        organizationId,
+        name: "Cash in Hand",
+        accountType: "CASH",
+        openingBalance: 0,
+      },
+    });
+  }
+
+  if (!bankAccount) {
+    await db.bankAccount.create({
+      data: {
+        organizationId,
+        name: "Primary Bank Account",
+        accountType: "BANK",
+        accountNumber: "",
+        openingBalance: 0,
+      },
+    });
+  }
 }
 
 export async function getBankAccounts() {
   const organization = await requireOrganization();
-  await ensureCashAccount(organization.id);
+  await ensureDefaultAccounts(organization.id);
   return db.bankAccount.findMany({
     where: { organizationId: organization.id },
     include: { payments: true, expenses: true },
@@ -162,7 +181,7 @@ async function syncInvoicePaid(
 export async function createPayment(data: PaymentInput) {
   const parsed = paymentSchema.parse(data);
   const organization = await requireOrganization();
-  await ensureCashAccount(organization.id);
+  await ensureDefaultAccounts(organization.id);
 
   const account = await db.bankAccount.findFirst({
     where: { id: parsed.bankAccountId, organizationId: organization.id },
@@ -296,7 +315,7 @@ export async function getPaginatedExpenses(options: GetExpensesOptions) {
 export async function createExpense(data: ExpenseInput) {
   const parsed = expenseSchema.parse(data);
   const organization = await requireOrganization();
-  await ensureCashAccount(organization.id);
+  await ensureDefaultAccounts(organization.id);
   const account = await db.bankAccount.findFirst({
     where: { id: parsed.bankAccountId, organizationId: organization.id },
   });

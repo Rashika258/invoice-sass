@@ -24,79 +24,19 @@ export interface AuditLogDisplayItem {
   };
 }
 
-const MOCK_AUDIT_LOGS: AuditLogDisplayItem[] = [
-  {
-    id: "log_101",
-    timestamp: "2026-09-25T09:15:00.000Z",
-    userName: "Rashika Admin",
-    userRole: "ADMIN",
-    action: "CANCEL",
-    entityType: "INVOICE",
-    entityId: "INV-1024",
-    reasonCode: "BILLING_ERROR",
-    reasonText: "Incorrect tax rate applied during checkout",
-    changes: {
-      before: { status: "UNPAID", grandTotal: 14500 },
-      after: { status: "CANCELLED", grandTotal: 0 },
-    },
-  },
-  {
-    id: "log_102",
-    timestamp: "2026-09-25T08:30:00.000Z",
-    userName: "Store Manager",
-    userRole: "MANAGER",
-    action: "UPDATE",
-    entityType: "ITEM",
-    entityId: "ITEM-99",
-    reasonCode: "PHYSICAL_COUNT_VARIANCE",
-    reasonText: "Quarterly stock audit adjustment",
-    changes: {
-      before: { stock: 25 },
-      after: { stock: 18 },
-    },
-  },
-  {
-    id: "log_103",
-    timestamp: "2026-09-24T16:45:00.000Z",
-    userName: "Accounts Accountant",
-    userRole: "ACCOUNTANT",
-    action: "CREATE",
-    entityType: "PAYMENT",
-    entityId: "PAY-2041",
-    reasonText: "Recorded HDFC bank transfer payment",
-    changes: {
-      after: { amount: 5000, paymentMode: "UPI", invoiceId: "INV-1020" },
-    },
-  },
-  {
-    id: "log_104",
-    timestamp: "2026-09-24T14:10:00.000Z",
-    userName: "System Admin",
-    userRole: "ADMIN",
-    action: "UPDATE",
-    entityType: "SETTINGS",
-    entityId: "ORG-CONF",
-    reasonText: "Updated default tax rates to 18%",
-    changes: {
-      before: { defaultTaxRate: 12 },
-      after: { defaultTaxRate: 18 },
-    },
-  },
-];
-
 export function AuditLogsView() {
-  const [logs, setLogs] = useState<AuditLogDisplayItem[]>(MOCK_AUDIT_LOGS);
+  const [logs, setLogs] = useState<AuditLogDisplayItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<string>("ALL");
   const [selectedAction, setSelectedAction] = useState<string>("ALL");
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
   React.useEffect(() => {
-    getAuditLogsAction().then((dbLogs) => {
-      if (dbLogs && dbLogs.length > 0) {
-        setLogs(dbLogs);
-      }
-    }).catch(() => {});
+    getAuditLogsAction()
+      .then((dbLogs) => {
+        setLogs(dbLogs || []);
+      })
+      .catch(() => {});
   }, []);
 
   const filteredLogs = logs.filter((log) => {

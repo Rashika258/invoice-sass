@@ -125,17 +125,16 @@ export function getWorkflowScorecard(organizationId: string = "default-org-1"): 
     const total = flowEvents.length;
 
     if (total === 0) {
-      // Return high baseline if no errors yet recorded
       return {
         flow,
-        totalAttempts: 12,
-        successRate: 100,
-        avgDurationMs: flow === "POS_CHECKOUT" ? 1850 : flow === "RECORD_PAYMENT" ? 2200 : 3400,
+        totalAttempts: 0,
+        successRate: 0,
+        avgDurationMs: 0,
         validationFailureCount: 0,
         duplicateAttemptsBlocked: 0,
         saveFailureCount: 0,
         abandonedOrCancelledCount: 0,
-        qualityRating: "EXCELLENT",
+        qualityRating: "GOOD",
       };
     }
 

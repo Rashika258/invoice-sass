@@ -16,9 +16,11 @@ import {
 export function BankAccountFormDialog({
   account,
   trigger,
+  onSuccess,
 }: {
   account?: BankAccount;
   trigger: React.ReactNode;
+  onSuccess?: (account: BankAccount) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,9 +41,11 @@ export function BankAccountFormDialog({
       if (account) {
         await updateBankAccount(account.id, data);
         toast.success("Account updated");
+        onSuccess?.({ ...account, ...data } as BankAccount);
       } else {
-        await createBankAccount(data);
+        const created = await createBankAccount(data);
         toast.success("Account added");
+        onSuccess?.(created as BankAccount);
       }
       setOpen(false);
     } catch (error) {

@@ -13,6 +13,7 @@ import {
   FileText,
   HelpCircle,
   IndianRupee,
+  Plus,
   Receipt,
   User,
   Wallet,
@@ -20,6 +21,7 @@ import {
 import { toast } from "sonner";
 import type { BankAccount, Customer } from "@/generated/prisma/client";
 import { createPayment } from "@/actions/money";
+import { BankAccountFormDialog } from "@/components/money/bank-account-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +73,7 @@ export function PaymentNewForm({
   const [direction, setDirection] = useState<"IN" | "OUT">(
     initialDirection === "OUT" ? "OUT" : "IN"
   );
+  const [accountList, setAccountList] = useState(accounts);
   const [partyId, setPartyId] = useState(initialPartyId);
   const [invoiceId, setInvoiceId] = useState(initialInvoiceId);
   const [bankAccountId, setBankAccountId] = useState(accounts[0]?.id ?? "");
@@ -79,6 +82,20 @@ export function PaymentNewForm({
   const [mode, setMode] = useState<"CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD">("CASH");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
+
+  const handleModeChange = (newMode: "CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD") => {
+    setMode(newMode);
+    if (newMode === "CASH") {
+      const cashAcc = accountList.find((a) => a.accountType === "CASH");
+      if (cashAcc) setBankAccountId(cashAcc.id);
+    } else {
+      const currentAcc = accountList.find((a) => a.id === bankAccountId);
+      if (!currentAcc || currentAcc.accountType === "CASH") {
+        const bankAcc = accountList.find((a) => a.accountType === "BANK");
+        if (bankAcc) setBankAccountId(bankAcc.id);
+      }
+    }
+  };
 
   // Determine relevant invoices based on direction
   const activeInvoices = direction === "IN" ? saleBills : purchaseBills;
@@ -376,7 +393,7 @@ export function PaymentNewForm({
                   value={mode}
                   onValueChange={(val: "CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD" | null) => {
                     if (val === "CASH" || val === "UPI" || val === "BANK" || val === "CHEQUE" || val === "CARD") {
-                      setMode(val);
+                      handleModeChange(val);
                     }
                   }}
                 >
@@ -397,22 +414,42 @@ export function PaymentNewForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
               {/* Bank / Cash Account */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  {direction === "IN" ? "Deposit into Account" : "Pay from Account"}{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    {direction === "IN" ? "Deposit into Account" : "Pay from Account"}{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <BankAccountFormDialog
+                    trigger={
+                      <button
+                        type="button"
+                        className="text-xs text-primary font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="size-3" />
+                        <span>+ Add Bank Account</span>
+                      </button>
+                    }
+                    onSuccess={(newAcc) => {
+                      setAccountList((prev) => {
+                        const exists = prev.some((a) => a.id === newAcc.id);
+                        return exists ? prev : [...prev, newAcc];
+                      });
+                      setBankAccountId(newAcc.id);
+                    }}
+                  />
+                </div>
                 <Select
                   value={bankAccountId}
                   onValueChange={(val: string | null) => setBankAccountId(val || "")}
                 >
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select account">
-                      {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                      {accountList.find((a) => a.id === bankAccountId)?.name || "Select account"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {accounts.map((acc) => (
+                    {accountList.map((acc) => (
                       <SelectItem key={acc.id} value={acc.id}>
                         {acc.name} ({acc.accountType})
                         {acc.accountNumber ? ` • ····${acc.accountNumber.slice(-4)}` : ""}

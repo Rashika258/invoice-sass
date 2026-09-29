@@ -417,18 +417,20 @@ export async function getAnalyticsData(range: TimeRangeFilter = "30d"): Promise<
   // 7. AI Insights Generation
   const aiInsights: string[] = [];
 
-  if (salesGrowthPct > 10) {
-    aiInsights.push(
-      `🚀 Strong Revenue Growth: Sales grew by ${salesGrowthPct}% compared to the prior period.`
-    );
-  } else if (salesGrowthPct < -10) {
-    aiInsights.push(
-      `⚠️ Declining Sales: Revenue contracted by ${Math.abs(salesGrowthPct)}%. Consider launching promotional WhatsApp broadcasts.`
-    );
-  } else {
-    aiInsights.push(
-      `📊 Stable Cash Velocity: Turnover is steady (${salesGrowthPct}% growth) for the selected timeframe.`
-    );
+  if (totalSales > 0 || totalPurchases > 0) {
+    if (salesGrowthPct > 10) {
+      aiInsights.push(
+        `🚀 Strong Revenue Growth: Sales grew by ${salesGrowthPct}% compared to the prior period.`
+      );
+    } else if (salesGrowthPct < -10) {
+      aiInsights.push(
+        `⚠️ Declining Sales: Revenue contracted by ${Math.abs(salesGrowthPct)}%. Consider launching promotional WhatsApp broadcasts.`
+      );
+    } else {
+      aiInsights.push(
+        `📊 Stable Cash Velocity: Turnover is steady (${salesGrowthPct}% growth) for the selected timeframe.`
+      );
+    }
   }
 
   if (partyConcentration.length > 0 && partyConcentration[0].percentage > 35) {

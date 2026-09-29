@@ -41,16 +41,23 @@ export function AnalyticsKpiGrid({
             {formatCurrency(kpis.totalSales, currency)}
           </p>
           <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold">
-            {isPositiveGrowth ? (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
-                <ArrowUpRight className="size-3 mr-0.5" />+{kpis.salesGrowthPct}%
-              </span>
+            {kpis.totalSales === 0 ? (
+              <span className="text-muted-foreground font-normal text-[10px]">No sales recorded</span>
+            ) : isPositiveGrowth ? (
+              <>
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <ArrowUpRight className="size-3 mr-0.5" />+{kpis.salesGrowthPct}%
+                </span>
+                <span className="text-muted-foreground text-[10px] font-normal">vs prev period</span>
+              </>
             ) : (
-              <span className="text-rose-600 dark:text-rose-400 flex items-center">
-                <ArrowDownRight className="size-3 mr-0.5" />{kpis.salesGrowthPct}%
-              </span>
+              <>
+                <span className="text-rose-600 dark:text-rose-400 flex items-center">
+                  <ArrowDownRight className="size-3 mr-0.5" />{kpis.salesGrowthPct}%
+                </span>
+                <span className="text-muted-foreground text-[10px] font-normal">vs prev period</span>
+              </>
             )}
-            <span className="text-muted-foreground text-[10px] font-normal">vs prev period</span>
           </div>
         </div>
       </div>

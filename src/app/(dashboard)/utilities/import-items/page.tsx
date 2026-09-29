@@ -16,7 +16,10 @@ import {
   Package,
   Plus,
   QrCode,
+  ScanLine,
   Sparkles,
+  TrendingUp,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -348,26 +351,39 @@ export default function ImportItemsPage() {
 
       {/* Modal 1: Barcode Entry & Scanner */}
       <Dialog open={barcodeOpen} onOpenChange={setBarcodeOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl select-none">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Barcode className="size-5 text-emerald-600 dark:text-emerald-400" />
-              Import Item By Barcode
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Scan with a barcode scanner or enter the product barcode number manually.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md rounded-3xl select-none p-0 overflow-hidden border border-border/80 bg-card/95 backdrop-blur-xl shadow-2xl">
+          {/* Header Banner */}
+          <div className="p-6 pb-4 border-b border-border/70 bg-gradient-to-b from-primary/5 via-transparent to-transparent">
+            <div className="flex items-start gap-3.5">
+              <div className="size-11 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 shadow-xs">
+                <Barcode className="size-6" />
+              </div>
+              <div className="space-y-1 pr-6">
+                <DialogTitle className="text-base font-bold text-foreground tracking-tight flex items-center gap-2">
+                  <span>Import Item By Barcode</span>
+                  <Badge variant="outline" className="text-[10px] font-semibold text-primary border-primary/30 bg-primary/5">
+                    GS1 Ready
+                  </Badge>
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                  Scan with a physical barcode scanner or enter the product barcode manually.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
 
-          <form onSubmit={handleBarcodeSubmit} className="space-y-4 pt-2">
-            {/* Live Camera Scanner Viewport */}
+          <form onSubmit={handleBarcodeSubmit} className="p-6 pt-4 space-y-4">
+            {/* Live Camera Scanner Viewport or Trigger */}
             {isCameraScanning ? (
-              <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500 bg-black h-52 flex flex-col items-center justify-center">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-primary bg-black h-56 flex flex-col items-center justify-center shadow-lg">
                 <video
                   ref={(el) => {
                     if (el && navigator.mediaDevices?.getUserMedia) {
-                      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                        .then((s) => { el.srcObject = s; })
+                      navigator.mediaDevices
+                        .getUserMedia({ video: { facingMode: "environment" } })
+                        .then((s) => {
+                          el.srcObject = s;
+                        })
                         .catch(() => {});
                     }
                   }}
@@ -376,105 +392,221 @@ export default function ImportItemsPage() {
                   muted
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 border-2 border-dashed border-emerald-400 m-5 rounded-lg pointer-events-none flex items-center justify-center">
-                  <div className="w-full h-0.5 bg-emerald-500 shadow-[0_0_12px_#10b981] animate-pulse" />
+                <div className="absolute inset-0 border-2 border-dashed border-primary/80 m-6 rounded-xl pointer-events-none flex items-center justify-center">
+                  <div className="w-full h-0.5 bg-primary shadow-[0_0_12px_var(--primary)] animate-pulse" />
                 </div>
-                <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
-                  Camera Active - Point at Barcode
+                <div className="absolute top-3 left-3 bg-background/85 backdrop-blur-md px-3 py-1 rounded-full text-[11px] text-foreground font-mono flex items-center gap-2 border border-border/80 shadow-xs">
+                  <span className="size-2 rounded-full bg-primary animate-ping" />
+                  <span>Camera Active • Center Barcode</span>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    setBarcodeVal("8901030382710");
-                    setItemName("Dettol Antiseptic Soap 125g");
-                    setSalePrice("65");
-                    setPurchasePrice("52");
-                    setIsCameraScanning(false);
-                    toast.success("Barcode Scanned: 8901030382710");
-                  }}
-                  className="absolute bottom-3 bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-bold h-7 px-3 rounded-full shadow-lg cursor-pointer"
-                >
-                  <Sparkles className="size-3 mr-1" />
-                  Capture Scanned Barcode
-                </Button>
+                <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsCameraScanning(false)}
+                    className="h-8 text-xs rounded-xl backdrop-blur-md bg-background/85 hover:bg-background cursor-pointer border border-border/60"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      setBarcodeVal("8901030382710");
+                      setItemName("Dettol Antiseptic Soap 125g");
+                      setSalePrice("65");
+                      setPurchasePrice("52");
+                      setIsCameraScanning(false);
+                      toast.success("Barcode Scanned: 8901030382710");
+                    }}
+                    className="h-8 text-xs rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md cursor-pointer gap-1.5"
+                  >
+                    <Sparkles className="size-3.5" />
+                    Capture Barcode
+                  </Button>
+                </div>
               </div>
             ) : (
-              <Button
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setIsCameraScanning(true)}
-                className="w-full h-10 rounded-xl border-dashed border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full rounded-2xl border border-primary/25 bg-primary/5 hover:bg-primary/10 p-3.5 transition-all text-left flex items-center justify-between group cursor-pointer"
               >
-                <Camera className="size-4 text-primary" />
-                <span>Scan Barcode using Device Camera</span>
-              </Button>
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 group-hover:scale-105 transition-transform">
+                    <Camera className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Scan Barcode using Device Camera</p>
+                    <p className="text-[11px] text-muted-foreground">Auto-detects rear or laptop webcam stream</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                  <span>Open Scanner</span>
+                  <ScanLine className="size-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
             )}
 
+            {/* Quick Test Barcode Chips */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Sample:</span>
+              {[
+                { name: "Dettol Soap", code: "8901030382710", full: "Dettol Antiseptic Soap 125g", sale: "65", cost: "52" },
+                { name: "Tata Salt", code: "8901058852329", full: "Tata Salt Vacuum Evaporated 1kg", sale: "28", cost: "24" },
+                { name: "Amul Butter", code: "8901262010054", full: "Amul Pasteurised Butter 100g", sale: "58", cost: "50" },
+              ].map((item) => (
+                <button
+                  key={item.code}
+                  type="button"
+                  onClick={() => {
+                    setBarcodeVal(item.code);
+                    setItemName(item.full);
+                    setSalePrice(item.sale);
+                    setPurchasePrice(item.cost);
+                  }}
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer font-medium ${
+                    barcodeVal === item.code
+                      ? "border-primary bg-primary/10 text-primary font-semibold"
+                      : "border-border/70 bg-muted/30 hover:bg-primary/5 hover:border-primary/30 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Barcode Input */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-foreground">Barcode / EAN Number</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-foreground">Barcode / EAN Number</Label>
+                <span className="text-[10px] text-muted-foreground font-mono">EAN-13 • UPC • Code 128</span>
+              </div>
               <div className="relative">
+                <Barcode className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-primary" />
                 <Input
                   value={barcodeVal}
                   onChange={(e) => setBarcodeVal(e.target.value)}
                   placeholder="e.g. 8901030382710"
-                  className="font-mono text-sm pl-9 bg-card text-foreground border-border"
+                  className="font-mono text-sm pl-10 pr-9 h-10 rounded-xl bg-muted/30 border-border/80 text-foreground focus-visible:ring-primary/30"
                   required
                 />
-                <Barcode className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                {barcodeVal && (
+                  <button
+                    type="button"
+                    onClick={() => setBarcodeVal("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 size-5 rounded-md text-muted-foreground hover:text-foreground flex items-center justify-center hover:bg-muted cursor-pointer"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
+            {/* Product Name Input */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-foreground">Item / Product Name</Label>
-              <Input
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                placeholder="Product name"
-                className="text-xs bg-card text-foreground border-border"
-                required
-              />
+              <div className="relative">
+                <Package className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                  placeholder="e.g. Dettol Antiseptic Soap 125g"
+                  className="text-xs pl-10 h-10 rounded-xl bg-muted/30 border-border/80 text-foreground focus-visible:ring-primary/30 font-medium"
+                  required
+                />
+              </div>
             </div>
 
+            {/* Pricing Section with 2 columns */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground">Sale Price (₹)</Label>
-                <Input
-                  type="number"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
-                  className="font-mono text-xs bg-card text-foreground border-border"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">₹</span>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                    placeholder="0.00"
+                    className="font-mono text-xs font-semibold pl-8 h-10 rounded-xl bg-muted/30 border-border/80 text-foreground focus-visible:ring-primary/30"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground">Purchase Cost (₹)</Label>
-                <Input
-                  type="number"
-                  value={purchasePrice}
-                  onChange={(e) => setPurchasePrice(e.target.value)}
-                  className="font-mono text-xs bg-card text-foreground border-border"
-                />
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">₹</span>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={purchasePrice}
+                    onChange={(e) => setPurchasePrice(e.target.value)}
+                    placeholder="0.00"
+                    className="font-mono text-xs pl-8 h-10 rounded-xl bg-muted/30 border-border/80 text-foreground focus-visible:ring-primary/30"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-border">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setBarcodeOpen(false)}
-                className="text-xs cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-sm"
-              >
-                {loading ? <Loader2 className="size-4 animate-spin" /> : "Add to Inventory"}
-              </Button>
+            {/* Live Profit Margin Analyzer */}
+            {salePrice && purchasePrice && (
+              <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/25 px-3.5 py-2 text-xs">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <TrendingUp className="size-3.5 text-primary" />
+                  <span>Gross Margin:</span>
+                  <span className={`font-mono font-bold ${Number(salePrice) >= Number(purchasePrice) ? "text-emerald-500" : "text-rose-500"}`}>
+                    {Number(salePrice) > 0
+                      ? (((Number(salePrice) - Number(purchasePrice)) / Number(salePrice)) * 100).toFixed(1)
+                      : "0.0"}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <span>Unit Profit:</span>
+                  <span className={`font-mono font-bold ${Number(salePrice) >= Number(purchasePrice) ? "text-foreground" : "text-rose-500"}`}>
+                    ₹{(Number(salePrice) - Number(purchasePrice)).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Footer with Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-border/70 -mx-6 -mb-6 px-6 py-3.5 bg-muted/20">
+              <span className="text-[11px] text-muted-foreground">
+                Unit: <span className="font-semibold text-foreground font-mono">PCS</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBarcodeOpen(false)}
+                  className="rounded-xl h-9 text-xs font-semibold border-border hover:bg-muted cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={loading}
+                  className="rounded-xl h-9 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-xs gap-1.5"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="size-3.5" />
+                      <span>Add to Inventory</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -482,18 +614,24 @@ export default function ImportItemsPage() {
 
       {/* Modal 2: Excel / CSV File Upload */}
       <Dialog open={excelOpen} onOpenChange={setExcelOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl select-none">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <FileSpreadsheet className="size-5 text-emerald-500" />
-              Import Items from Excel / CSV
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Upload your spreadsheet with columns for Item Name, Sale Price, Purchase Price, GST, HSN, and Stock.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-lg rounded-3xl select-none p-0 overflow-hidden border border-border/80 bg-card/95 backdrop-blur-xl shadow-2xl">
+          <div className="p-6 pb-4 border-b border-border/70 bg-gradient-to-b from-primary/5 via-transparent to-transparent">
+            <div className="flex items-start gap-3.5">
+              <div className="size-11 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 shadow-xs">
+                <FileSpreadsheet className="size-6" />
+              </div>
+              <div className="space-y-1 pr-6">
+                <DialogTitle className="text-base font-bold text-foreground tracking-tight">
+                  Import Items from Excel / CSV
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                  Upload your spreadsheet with columns for Item Name, Sale Price, Purchase Price, GST, HSN, and Stock.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
 
-          <div className="space-y-4 pt-2 text-xs">
+          <div className="p-6 pt-4 space-y-4 text-xs">
             {/* Download Template Strip */}
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-3">
               <span className="text-muted-foreground">Don&apos;t have a sheet ready?</span>
@@ -502,21 +640,21 @@ export default function ImportItemsPage() {
                 variant="outline"
                 size="sm"
                 onClick={downloadSampleCsv}
-                className="h-7 text-xs border-border bg-card text-foreground hover:bg-accent cursor-pointer"
+                className="h-8 rounded-xl text-xs border-border bg-card text-foreground hover:bg-accent cursor-pointer"
               >
-                <Download className="mr-1.5 size-3" />
+                <Download className="mr-1.5 size-3 text-primary" />
                 Sample Template
               </Button>
             </div>
 
             {/* Drag and Drop or File Picker */}
-            <div className="rounded-xl border-2 border-dashed border-border p-6 text-center hover:border-primary/50 transition-colors bg-card/40">
-              <FileUp className="mx-auto size-8 text-muted-foreground mb-2" />
+            <div className="rounded-2xl border-2 border-dashed border-border/80 p-6 text-center hover:border-primary/50 transition-colors bg-muted/15">
+              <FileUp className="mx-auto size-8 text-primary mb-2" />
               <p className="text-xs font-semibold text-foreground">
                 Choose a .CSV file from your computer
               </p>
-              <p className="text-[11px] text-muted-foreground mt-1">UTF-8 encoded spreadsheet</p>
-              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 text-xs font-semibold cursor-pointer shadow-xs">
+              <p className="text-[11px] text-muted-foreground mt-1">UTF-8 encoded spreadsheet format</p>
+              <label className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 text-xs font-bold cursor-pointer shadow-xs">
                 <span>Select File</span>
                 <input
                   type="file"
@@ -530,10 +668,10 @@ export default function ImportItemsPage() {
             {/* CSV Preview table if uploaded */}
             {csvPreview.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <p className="text-xs font-semibold text-primary">
                   ✓ Ready to import {csvPreview.length} items:
                 </p>
-                <div className="max-h-36 overflow-y-auto rounded-lg border border-border bg-muted/30 p-2 text-xs font-mono space-y-1">
+                <div className="max-h-36 overflow-y-auto rounded-xl border border-border bg-muted/30 p-2 text-xs font-mono space-y-1">
                   {csvPreview.slice(0, 5).map((it, i) => (
                     <div key={i} className="flex justify-between text-foreground">
                       <span className="truncate">{it.name}</span>
@@ -549,20 +687,22 @@ export default function ImportItemsPage() {
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-border">
+            <div className="flex items-center justify-end gap-2 pt-4 border-t border-border/70 -mx-6 -mb-6 px-6 py-3.5 bg-muted/20">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => setExcelOpen(false)}
-                className="text-xs cursor-pointer"
+                className="rounded-xl h-9 text-xs font-semibold border-border hover:bg-muted cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
+                size="sm"
                 disabled={csvPreview.length === 0 || loading}
                 onClick={handleCsvImportSubmit}
-                className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-sm"
+                className="rounded-xl h-9 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold px-5 cursor-pointer shadow-xs"
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />

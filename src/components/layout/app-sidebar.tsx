@@ -432,23 +432,55 @@ function NavLinks({
       .filter((grp) => grp.items.length > 0);
   }, [query, enabledFeatures, verticalMeta, businessVertical]);
 
-  // Find exact or longest matching item href across filteredNavConfig so ONLY ONE item is active at a time
-  const activeHref = (() => {
-    let bestMatch = "";
-    for (const grp of filteredNavConfig) {
-      for (const item of grp.items) {
-        if (pathname === item.href) return item.href;
-        if (
-          item.href !== "/dashboard" &&
-          pathname.startsWith(`${item.href}/`) &&
-          item.href.length > bestMatch.length
-        ) {
-          bestMatch = item.href;
+  // Track uniquely clicked item key: `${group.id}::${item.href}`
+  const [clickedItemKey, setClickedItemKey] = useState<string | null>(null);
+
+  // Compute the single uniquely active item key across all sidebar groups
+  const activeKey = useMemo(() => {
+    // 1. If user previously clicked an item whose href matches or is a prefix of current pathname
+    if (clickedItemKey) {
+      const [clickedGroupId, ...rest] = clickedItemKey.split("::");
+      const clickedHref = rest.join("::");
+      if (
+        pathname === clickedHref ||
+        (clickedHref !== "/dashboard" && pathname.startsWith(`${clickedHref}/`))
+      ) {
+        const exists = filteredNavConfig.some(
+          (g) => g.id === clickedGroupId && g.items.some((i) => i.href === clickedHref)
+        );
+        if (exists) {
+          return clickedItemKey;
         }
       }
     }
-    return bestMatch;
-  })();
+
+    // 2. Otherwise find the single first exact match across all groups
+    for (const grp of filteredNavConfig) {
+      for (const item of grp.items) {
+        if (pathname === item.href) {
+          return `${grp.id}::${item.href}`;
+        }
+      }
+    }
+
+    // 3. Fallback to longest matching prefix across all groups
+    let bestKey: string | null = null;
+    let bestMatchLen = 0;
+    for (const grp of filteredNavConfig) {
+      for (const item of grp.items) {
+        if (
+          item.href !== "/dashboard" &&
+          pathname.startsWith(`${item.href}/`) &&
+          item.href.length > bestMatchLen
+        ) {
+          bestKey = `${grp.id}::${item.href}`;
+          bestMatchLen = item.href.length;
+        }
+      }
+    }
+
+    return bestKey;
+  }, [pathname, clickedItemKey, filteredNavConfig]);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {
@@ -457,12 +489,21 @@ function NavLinks({
       purchase: true,
     };
     navConfig.forEach((grp) => {
-      if (grp.items.some((it) => it.href === activeHref || pathname.startsWith(it.href))) {
+      if (grp.items.some((it) => pathname === it.href || (it.href !== "/dashboard" && pathname.startsWith(`${it.href}/`)))) {
         initial[grp.id] = true;
       }
     });
     return initial;
   });
+
+  useEffect(() => {
+    if (activeKey) {
+      const [activeGroupId] = activeKey.split("::");
+      if (activeGroupId) {
+        setOpenGroups((prev) => ({ ...prev, [activeGroupId]: true }));
+      }
+    }
+  }, [activeKey]);
 
   const toggleGroup = (id: string) => {
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -501,11 +542,12 @@ function NavLinks({
         {filteredNavConfig.map((group) => {
           const GroupIcon = group.icon;
           const hasSubItems = group.collapsible && group.items.length > 0;
-          const isGroupActive = group.items.some((it) => it.href === activeHref);
+          const isGroupActive = group.items.some((it) => `${group.id}::${it.href}` === activeKey);
 
           if (!hasSubItems && group.items.length === 1) {
             const singleItem = group.items[0];
-            const isActive = singleItem.href === activeHref;
+            const itemKey = `${group.id}::${singleItem.href}`;
+            const isActive = itemKey === activeKey;
 
             return (
               <SimpleTooltip
@@ -524,7 +566,10 @@ function NavLinks({
               >
                 <Link
                   href={singleItem.href}
-                  onClick={onNavigate}
+                  onClick={() => {
+                    setClickedItemKey(itemKey);
+                    onNavigate?.();
+                  }}
                   aria-label={group.title}
                   className={cn(
                     "flex size-10 items-center justify-center rounded-xl text-xs transition-all duration-150",
@@ -586,10 +631,11 @@ function NavLinks({
                 </div>
                 {group.items.map((item) => {
                   const SubIcon = item.icon;
-                  const isActive = item.href === activeHref;
+                  const itemKey = `${group.id}::${item.href}`;
+                  const isActive = itemKey === activeKey;
                   return (
                     <DropdownMenuItem
-                      key={item.href}
+                      key={itemKey}
                       className={cn(
                         "p-0 cursor-pointer rounded-lg",
                         isActive ? "bg-brand/10 text-brand font-bold" : "text-muted-foreground hover:text-foreground"
@@ -598,6 +644,7 @@ function NavLinks({
                       <Link
                         href={item.href}
                         onClick={() => {
+                          setClickedItemKey(itemKey);
                           onNavigate?.();
                         }}
                         className="flex items-center justify-between w-full px-2.5 py-1.5 text-xs"
@@ -629,11 +676,12 @@ function NavLinks({
         const GroupIcon = group.icon;
         const isOpen = isSearching || (openGroups[group.id] ?? false);
         const hasSubItems = group.collapsible && group.items.length > 0;
-        const isGroupActive = group.items.some((it) => it.href === activeHref);
+        const isGroupActive = group.items.some((it) => `${group.id}::${it.href}` === activeKey);
 
         if (!hasSubItems && group.items.length === 1) {
           const singleItem = group.items[0];
-          const isActive = singleItem.href === activeHref;
+          const itemKey = `${group.id}::${singleItem.href}`;
+          const isActive = itemKey === activeKey;
 
           return (
             <div
@@ -647,7 +695,10 @@ function NavLinks({
             >
               <Link
                 href={singleItem.href}
-                onClick={onNavigate}
+                onClick={() => {
+                  setClickedItemKey(itemKey);
+                  onNavigate?.();
+                }}
                 className="flex items-center gap-2.5 flex-1 min-w-0"
               >
                 <GroupIcon
@@ -707,11 +758,12 @@ function NavLinks({
               <div className="space-y-0.5 pl-3 pt-0.5">
                 {group.items.map((item) => {
                   const SubIcon = item.icon;
-                  const isActive = item.href === activeHref;
+                  const itemKey = `${group.id}::${item.href}`;
+                  const isActive = itemKey === activeKey;
 
                   return (
                     <div
-                      key={item.href}
+                      key={itemKey}
                       className={cn(
                         "group flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all",
                         isActive
@@ -721,7 +773,10 @@ function NavLinks({
                     >
                       <Link
                         href={item.href}
-                        onClick={onNavigate}
+                        onClick={() => {
+                          setClickedItemKey(itemKey);
+                          onNavigate?.();
+                        }}
                         className="flex items-center gap-2 flex-1 min-w-0"
                       >
                         {SubIcon && (

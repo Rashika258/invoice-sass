@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { BankAccount, Customer, Invoice } from "@/generated/prisma/client";
 import { createPayment, deletePayment } from "@/actions/money";
+import { BankAccountFormDialog } from "@/components/money/bank-account-form-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,11 +45,26 @@ export function PaymentFormDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accountList, setAccountList] = useState(accounts);
   const [partyId, setPartyId] = useState("");
   const [invoiceId, setInvoiceId] = useState("");
   const [bankAccountId, setBankAccountId] = useState(accounts[0]?.id ?? "");
   const [mode, setMode] = useState<"CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD">("CASH");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const handleModeChange = (newMode: "CASH" | "UPI" | "BANK" | "CHEQUE" | "CARD") => {
+    setMode(newMode);
+    if (newMode === "CASH") {
+      const cashAcc = accountList.find((a) => a.accountType === "CASH");
+      if (cashAcc) setBankAccountId(cashAcc.id);
+    } else {
+      const currentAcc = accountList.find((a) => a.id === bankAccountId);
+      if (!currentAcc || currentAcc.accountType === "CASH") {
+        const bankAcc = accountList.find((a) => a.accountType === "BANK");
+        if (bankAcc) setBankAccountId(bankAcc.id);
+      }
+    }
+  };
 
   const linkedInvoices = invoices.filter((invoice) => !partyId || invoice.customerId === partyId);
 
@@ -137,7 +153,9 @@ export function PaymentFormDialog({
               <div className="space-y-2">
                 <Label>Mode</Label>
                 <Select value={mode} onValueChange={(value) => {
-                  if (value === "CASH" || value === "UPI" || value === "BANK" || value === "CHEQUE" || value === "CARD") setMode(value);
+                  if (value === "CASH" || value === "UPI" || value === "BANK" || value === "CHEQUE" || value === "CARD") {
+                    handleModeChange(value);
+                  }
                 }}>
                   <SelectTrigger><SelectValue placeholder="Mode">{mode}</SelectValue></SelectTrigger>
                   <SelectContent>
@@ -150,16 +168,39 @@ export function PaymentFormDialog({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Received in / Paid from</Label>
+                <div className="flex items-center justify-between">
+                  <Label>{direction === "IN" ? "Deposit into Account" : "Pay from Account"}</Label>
+                  <BankAccountFormDialog
+                    trigger={
+                      <button
+                        type="button"
+                        className="text-xs text-primary font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <Plus className="size-3" />
+                        <span>Add Account</span>
+                      </button>
+                    }
+                    onSuccess={(newAcc) => {
+                      setAccountList((prev) => {
+                        const exists = prev.some((a) => a.id === newAcc.id);
+                        return exists ? prev : [...prev, newAcc];
+                      });
+                      setBankAccountId(newAcc.id);
+                    }}
+                  />
+                </div>
                 <Select value={bankAccountId} onValueChange={(value) => value && setBankAccountId(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select account">
-                      {accounts.find((a) => a.id === bankAccountId)?.name || "Select account"}
+                      {accountList.find((a) => a.id === bankAccountId)?.name || "Select account"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                    {accountList.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name} ({account.accountType})
+                        {account.accountNumber ? ` • ····${account.accountNumber.slice(-4)}` : ""}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
