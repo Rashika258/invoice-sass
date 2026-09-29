@@ -49,6 +49,7 @@ export const metadata: Metadata = {
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OrganizationProvider } from "@/context/OrganizationContext";
+import { GlobalFormValidation } from "@/components/common/global-form-validation";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <OrganizationProvider>
           <ThemeProvider>
             <TooltipProvider delay={250}>
+              <GlobalFormValidation />
               {children}
               <Toaster richColors position="top-right" />
             </TooltipProvider>
