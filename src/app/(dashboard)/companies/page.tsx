@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
   const companies = await getAvailableCompanies();
+  const activeCompany = companies.find((c) => c.isActive) || companies[0];
 
   return (
     <div className="space-y-6 select-none">
@@ -41,7 +42,11 @@ export default async function CompaniesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <CompanySwitcher className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-3 py-2 text-xs font-bold shadow-xs hover:bg-primary/90" />
+          <CompanySwitcher
+            initialCompanies={companies}
+            currentCompanyName={activeCompany?.companyName}
+            className="flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-3 py-2 text-xs font-bold shadow-xs hover:bg-primary/90"
+          />
         </div>
       </div>
 

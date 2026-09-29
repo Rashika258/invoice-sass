@@ -45,13 +45,16 @@ import { useActiveOrganization } from "@/hooks/useActiveOrganization";
 export function CompanySwitcher({
   currentCompanyName,
   className,
+  initialCompanies,
 }: {
   currentCompanyName?: string;
   className?: string;
+  initialCompanies?: CompanySummaryItem[];
 }) {
   const router = useRouter();
   const { appName } = useAppName();
-  const [companies, setCompanies] = useState<CompanySummaryItem[]>([]);
+  const [companies, setCompanies] = useState<CompanySummaryItem[]>(initialCompanies || []);
+  const [cachedCompanyName, setCachedCompanyName] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
@@ -63,21 +66,44 @@ export function CompanySwitcher({
   const [newState, setNewState] = useState("Karnataka");
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("billora_active_company_name");
+      if (stored) setCachedCompanyName(stored);
+    }
+  }, []);
+
   const loadCompanies = async () => {
     try {
       const list = await getAvailableCompanies();
       setCompanies(list);
+      const active = list.find((c) => c.isActive);
+      if (active && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("billora_active_company_name", active.companyName);
+        } catch {}
+      }
     } catch {
       // ignore
     }
   };
 
   useEffect(() => {
+    if (initialCompanies && initialCompanies.length > 0) {
+      setCompanies(initialCompanies);
+    }
     loadCompanies();
-  }, []);
+  }, [initialCompanies]);
 
   const handleSwitch = (companyId: string, name: string) => {
-    // 1. Instantly update local state so checkmark, name, and logo update immediately
+    // 1. Instantly update local cache and state so checkmark, name, and logo update immediately
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("billora_active_company_name", name);
+      } catch {}
+    }
+    setCachedCompanyName(name);
+
     setCompanies((prev) =>
       prev.map((c) => ({
         ...c,
@@ -145,7 +171,8 @@ export function CompanySwitcher({
   const displayName =
     activeCompany?.companyName ||
     currentCompanyName ||
-    "Sri Manjunatha Engineering Works";
+    cachedCompanyName ||
+    appName;
 
   return (
     <>

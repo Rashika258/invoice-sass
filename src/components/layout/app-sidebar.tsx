@@ -766,7 +766,7 @@ export function AppSidebar({
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground truncate max-w-[130px]" title={companyName}>
-                {companyName || "Sri Manjunatha Engineering Works"}
+                {companyName || "My Business"}
               </p>
             </div>
           )}

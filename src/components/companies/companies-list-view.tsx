@@ -49,6 +49,11 @@ export function CompaniesListView({ initialCompanies }: CompaniesListViewProps) 
   const handleSwitchCompany = async (company: CompanySummaryItem) => {
     if (company.isActive) return;
     setIsSwitching(company.id);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("billora_active_company_name", company.companyName);
+      } catch {}
+    }
     try {
       const res = await switchActiveCompanyAction(company.id);
       if (res.logoUrl) {
