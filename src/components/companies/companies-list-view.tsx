@@ -96,7 +96,7 @@ export function CompaniesListView({ initialCompanies }: CompaniesListViewProps) 
               key={comp.id}
               className={`rounded-2xl shadow-xs transition-all relative overflow-hidden ${
                 comp.isActive
-                  ? "border-emerald-500/50 bg-emerald-500/[0.03] ring-1 ring-emerald-500/20"
+                  ? "border-primary/50 bg-primary/[0.03] ring-1 ring-primary/20"
                   : "hover:border-border"
               }`}
             >
@@ -150,7 +150,7 @@ export function CompaniesListView({ initialCompanies }: CompaniesListViewProps) 
                   </div>
 
                   {comp.isActive ? (
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-[10px] font-bold shrink-0">
+                    <Badge className="bg-primary/15 text-primary border border-primary/25 text-[10px] font-bold shrink-0">
                       ACTIVE FIRM
                     </Badge>
                   ) : (

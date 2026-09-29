@@ -201,7 +201,7 @@ export function PaymentNewForm({
             onClick={() => handleDirectionSwitch("IN")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
               direction === "IN"
-                ? "bg-emerald-600 text-white shadow-xs"
+                ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -319,7 +319,7 @@ export function PaymentNewForm({
         <Card className="shadow-xs border">
           <CardHeader className="pb-4">
             <CardTitle className="text-base flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-emerald-600" />
+              <Wallet className="h-4 w-4 text-primary" />
               Settlement &amp; Amount
             </CardTitle>
             <CardDescription>

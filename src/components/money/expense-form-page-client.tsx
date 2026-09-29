@@ -62,7 +62,7 @@ export function ExpenseFormPageClient({
         </Link>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Banknote className="size-5 text-emerald-600 dark:text-emerald-400" />
+            <Banknote className="size-5 text-primary" />
             Record Operating Expense
           </h1>
           <p className="text-xs text-muted-foreground">

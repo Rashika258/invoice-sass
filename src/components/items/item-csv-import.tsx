@@ -167,11 +167,11 @@ export function ItemCsvImport({ onSuccess }: { onSuccess?: () => void }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileText className="size-4 text-emerald-600" />
+              <FileText className="size-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
                 {fileName}
               </span>
-              <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 text-[10px]">
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
                 {rows.length} rows ready
               </Badge>
             </div>

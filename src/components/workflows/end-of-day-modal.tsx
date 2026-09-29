@@ -38,7 +38,7 @@ export function EndOfDayModal({ open, onOpenChange }: EndOfDayModalProps) {
       <DialogContent className="sm:max-w-lg p-0 select-none">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="text-base font-extrabold flex items-center gap-2 text-foreground">
-            <CalendarCheck className="size-5 text-emerald-600" />
+            <CalendarCheck className="size-5 text-primary" />
             <span>End-of-Day Business Reconciliation Wizard</span>
           </DialogTitle>
           <DialogDescription className="text-xs">
@@ -56,8 +56,8 @@ export function EndOfDayModal({ open, onOpenChange }: EndOfDayModalProps) {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400">
-                  <div className="text-[10px] uppercase font-bold text-emerald-600">Total Sales Today</div>
+                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+                  <div className="text-[10px] uppercase font-bold text-primary">Total Sales Today</div>
                   <div className="text-xl font-black font-mono">₹ {todaySales.toLocaleString("en-IN")}</div>
                 </div>
 
@@ -150,7 +150,7 @@ export function EndOfDayModal({ open, onOpenChange }: EndOfDayModalProps) {
                   <span>Total Sales Revenue:</span>
                   <span className="font-bold">₹ {todaySales.toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex justify-between text-emerald-600">
+                <div className="flex justify-between text-foreground">
                   <span>UPI / Bank Collections:</span>
                   <span className="font-bold">₹ {upiCollected.toLocaleString("en-IN")}</span>
                 </div>
