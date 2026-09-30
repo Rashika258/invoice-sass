@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Printer, Share2, Store } from "lucide-react";
+import { ArrowLeft, Share2, Store } from "lucide-react";
 import { fetchStoreBill } from "@/actions/store-ops";
 import { getCompanyProfile } from "@/actions/settings";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PrintStoreBillButton } from "@/components/products/print-store-bill-button";
 import { formatCurrency } from "@/lib/invoice-utils";
 import { numberToWordsIndian } from "@/lib/number-to-words";
 
@@ -204,19 +204,5 @@ export default async function StoreBillPage({
         </div>
       </div>
     </div>
-  );
-}
-
-function PrintStoreBillButton() {
-  "use client";
-  return (
-    <Button
-      size="sm"
-      onClick={() => window.print()}
-      className="h-8 rounded-xl bg-primary text-primary-foreground font-semibold text-xs"
-    >
-      <Printer className="mr-1.5 size-3.5" />
-      Print GST Bill
-    </Button>
   );
 }
